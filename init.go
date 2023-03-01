@@ -19,7 +19,6 @@ const (
 
 func init() {
 	utils.Initialize()
-	logging.Initialize()
 	rabbitmq.Initialize()
 }
 func StartAndRunForever(services []MythicServices) {

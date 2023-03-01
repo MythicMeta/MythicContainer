@@ -16,7 +16,7 @@ var (
 	logger logr.Logger
 )
 
-func Initialize() {
+func init() {
 	zerologr.NameFieldName = "logger"
 	zerologr.NameSeparator = "/"
 	var zl zerolog.Logger

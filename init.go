@@ -3,7 +3,6 @@ package MythicContainer
 import (
 	"github.com/MythicMeta/MythicContainer/logging"
 	"github.com/MythicMeta/MythicContainer/rabbitmq"
-	"github.com/MythicMeta/MythicContainer/utils"
 	"os"
 )
 
@@ -18,7 +17,6 @@ const (
 )
 
 func init() {
-	utils.Initialize()
 	rabbitmq.Initialize()
 }
 func StartAndRunForever(services []MythicServices) {

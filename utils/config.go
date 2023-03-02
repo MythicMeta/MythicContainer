@@ -33,7 +33,7 @@ var (
 	MythicConfig = Config{}
 )
 
-func Initialize() {
+func init() {
 	mythicEnv := viper.New()
 	// mythic config
 	mythicEnv.SetDefault("debug_level", "staging")

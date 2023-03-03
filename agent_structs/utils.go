@@ -2,7 +2,6 @@ package agentstructs
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"github.com/MythicMeta/MythicContainer/logging"
 	"github.com/MythicMeta/MythicContainer/utils"
@@ -12,7 +11,6 @@ import (
 	"os/exec"
 	"strings"
 	"sync"
-	"time"
 )
 
 type RabbitmqRPCMethod struct {
@@ -175,23 +173,17 @@ func (r *allPayloadData) GetDirectMethods() []RabbitmqDirectMethod {
 func (r *allPayloadData) GetRoutingKey(baseRoutingKey string) string {
 	return fmt.Sprintf("%s_%s", r.GetPayloadName(), baseRoutingKey)
 }
-
-func RunCommandWithTimeout(command string, args []string, cwd string, timeoutSeconds int) (stdout []byte, stderr []byte, err error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeoutSeconds)*time.Second)
-	defer cancel()
-	cmd := exec.CommandContext(ctx, command, args...)
+func RunShellCommand(arguments string, cwd string) (stdout []byte, stderr []byte, err error) {
+	return RunCommand("/bin/bash", arguments, cwd)
+}
+func RunCommand(command string, arguments string, cwd string) (stdout []byte, stderr []byte, err error) {
+	cmd := exec.Command(command)
+	cmd.Stdin = strings.NewReader(arguments)
 	cmd.Dir = cwd
-	var stdOutBytes bytes.Buffer
-	var stdErrBytes bytes.Buffer
-	cmd.Stdout = &stdOutBytes
-	cmd.Stderr = &stdErrBytes
-	if err := cmd.Start(); err != nil {
-		logging.LogError(err, "Failed to run command")
-		return nil, nil, err
-	} else if err := cmd.Wait(); err != nil {
-		logging.LogError(err, "Command failed to complete successfully")
-		return nil, nil, err
-	} else {
-		return stdOutBytes.Bytes(), stdErrBytes.Bytes(), nil
-	}
+	var stdOut bytes.Buffer
+	var stdErr bytes.Buffer
+	cmd.Stdout = &stdOut
+	cmd.Stderr = &stdErr
+	errOut := cmd.Run()
+	return stdOut.Bytes(), stdErr.Bytes(), errOut
 }

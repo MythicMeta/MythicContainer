@@ -3,16 +3,16 @@ package rabbitmq
 import (
 	"fmt"
 	"github.com/MythicMeta/MythicContainer/grpc"
+	"github.com/MythicMeta/MythicContainer/loggingstructs"
 	"github.com/MythicMeta/MythicContainer/translationstructs"
+	"github.com/MythicMeta/MythicContainer/webhookstructs"
 	"os"
 	"sync"
 
 	agentstructs "github.com/MythicMeta/MythicContainer/agent_structs"
 	c2structs "github.com/MythicMeta/MythicContainer/c2_structs"
 	"github.com/MythicMeta/MythicContainer/logging"
-	"github.com/MythicMeta/MythicContainer/loggingstructs"
 	"github.com/MythicMeta/MythicContainer/utils"
-	"github.com/MythicMeta/MythicContainer/webhookstructs"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -47,7 +47,7 @@ type rabbitMQConnection struct {
 
 var RabbitMQConnection rabbitMQConnection
 
-const containerVersion = "v1.0.0-0.0.0"
+const containerVersion = "v1.0.0-0.0.5"
 
 func (r *rabbitMQConnection) AddRPCQueue(input RPCQueueStruct) {
 	r.addListenerMutex.Lock()
@@ -78,12 +78,98 @@ func (r *rabbitMQConnection) startListeners(services []string) {
 			directQueue.Handler,
 			exclusiveQueue)
 	}
+	// handle starting any queues that are necessary for a logging container
+	if utils.StringSliceContains(services, "logger") {
+		logging.LogInfo("Initializing RabbitMQ for SIEM Logging Services")
+		for _, directQueue := range loggingstructs.AllLoggingData.Get("").GetDirectMethods() {
+			listenerExists := false
+			for _, logger := range loggingstructs.AllLoggingData.GetAllNames() {
+				loggingDef := loggingstructs.AllLoggingData.Get(logger).GetLoggingDefinition()
+				switch directQueue.RabbitmqRoutingKey {
+				case loggingstructs.LOG_TYPE_CALLBACK:
+					if loggingDef.NewCallbackFunction != nil {
+						listenerExists = true
+					}
+				case loggingstructs.LOG_TYPE_ARTIFACT:
+					if loggingDef.NewArtifactFunction != nil {
+						listenerExists = true
+					}
+				case loggingstructs.LOG_TYPE_CREDENTIAL:
+					if loggingDef.NewCredentialFunction != nil {
+						listenerExists = true
+					}
+				case loggingstructs.LOG_TYPE_KEYLOG:
+					if loggingDef.NewKeylogFunction != nil {
+						listenerExists = true
+					}
+				case loggingstructs.LOG_TYPE_FILE:
+					if loggingDef.NewFileFunction != nil {
+						listenerExists = true
+					}
+				case loggingstructs.LOG_TYPE_PAYLOAD:
+					if loggingDef.NewPayloadFunction != nil {
+						listenerExists = true
+					}
+				case loggingstructs.LOG_TYPE_TASK:
+					if loggingDef.NewTaskFunction != nil {
+						listenerExists = true
+					}
+				default:
+				}
+			}
+			if listenerExists {
+				go RabbitMQConnection.ReceiveFromMythicDirectTopicExchange(
+					MYTHIC_TOPIC_EXCHANGE,
+					loggingstructs.GetRoutingKeyFor(directQueue.RabbitmqRoutingKey),
+					loggingstructs.GetRoutingKeyFor(directQueue.RabbitmqRoutingKey),
+					directQueue.RabbitmqProcessingFunction,
+					!exclusiveQueue,
+				)
+			}
+
+		}
+	}
+	// handle starting any queues that are necessary for a webhook container
+	if utils.StringSliceContains(services, "webhook") {
+		logging.LogInfo("Initializing RabbitMQ for Webhook Services")
+		for _, directQueue := range webhookstructs.AllWebhookData.Get("").GetDirectMethods() {
+			listenerExists := false
+			// only start listening for messages on queues if we have functions to process the messages
+			for _, webhook := range webhookstructs.AllWebhookData.GetAllNames() {
+				webhookDef := webhookstructs.AllWebhookData.Get(webhook).GetWebhookDefinition()
+				switch directQueue.RabbitmqRoutingKey {
+				case webhookstructs.WEBHOOK_TYPE_NEW_STARTUP:
+					if webhookDef.NewStartupFunction != nil {
+						listenerExists = true
+					}
+				case webhookstructs.WEBHOOK_TYPE_NEW_CALLBACK:
+					if webhookDef.NewCallbackFunction != nil {
+						listenerExists = true
+					}
+				case webhookstructs.WEBHOOK_TYPE_NEW_FEEDBACK:
+					if webhookDef.NewFeedbackFunction != nil {
+						listenerExists = true
+					}
+				default:
+					logging.LogError(nil, "Unknown webhook type in rabbitmq initialize", "webhook type", directQueue.RabbitmqRoutingKey)
+				}
+			}
+			if listenerExists {
+				go RabbitMQConnection.ReceiveFromMythicDirectTopicExchange(
+					MYTHIC_TOPIC_EXCHANGE,
+					webhookstructs.GetRoutingKeyFor(directQueue.RabbitmqRoutingKey),
+					webhookstructs.GetRoutingKeyFor(directQueue.RabbitmqRoutingKey),
+					directQueue.RabbitmqProcessingFunction,
+					!exclusiveQueue,
+				)
+			}
+		}
+	}
 	// handle starting any queues that are necessary for the c2 profile
 	if utils.StringSliceContains(services, "c2") {
-		SyncAllC2Data(nil)
+		//SyncAllC2Data(nil)
 		for _, c2 := range c2structs.AllC2Data.GetAllNames() {
 			// now that we're about to listen and sync, make sure all generic listeners are applied to all c2 profiles
-
 			if c2structs.AllC2Data.Get(c2).GetC2Name() != "" {
 				logging.LogInfo(fmt.Sprintf("Initializing RabbitMQ for C2 Service: %s\n", c2))
 				for _, rpcQueue := range c2structs.AllC2Data.Get(c2).GetRPCMethods() {
@@ -122,6 +208,7 @@ func (r *rabbitMQConnection) startListeners(services []string) {
 						exclusiveQueue,
 					)
 				}
+				SyncAllC2Data(&c2)
 			} else {
 				errorMessage := "Tasked C2 Container to start, but C2 agent name is empty.\n"
 				errorMessage += "Did you initialize your functions module?\n"
@@ -242,93 +329,7 @@ func (r *rabbitMQConnection) startListeners(services []string) {
 			}
 		}
 	}
-	// handle starting any queues that are necessary for a logging container
-	if utils.StringSliceContains(services, "logger") {
-		logging.LogInfo("Initializing RabbitMQ for SIEM Logging Services")
-		for _, directQueue := range loggingstructs.AllLoggingData.Get("").GetDirectMethods() {
-			listenerExists := false
-			for _, logger := range loggingstructs.AllLoggingData.GetAllNames() {
-				loggingDef := loggingstructs.AllLoggingData.Get(logger).GetLoggingDefinition()
-				switch directQueue.RabbitmqRoutingKey {
-				case loggingstructs.LOG_TYPE_CALLBACK:
-					if loggingDef.NewCallbackFunction != nil {
-						listenerExists = true
-					}
-				case loggingstructs.LOG_TYPE_ARTIFACT:
-					if loggingDef.NewArtifactFunction != nil {
-						listenerExists = true
-					}
-				case loggingstructs.LOG_TYPE_CREDENTIAL:
-					if loggingDef.NewCredentialFunction != nil {
-						listenerExists = true
-					}
-				case loggingstructs.LOG_TYPE_KEYLOG:
-					if loggingDef.NewKeylogFunction != nil {
-						listenerExists = true
-					}
-				case loggingstructs.LOG_TYPE_FILE:
-					if loggingDef.NewFileFunction != nil {
-						listenerExists = true
-					}
-				case loggingstructs.LOG_TYPE_PAYLOAD:
-					if loggingDef.NewPayloadFunction != nil {
-						listenerExists = true
-					}
-				case loggingstructs.LOG_TYPE_TASK:
-					if loggingDef.NewTaskFunction != nil {
-						listenerExists = true
-					}
-				default:
-				}
-			}
-			if listenerExists {
-				go RabbitMQConnection.ReceiveFromMythicDirectTopicExchange(
-					MYTHIC_TOPIC_EXCHANGE,
-					loggingstructs.GetRoutingKeyFor(directQueue.RabbitmqRoutingKey),
-					loggingstructs.GetRoutingKeyFor(directQueue.RabbitmqRoutingKey),
-					directQueue.RabbitmqProcessingFunction,
-					!exclusiveQueue,
-				)
-			}
 
-		}
-	}
-	// handle starting any queues that are necessary for a webhook container
-	if utils.StringSliceContains(services, "webhook") {
-		logging.LogInfo("Initializing RabbitMQ for Webhook Services")
-		for _, directQueue := range webhookstructs.AllWebhookData.Get("").GetDirectMethods() {
-			listenerExists := false
-			// only start listening for messages on queues if we have functions to process the messages
-			for _, webhook := range webhookstructs.AllWebhookData.GetAllNames() {
-				webhookDef := webhookstructs.AllWebhookData.Get(webhook).GetWebhookDefinition()
-				switch directQueue.RabbitmqRoutingKey {
-				case webhookstructs.WEBHOOK_TYPE_NEW_STARTUP:
-					if webhookDef.NewStartupFunction != nil {
-						listenerExists = true
-					}
-				case webhookstructs.WEBHOOK_TYPE_NEW_CALLBACK:
-					if webhookDef.NewCallbackFunction != nil {
-						listenerExists = true
-					}
-				case webhookstructs.WEBHOOK_TYPE_NEW_FEEDBACK:
-					if webhookDef.NewFeedbackFunction != nil {
-						listenerExists = true
-					}
-				default:
-					logging.LogError(nil, "Unknown webhook type in rabbitmq initialize", "webhook type", directQueue.RabbitmqRoutingKey)
-				}
-			}
-			if listenerExists {
-				go RabbitMQConnection.ReceiveFromMythicDirectTopicExchange(
-					MYTHIC_TOPIC_EXCHANGE,
-					webhookstructs.GetRoutingKeyFor(directQueue.RabbitmqRoutingKey),
-					webhookstructs.GetRoutingKeyFor(directQueue.RabbitmqRoutingKey),
-					directQueue.RabbitmqProcessingFunction,
-					!exclusiveQueue,
-				)
-			}
-		}
-	}
 	logging.LogInfo("[+] All services initialized!")
 }
 

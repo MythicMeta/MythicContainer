@@ -55,8 +55,12 @@ func (arg *PTTaskMessageArgsData) GetStringArg(name string) (string, error) {
 func (arg *PTTaskMessageArgsData) GetNumberArg(name string) (float64, error) {
 	if val, err := arg.GetArg(name); err != nil {
 		return 0, err
+	} else if floatVal, err := getTypedValue[float64](val); err == nil {
+		return floatVal, nil
+	} else if intVal, err := getTypedValue[int](val); err == nil {
+		return float64(intVal), nil
 	} else {
-		return getTypedValue[float64](val)
+		return 0, err
 	}
 }
 func (arg *PTTaskMessageArgsData) GetBooleanArg(name string) (bool, error) {
@@ -79,7 +83,6 @@ func getTypedValue[T any](value interface{}) (T, error) {
 		return v, nil
 	default:
 		var emptyResult T
-		logging.LogError(nil, "Bad Type for value", "value", value)
 		return emptyResult, errors.New("Bad type for value")
 	}
 }

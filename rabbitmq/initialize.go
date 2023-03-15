@@ -47,8 +47,6 @@ type rabbitMQConnection struct {
 
 var RabbitMQConnection rabbitMQConnection
 
-const containerVersion = "v1.0.0-0.0.5"
-
 func (r *rabbitMQConnection) AddRPCQueue(input RPCQueueStruct) {
 	r.addListenerMutex.Lock()
 	r.RPCQueues = append(r.RPCQueues, input)

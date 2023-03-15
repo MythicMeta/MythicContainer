@@ -23,9 +23,9 @@ type agentMessagePostResponseFileBrowser struct {
 	Name          string                                         `json:"name" mapstructure:"name"`
 	ParentPath    string                                         `json:"parent_path" mapstructure:"parent_path"`
 	Success       bool                                           `json:"success" mapstructure:"success"`
-	AccessTime    int64                                          `json:"access_time" mapstructure:"access_time"`
-	ModifyTime    int64                                          `json:"modify_time" mapstructure:"modify_time"`
-	Size          int64                                          `json:"size" mapstructure:"size"`
+	AccessTime    uint64                                         `json:"access_time" mapstructure:"access_time"`
+	ModifyTime    uint64                                         `json:"modify_time" mapstructure:"modify_time"`
+	Size          uint64                                         `json:"size" mapstructure:"size"`
 	UpdateDeleted *bool                                          `json:"update_deleted,omitempty" mapstructure:"update_deleted,omitempty"` // option to treat this response as full source of truth
 	Files         *[]agentMessagePostResponseFileBrowserChildren `json:"files" mapstructure:"files"`
 }
@@ -33,9 +33,9 @@ type agentMessagePostResponseFileBrowserChildren struct {
 	IsFile      bool                   `json:"is_file" mapstructure:"is_file"`
 	Permissions map[string]interface{} `json:"permissions" mapstructure:"permissions"`
 	Name        string                 `json:"name" mapstructure:"name"`
-	AccessTime  int64                  `json:"access_time" mapstructure:"access_time"`
-	ModifyTime  int64                  `json:"modify_time" mapstructure:"modify_time"`
-	Size        int64                  `json:"size" mapstructure:"size"`
+	AccessTime  uint64                 `json:"access_time" mapstructure:"access_time"`
+	ModifyTime  uint64                 `json:"modify_time" mapstructure:"modify_time"`
+	Size        uint64                 `json:"size" mapstructure:"size"`
 }
 
 func SendMythicRPCFileBrowserCreate(input MythicRPCFileBrowserCreateMessage) (*MythicRPCFileBrowserCreateMessageResponse, error) {

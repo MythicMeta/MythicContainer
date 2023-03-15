@@ -33,7 +33,7 @@ func processPtTaskOPSECPreMessages(msg []byte) {
 						sendTaskOpsecPreResponse(response)
 						return
 					}
-					response = command.TaskFunctionOPSECPre(incomingMessage)
+					response = command.TaskFunctionOPSECPre(&incomingMessage)
 				} else {
 					response.OpsecPreBlocked = false
 					response.Success = true

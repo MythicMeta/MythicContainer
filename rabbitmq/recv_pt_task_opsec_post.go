@@ -33,7 +33,7 @@ func processPtTaskOPSECPostMessages(msg []byte) {
 						sendTaskOpsecPostResponse(response)
 						return
 					}
-					response = command.TaskFunctionOPSECPost(incomingMessage)
+					response = command.TaskFunctionOPSECPost(&incomingMessage)
 				} else {
 					response.OpsecPostBlocked = false
 					response.OpsecPostMessage = "Not Implemented"

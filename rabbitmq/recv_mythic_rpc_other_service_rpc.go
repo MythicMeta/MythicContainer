@@ -69,10 +69,10 @@ func PTOtherServiceRPC(input agentstructs.PTRPCOtherServiceRPCMessage) agentstru
 		Success: false,
 		Error:   "Failed to find function",
 	}
-	if agentstructs.AllPayloadData.Get(input.ServiceName).GetPayloadDefinition().CustomRPCFunctions != nil {
-		for name, _ := range agentstructs.AllPayloadData.Get(input.ServiceName).GetPayloadDefinition().CustomRPCFunctions {
-			if name == input.ServiceRPCFunction {
-				return agentstructs.AllPayloadData.Get(input.ServiceName).GetPayloadDefinition().CustomRPCFunctions[input.ServiceRPCFunction](input)
+	if agentstructs.AllPayloadData.Get(input.Name).GetPayloadDefinition().CustomRPCFunctions != nil {
+		for name, _ := range agentstructs.AllPayloadData.Get(input.Name).GetPayloadDefinition().CustomRPCFunctions {
+			if name == input.RPCFunction {
+				return agentstructs.AllPayloadData.Get(input.Name).GetPayloadDefinition().CustomRPCFunctions[input.RPCFunction](input)
 			}
 		}
 	}

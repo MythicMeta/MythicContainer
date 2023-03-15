@@ -27,7 +27,7 @@ func processPtTaskCompletionMessages(msg []byte) {
 	} else {
 		for _, command := range agentstructs.AllPayloadData.Get(incomingMessage.TaskData.PayloadType).GetCommands() {
 			if command.Name == incomingMessage.TaskData.Task.CommandName {
-				if err := prepTaskArgs(command, &incomingMessage.TaskData); err != nil {
+				if err := prepTaskArgs(command, incomingMessage.TaskData); err != nil {
 					response.Error = err.Error()
 					sendTaskCompletionResponse(response)
 					return

@@ -15,9 +15,14 @@ func init() {
 	})
 }
 
+type ptTaskCreateTaskingMessageResponseWrapper struct {
+	agentstructs.PTTaskCreateTaskingMessageResponse
+	Params string `json:"params"`
+}
+
 func processPtTaskCreateMessages(msg []byte) {
 	incomingMessage := agentstructs.PTTaskMessageAllData{}
-	response := agentstructs.PTTaskCreateTaskingMessageResponse{}
+	response := ptTaskCreateTaskingMessageResponseWrapper{}
 	if err := json.Unmarshal(msg, &incomingMessage); err != nil {
 		logging.LogError(err, "Failed to unmarshal JSON into struct")
 		response.Success = false
@@ -35,33 +40,37 @@ func processPtTaskCreateMessages(msg []byte) {
 					sendTaskCreateResponse(response)
 					return
 				}
-				response = command.TaskFunctionCreateTasking(incomingMessage)
-				if response.Success {
+				agentResponse := command.TaskFunctionCreateTasking(&incomingMessage)
+				finalResponse := ptTaskCreateTaskingMessageResponseWrapper{
+					agentResponse,
+					"",
+				}
+				if finalResponse.Success {
 					if requiredArgsHaveValues, err := incomingMessage.Args.VerifyRequiredArgsHaveValues(); err != nil {
 						logging.LogError(err, "Failed to verify if all required args have values")
-						response.Success = false
-						response.Error = fmt.Sprintf("Failed to verify if all required args have values:\n%s", err.Error())
+						finalResponse.Success = false
+						finalResponse.Error = fmt.Sprintf("Failed to verify if all required args have values:\n%s", err.Error())
 					} else if !requiredArgsHaveValues {
-						response.Success = false
-						response.Error = fmt.Sprintf("Some required args are missing values")
+						finalResponse.Success = false
+						finalResponse.Error = fmt.Sprintf("Some required args are missing values")
 					} else if params, err := incomingMessage.Args.GetFinalArgs(); err != nil {
 						logging.LogError(err, "Failed to get final arguments", "args", incomingMessage.Args)
-						response.Success = false
-						response.Error = fmt.Sprintf("Failed to generate final arguments:\n%s", err.Error())
+						finalResponse.Success = false
+						finalResponse.Error = fmt.Sprintf("Failed to generate final arguments:\n%s", err.Error())
 					} else {
-						response.Params = params
-						if response.ParameterGroupName == "" {
+						finalResponse.Params = params
+						if finalResponse.ParameterGroupName == "" {
 							if newGroupName, err := incomingMessage.Args.GetParameterGroupName(); err != nil {
 								logging.LogError(err, "Failed to get new parameter group name for task")
-								response.Success = false
-								response.Error = err.Error()
+								finalResponse.Success = false
+								finalResponse.Error = err.Error()
 							} else {
-								response.ParameterGroupName = newGroupName
+								finalResponse.ParameterGroupName = newGroupName
 							}
 						}
 					}
 				}
-				sendTaskCreateResponse(response)
+				sendTaskCreateResponse(finalResponse)
 				return
 			}
 		}
@@ -72,7 +81,7 @@ func processPtTaskCreateMessages(msg []byte) {
 	}
 }
 
-func sendTaskCreateResponse(response agentstructs.PTTaskCreateTaskingMessageResponse) {
+func sendTaskCreateResponse(response ptTaskCreateTaskingMessageResponseWrapper) {
 	if err := RabbitMQConnection.SendStructMessage(
 		MYTHIC_EXCHANGE,
 		PT_TASK_CREATE_TASKING_RESPONSE,

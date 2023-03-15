@@ -27,7 +27,7 @@ func processPtProcessResponseMessages(msg []byte) {
 	} else {
 		for _, command := range agentstructs.AllPayloadData.Get(incomingMessage.TaskData.PayloadType).GetCommands() {
 			if command.Name == incomingMessage.TaskData.Task.CommandName {
-				if err := prepTaskArgs(command, &incomingMessage.TaskData); err != nil {
+				if err := prepTaskArgs(command, incomingMessage.TaskData); err != nil {
 					response.Error = err.Error()
 					sendTaskProcessResponseResponse(response)
 					return
@@ -51,7 +51,7 @@ func processPtProcessResponseMessages(msg []byte) {
 func sendTaskProcessResponseResponse(response agentstructs.PTTaskProcessResponseMessageResponse) {
 	if err := RabbitMQConnection.SendStructMessage(
 		MYTHIC_EXCHANGE,
-		PT_TASK_PROCESS_RESPONSE,
+		PT_TASK_PROCESS_RESPONSE_RESPONSE,
 		"",
 		response,
 	); err != nil {

@@ -44,14 +44,14 @@ type BuildParameter struct {
 }
 
 type BuildStep struct {
-	StepName        string `json:"step_name"`
-	StepDescription string `json:"step_description"`
+	Name        string `json:"step_name"`
+	Description string `json:"step_description"`
 }
 
 type PTRPCOtherServiceRPCMessage struct {
-	ServiceName                 string                 `json:"service_name"` //required
-	ServiceRPCFunction          string                 `json:"service_function"`
-	ServiceRPCFunctionArguments map[string]interface{} `json:"service_arguments"`
+	Name                 string                 `json:"service_name"` //required
+	RPCFunction          string                 `json:"service_function"`
+	RPCFunctionArguments map[string]interface{} `json:"service_arguments"`
 }
 type PTRPCOtherServiceRPCMessageResponse struct {
 	Success bool                   `json:"success"`
@@ -137,7 +137,7 @@ type PTTaskingDynamicQueryFunction func(PTRPCDynamicQueryFunctionMessage) []stri
 
 func (f PTTaskingDynamicQueryFunction) MarshalJSON() ([]byte, error) {
 	if f != nil {
-		return json.Marshal("foo")
+		return json.Marshal("function defined")
 	} else {
 		return json.Marshal("")
 	}

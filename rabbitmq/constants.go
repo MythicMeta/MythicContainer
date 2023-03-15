@@ -14,6 +14,8 @@ const (
 
 type CallbackPortType = string
 
+const containerVersion = "v1.0.0-0.0.8"
+
 const (
 	CALLBACK_PORT_TYPE_SOCKS           CallbackPortType = "socks"
 	CALLBACK_PORT_TYPE_SOCKS_WITH_AUTH                  = "socks5"
@@ -87,7 +89,8 @@ const (
 	//
 	PT_TASK_COMPLETION_FUNCTION = "pt_task_completion_function"
 	//
-	PT_TASK_PROCESS_RESPONSE = "pt_task_process_response"
+	PT_TASK_PROCESS_RESPONSE          = "pt_task_process_response"
+	PT_TASK_PROCESS_RESPONSE_RESPONSE = "pt_task_process_response_response"
 )
 
 // Routes where container is consuming messages and responding back to Mythic

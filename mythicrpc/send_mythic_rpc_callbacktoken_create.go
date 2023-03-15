@@ -18,7 +18,7 @@ type MythicRPCCallbackTokenCreateMessageResponse struct {
 type MythicRPCCallbackTokenData = agentMessagePostResponseCallbackTokens
 type agentMessagePostResponseToken struct {
 	Action             string `mapstructure:"action"`
-	TokenID            int    `mapstructure:"token_id"`
+	TokenID            uint64 `mapstructure:"token_id"`
 	User               string `mapstructure:"user"`
 	Groups             string `mapstructure:"groups"`
 	Privileges         string `mapstructure:"privileges"`
@@ -37,7 +37,7 @@ type agentMessagePostResponseToken struct {
 type agentMessagePostResponseCallbackTokens struct {
 	Action  string  `mapstructure:"action"`
 	Host    *string `mapstructure:"host,omitempty"`
-	TokenId int     `mapstructure:"TokenId"`
+	TokenId uint64  `mapstructure:"token_id"`
 	// optionally also provide all the token information
 	TokenInfo *agentMessagePostResponseToken `mapstructure:"token"`
 }

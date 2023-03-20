@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/MythicMeta/MythicContainer/logging"
 	"github.com/MythicMeta/MythicContainer/utils"
+	"github.com/mitchellh/mapstructure"
 )
 
 // Args helper functions
@@ -75,6 +76,28 @@ func (arg *PTTaskMessageArgsData) GetDictionaryArg(name string) (map[string]inte
 		return nil, err
 	} else {
 		return getTypedValue[map[string]interface{}](val)
+	}
+}
+
+type c2ProfileInfo struct {
+	Name       string                 `json:"name" mapstructure:"name"`
+	Parameters map[string]interface{} `json:"parameters" mapstructure:"parameters"`
+}
+type connectionInfo struct {
+	CallbackUUID  string        `json:"callback_uuid" mapstructure:"callback_uuid"`
+	AgentUUID     string        `json:"agent_uuid" mapstructure:"agent_uuid"`
+	Host          string        `json:"host" mapstructure:"host"`
+	C2ProfileInfo c2ProfileInfo `json:"c2_profile" mapstructure:"c2_profile"`
+}
+
+func (arg *PTTaskMessageArgsData) GetConnectionInfoArg(name string) (connectionInfo, error) {
+	connectionInformation := connectionInfo{}
+	if val, err := arg.GetArg(name); err != nil {
+		return connectionInformation, err
+	} else if err := mapstructure.Decode(val, &connectionInformation); err != nil {
+		return connectionInformation, err
+	} else {
+		return connectionInformation, nil
 	}
 }
 func getTypedValue[T any](value interface{}) (T, error) {

@@ -8,6 +8,7 @@ import (
 )
 
 type MythicRPCAgentstorageRemoveMessage struct {
+	// UniqueID (Required) - The unique identifier to search for in the database to remove
 	UniqueID string `json:"unique_id"`
 }
 type MythicRPCAgentstorageRemoveMessageResponse struct {
@@ -15,6 +16,7 @@ type MythicRPCAgentstorageRemoveMessageResponse struct {
 	Error   string `json:"error"`
 }
 
+// SendMythicRPCAgentStorageRemove - Remove a specific entry from the agentstorage table within Mythic.
 func SendMythicRPCAgentStorageRemove(input MythicRPCAgentstorageRemoveMessage) (*MythicRPCAgentstorageRemoveMessageResponse, error) {
 	response := MythicRPCAgentstorageRemoveMessageResponse{}
 	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(

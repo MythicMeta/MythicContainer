@@ -8,7 +8,10 @@ import (
 )
 
 type MythicRPCCallbackRemoveCommandMessage struct {
-	TaskID   int      `json:"task_id"`  // required
+	// TaskID (Required) - The task id that's going to remove commands from the associated callback.
+	TaskID int `json:"task_id"` // required
+	// Commands (Required) - The list of command names to be removed from the callback. If the command isn't loaded
+	// within the callback, then it's skipped
 	Commands []string `json:"commands"` // required
 }
 type MythicRPCCallbackRemoveCommandMessageResponse struct {
@@ -16,6 +19,8 @@ type MythicRPCCallbackRemoveCommandMessageResponse struct {
 	Error   string `json:"error"`
 }
 
+// SendMythicRPCCallbackRemoveCommand - Remove commands from a certain callback. This is helpful if you want to
+// unload certain functionality that might have been temporarily loaded in the first place.
 func SendMythicRPCCallbackRemoveCommand(input MythicRPCCallbackRemoveCommandMessage) (*MythicRPCCallbackRemoveCommandMessageResponse, error) {
 	response := MythicRPCCallbackRemoveCommandMessageResponse{}
 	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(

@@ -56,6 +56,7 @@ func sendTaskOpsecPreResponse(response agentstructs.PTTTaskOPSECPreTaskMessageRe
 		PT_TASK_OPSEC_PRE_CHECK_RESPONSE,
 		"",
 		response,
+		false,
 	); err != nil {
 		logging.LogError(err, "Failed to send payload response back to Mythic")
 	}

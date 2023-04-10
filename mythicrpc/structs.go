@@ -49,6 +49,7 @@ type PayloadConfiguration struct {
 	WrappedPayloadUUID string                                `json:"wrapped_payload"`
 	UUID               string                                `json:"uuid"`
 	AgentFileID        string                                `json:"agent_file_id"`
+	BuildPhase         string                                `json:"build_phase"`
 }
 type PayloadConfigurationC2Profile struct {
 	Name       string                 `json:"c2_profile"`

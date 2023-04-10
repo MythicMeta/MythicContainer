@@ -8,7 +8,9 @@ import (
 )
 
 type MythicRPCCallbackAddCommandMessage struct {
-	TaskID   int      `json:"task_id"`  // required
+	// TaskID (Required) - What task is trying to add commands. This will add commands to the callback associated with this task.
+	TaskID int `json:"task_id"` // required
+	// Commands (Required) - The names of the commands you want to add. If they're already added, then they are skipped.
 	Commands []string `json:"commands"` // required
 }
 type MythicRPCCallbackAddCommandMessageResponse struct {
@@ -16,6 +18,8 @@ type MythicRPCCallbackAddCommandMessageResponse struct {
 	Error   string `json:"error"`
 }
 
+// SendMythicRPCCallbackAddCommand - Register new commands as being "loaded" into the current callback. This makes them
+// available for tasking through the UI.
 func SendMythicRPCCallbackAddCommand(input MythicRPCCallbackAddCommandMessage) (*MythicRPCCallbackAddCommandMessageResponse, error) {
 	response := MythicRPCCallbackAddCommandMessageResponse{}
 	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(

@@ -87,6 +87,7 @@ func sendTaskCreateResponse(response ptTaskCreateTaskingMessageResponseWrapper) 
 		PT_TASK_CREATE_TASKING_RESPONSE,
 		"",
 		response,
+		false,
 	); err != nil {
 		logging.LogError(err, "Failed to send payload response back to Mythic")
 	}

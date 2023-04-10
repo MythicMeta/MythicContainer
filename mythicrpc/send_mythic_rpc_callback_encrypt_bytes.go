@@ -8,10 +8,14 @@ import (
 )
 
 type MythicRPCCallbackEncryptBytesMessage struct {
-	AgentCallbackUUID   string `json:"agent_callback_id"` //required
-	Message             []byte `json:"message"`           // required
-	IncludeUUID         bool   `json:"include_uuid"`
-	Base64ReturnMessage bool   `json:"base64_message"`
+	// AgentCallbackUUID (Required) - The UUID for the callback that will encrypt the message
+	AgentCallbackUUID string `json:"agent_callback_id"` //required
+	// Message (Required) - The actual encrypted message you want to encrypt
+	Message []byte `json:"message"`
+	// IncludeUUID (Optional) - Should the encrypted message include the UUID in front?
+	IncludeUUID bool `json:"include_uuid"`
+	// Base64ReturnMessage (Optional) - Should the resulting Message be base64 encoded or left as raw bytes?
+	Base64ReturnMessage bool `json:"base64_message"`
 }
 type MythicRPCCallbackEncryptBytesMessageResponse struct {
 	Success bool   `json:"success"`
@@ -19,6 +23,7 @@ type MythicRPCCallbackEncryptBytesMessageResponse struct {
 	Message []byte `json:"message"`
 }
 
+// SendMythicRPCCallbackEncryptBytes - Ask Mythic to encrypt a message for a specific callback UUID.
 func SendMythicRPCCallbackEncryptBytes(input MythicRPCCallbackEncryptBytesMessage) (*MythicRPCCallbackEncryptBytesMessageResponse, error) {
 	response := MythicRPCCallbackEncryptBytesMessageResponse{}
 	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(

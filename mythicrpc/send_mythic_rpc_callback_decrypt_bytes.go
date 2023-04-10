@@ -8,10 +8,14 @@ import (
 )
 
 type MythicRPCCallbackDecryptBytesMessage struct {
-	AgentCallbackUUID string `json:"agent_callback_id"` // required if IncludesUUID is false
-	Message           []byte `json:"message"`           // required
-	IncludesUUID      bool   `json:"include_uuid"`
-	IsBase64Encoded   bool   `json:"base64_message"`
+	// AgentCallbackUUID (Required) - The UUID for the callback that will decrypt the message
+	AgentCallbackUUID string `json:"agent_callback_id"`
+	// Message (Required) - The actual encrypted message you want to decrypt
+	Message []byte `json:"message"`
+	// IncludesUUID (Optional) - Does the Message include the UUID or not?
+	IncludesUUID bool `json:"include_uuid"`
+	// IsBase64Encoded (Optional) - Is the Message base64 encoded, or is it just the raw bytes?
+	IsBase64Encoded bool `json:"base64_message"`
 }
 type MythicRPCCallbackDecryptBytesMessageResponse struct {
 	Success bool   `json:"success"`
@@ -19,6 +23,7 @@ type MythicRPCCallbackDecryptBytesMessageResponse struct {
 	Message []byte `json:"message"`
 }
 
+// SendMythicRPCCallbackDecryptBytes - Ask Mythic to look up the associated callback and decrypt a message for that callback
 func SendMythicRPCCallbackDecryptBytes(input MythicRPCCallbackDecryptBytesMessage) (*MythicRPCCallbackDecryptBytesMessageResponse, error) {
 	response := MythicRPCCallbackDecryptBytesMessageResponse{}
 	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(

@@ -54,6 +54,7 @@ func sendTaskProcessResponseResponse(response agentstructs.PTTaskProcessResponse
 		PT_TASK_PROCESS_RESPONSE_RESPONSE,
 		"",
 		response,
+		false,
 	); err != nil {
 		logging.LogError(err, "Failed to send payload response back to Mythic")
 	}

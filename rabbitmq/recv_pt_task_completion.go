@@ -68,6 +68,7 @@ func sendTaskCompletionResponse(response agentstructs.PTTaskCompletionFunctionMe
 		PT_TASK_COMPLETION_FUNCTION_RESPONSE,
 		"",
 		response,
+		false,
 	); err != nil {
 		logging.LogError(err, "Failed to send payload response back to Mythic")
 	}

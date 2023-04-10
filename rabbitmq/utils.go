@@ -52,11 +52,11 @@ func (r *rabbitMQConnection) GetConnection() (*amqp.Connection, error) {
 		}
 	}
 }
-func (r *rabbitMQConnection) SendStructMessage(exchange string, queue string, correlationId string, body interface{}) error {
+func (r *rabbitMQConnection) SendStructMessage(exchange string, queue string, correlationId string, body interface{}, ignoreErrorMessage bool) error {
 	if jsonBody, err := json.Marshal(body); err != nil {
 		return err
 	} else {
-		return r.SendMessage(exchange, queue, correlationId, jsonBody)
+		return r.SendMessage(exchange, queue, correlationId, jsonBody, ignoreErrorMessage)
 	}
 }
 func (r *rabbitMQConnection) SendRPCStructMessage(exchange string, queue string, body interface{}) ([]byte, error) {
@@ -67,7 +67,7 @@ func (r *rabbitMQConnection) SendRPCStructMessage(exchange string, queue string,
 		return r.SendRPCMessage(exchange, queue, inputBytes, true)
 	}
 }
-func (r *rabbitMQConnection) SendMessage(exchange string, queue string, correlationId string, body []byte) error {
+func (r *rabbitMQConnection) SendMessage(exchange string, queue string, correlationId string, body []byte, ignoreErrormessage bool) error {
 	// to send a normal message out to a direct queue set:
 	// exchange: MYTHIC_EXCHANGE
 	// queue: which routing key is listening (this is the direct name)
@@ -79,13 +79,14 @@ func (r *rabbitMQConnection) SendMessage(exchange string, queue string, correlat
 		return err
 	} else if err := ch.Confirm(false); err != nil {
 		logging.LogError(err, "Channel could not be put into confirm mode")
+		ch.Close()
 		return err
 	} else {
+		defer ch.Close()
 		msg := amqp.Publishing{
 			ContentType:   "application/json",
 			CorrelationId: correlationId,
 			Body:          body,
-			DeliveryMode:  amqp.Persistent,
 		}
 		if err = ch.Publish(
 			exchange, // exchange
@@ -106,7 +107,9 @@ func (r *rabbitMQConnection) SendMessage(exchange string, queue string, correlat
 			}
 		case ret := <-ch.NotifyReturn(make(chan amqp.Return)):
 			err := errors.New(getMeaningfulRabbitmqError(ret))
-			logging.LogError(err, "failed to deliver message to exchange/queue, NotifyReturn", "errorCode", ret.ReplyCode, "errorText", ret.ReplyText)
+			if !ignoreErrormessage {
+				logging.LogError(err, "failed to deliver message to exchange/queue, NotifyReturn", "errorCode", ret.ReplyCode, "errorText", ret.ReplyText)
+			}
 			return err
 		case <-time.After(RPC_TIMEOUT):
 			err := errors.New("Message delivery confirmation timed out")
@@ -125,6 +128,7 @@ func (r *rabbitMQConnection) SendRPCMessage(exchange string, queue string, body 
 		return nil, err
 	} else if err := ch.Confirm(false); err != nil {
 		logging.LogError(err, "Channel could not be put into confirm mode")
+		ch.Close()
 		return nil, err
 	} else if err = ch.ExchangeDeclare(
 		exchange, // exchange name
@@ -147,8 +151,10 @@ func (r *rabbitMQConnection) SendRPCMessage(exchange string, queue string, body 
 		nil,                     // args
 	); err != nil {
 		logging.LogError(err, "Failed to start consuming for RPC replies")
+		ch.Close()
 		return nil, err
 	} else {
+		defer ch.Close()
 		msg := amqp.Publishing{
 			ContentType:   "application/json",
 			CorrelationId: uuid.NewString(),
@@ -241,6 +247,7 @@ func (r *rabbitMQConnection) ReceiveFromMythicDirectExchange(exchange string, qu
 			nil,            // arguments
 		); err != nil {
 			logging.LogError(err, "Failed to declare queue", "retry_wait_time", RETRY_CONNECT_DELAY)
+			ch.Close()
 			time.Sleep(RETRY_CONNECT_DELAY)
 			continue
 		} else if err = ch.QueueBind(
@@ -251,6 +258,7 @@ func (r *rabbitMQConnection) ReceiveFromMythicDirectExchange(exchange string, qu
 			nil,        // arguments
 		); err != nil {
 			logging.LogError(err, "Failed to bind to queue to receive messages", "retry_wait_time", RETRY_CONNECT_DELAY)
+			ch.Close()
 			time.Sleep(RETRY_CONNECT_DELAY)
 			continue
 		} else if msgs, err := ch.Consume(
@@ -263,6 +271,7 @@ func (r *rabbitMQConnection) ReceiveFromMythicDirectExchange(exchange string, qu
 			nil,    // args
 		); err != nil {
 			logging.LogError(err, "Failed to start consuming on queue", "queue", q.Name)
+			ch.Close()
 		} else {
 			forever := make(chan bool)
 			go func() {
@@ -273,78 +282,7 @@ func (r *rabbitMQConnection) ReceiveFromMythicDirectExchange(exchange string, qu
 			}()
 			logging.LogInfo("Started listening for messages", "exchange", exchange, "queue", queue, "routingKey", routingKey)
 			<-forever
-			logging.LogError(nil, "Stopped listening for messages", "exchange", exchange, "queue", queue, "routingKey", routingKey)
-		}
-
-	}
-}
-func (r *rabbitMQConnection) ReceiveFromMythicDirectTopicExchange(exchange string, queue string, routingKey string, handler QueueHandler, exclusiveQueue bool) {
-	// exchange is a direct exchange
-	// queue is where the messages get sent to (local name)
-	// routingKey is the specific direct topic we're interested in for the exchange
-	// handler processes the messages we get on our queue
-	for {
-		if conn, err := r.GetConnection(); err != nil {
-			logging.LogError(err, "Failed to connect to rabbitmq", "retry_wait_time", RETRY_CONNECT_DELAY)
-			time.Sleep(RETRY_CONNECT_DELAY)
-			continue
-		} else if ch, err := conn.Channel(); err != nil {
-			logging.LogError(err, "Failed to open rabbitmq channel", "retry_wait_time", RETRY_CONNECT_DELAY)
-			time.Sleep(RETRY_CONNECT_DELAY)
-			continue
-		} else if err = ch.ExchangeDeclare(
-			exchange, // exchange name
-			"topic",  // type of exchange, ex: topic, fanout, direct, etc
-			true,     // durable
-			true,     // auto-deleted
-			false,    // internal
-			false,    // no-wait
-			nil,      // arguments
-		); err != nil {
-			logging.LogError(err, "Failed to declare exchange", "exchange", exchange, "exchange_type", "direct", "retry_wait_time", RETRY_CONNECT_DELAY)
-			time.Sleep(RETRY_CONNECT_DELAY)
-			continue
-		} else if q, err := ch.QueueDeclare(
-			"",             // name, queue
-			false,          // durable
-			true,           // delete when unused
-			exclusiveQueue, // exclusive
-			false,          // no-wait
-			nil,            // arguments
-		); err != nil {
-			logging.LogError(err, "Failed to declare queue", "retry_wait_time", RETRY_CONNECT_DELAY)
-			time.Sleep(RETRY_CONNECT_DELAY)
-			continue
-		} else if err = ch.QueueBind(
-			q.Name,     // queue name
-			routingKey, // routing key
-			exchange,   // exchange name
-			false,      // nowait
-			nil,        // arguments
-		); err != nil {
-			logging.LogError(err, "Failed to bind to queue to receive messages", "retry_wait_time", RETRY_CONNECT_DELAY)
-			time.Sleep(RETRY_CONNECT_DELAY)
-			continue
-		} else if msgs, err := ch.Consume(
-			q.Name, // queue name
-			"",     // consumer
-			true,   // auto-ack
-			false,  // exclusive
-			false,  // no local
-			false,  // no wait
-			nil,    // args
-		); err != nil {
-			logging.LogError(err, "Failed to start consuming on queue", "queue", q.Name)
-		} else {
-			forever := make(chan bool)
-			go func() {
-				for d := range msgs {
-					go handler(d.Body)
-				}
-				forever <- true
-			}()
-			logging.LogInfo("Started listening for messages", "exchange", exchange, "queue", queue, "routingKey", routingKey)
-			<-forever
+			ch.Close()
 			logging.LogError(nil, "Stopped listening for messages", "exchange", exchange, "queue", queue, "routingKey", routingKey)
 		}
 
@@ -381,6 +319,7 @@ func (r *rabbitMQConnection) ReceiveFromRPCQueue(exchange string, queue string, 
 			nil,            // arguments
 		); err != nil {
 			logging.LogError(err, "Failed to declare queue", "retry_wait_time", RETRY_CONNECT_DELAY)
+			ch.Close()
 			time.Sleep(RETRY_CONNECT_DELAY)
 			continue
 		} else if err = ch.QueueBind(
@@ -392,6 +331,7 @@ func (r *rabbitMQConnection) ReceiveFromRPCQueue(exchange string, queue string, 
 		); err != nil {
 			logging.LogError(err, "Failed to bind to queue to receive messages", "retry_wait_time", RETRY_CONNECT_DELAY)
 			time.Sleep(RETRY_CONNECT_DELAY)
+			ch.Close()
 			continue
 		} else if msgs, err := ch.Consume(
 			q.Name,         // queue name
@@ -403,6 +343,7 @@ func (r *rabbitMQConnection) ReceiveFromRPCQueue(exchange string, queue string, 
 			nil,            // args
 		); err != nil {
 			logging.LogError(err, "Failed to start consuming messages on queue", "queue", q.Name)
+			ch.Close()
 			continue
 		} else {
 			forever := make(chan bool)
@@ -421,7 +362,6 @@ func (r *rabbitMQConnection) ReceiveFromRPCQueue(exchange string, queue string, 
 							ContentType:   "application/json",
 							Body:          responseMsgJson,
 							CorrelationId: d.CorrelationId,
-							DeliveryMode:  amqp.Persistent,
 						}); err != nil {
 						logging.LogError(err, "Failed to send message")
 					} else if err = ch.Ack(d.DeliveryTag, false); err != nil {
@@ -432,6 +372,7 @@ func (r *rabbitMQConnection) ReceiveFromRPCQueue(exchange string, queue string, 
 			}()
 			logging.LogInfo("Started listening for rpc messages", "exchange", exchange, "queue", queue, "routingKey", routingKey)
 			<-forever
+			ch.Close()
 			logging.LogError(nil, "Stopped listening for messages", "exchange", exchange, "queue", queue, "routingKey", routingKey)
 		}
 
@@ -487,6 +428,127 @@ func (r *rabbitMQConnection) CheckConsumerExists(exchange string, queue string, 
 		}
 	} else {
 		return true, nil
+	}
+}
+func (r *rabbitMQConnection) GetNumberOfConsumersDirectChannels(exchange string, kind string, queue string) (uint, error) {
+	//logging.LogDebug("checking queue existence", "queue", queue)
+	if conn, err := r.GetConnection(); err != nil {
+		return 0, err
+	} else if ch, err := conn.Channel(); err != nil {
+		logging.LogError(err, "Failed to open rabbitmq channel")
+		return 0, err
+	} else if err = ch.Confirm(false); err != nil {
+		logging.LogError(err, "Channel could not be put into confirm mode")
+		return 0, err
+	} else if err = ch.ExchangeDeclare(
+		exchange, // exchange name
+		kind,     // type of exchange, ex: topic, fanout, direct, etc
+		true,     // durable
+		true,     // auto-deleted
+		false,    // internal
+		false,    // no-wait
+		nil,      // arguments
+	); err != nil {
+		logging.LogError(err, "Failed to declare exchange", "exchange", MYTHIC_TOPIC_EXCHANGE, "exchange_type", "topic", "retry_wait_time", RETRY_CONNECT_DELAY)
+		return 0, err
+
+	} else if q, err := ch.QueueDeclare(
+		queue, // name, queue
+		false, // durable
+		true,  // delete when unused
+		false, // exclusive
+		false, // no-wait
+		nil,   // arguments
+	); err != nil {
+		logging.LogError(err, "Unknown error (not 404 or 405) when checking for container existence")
+		return 0, err
+	} else if err = ch.QueueBind(
+		q.Name,   // queue name
+		queue,    // routing key
+		exchange, // exchange name
+		false,    // nowait
+		nil,      // arguments
+	); err != nil {
+		logging.LogError(err, "Failed to bind to queue to receive messages", "retry_wait_time", RETRY_CONNECT_DELAY)
+		return 0, err
+	} else {
+		return uint(q.Consumers), nil
+	}
+}
+func (r *rabbitMQConnection) ReceiveFromMythicDirectTopicExchange(exchange string, queue string, routingKey string, handler QueueHandler, exclusiveQueue bool) {
+	// exchange is a direct exchange
+	// queue is where the messages get sent to (local name)
+	// routingKey is the specific direct topic we're interested in for the exchange
+	// handler processes the messages we get on our queue
+	for {
+		if conn, err := r.GetConnection(); err != nil {
+			logging.LogError(err, "Failed to connect to rabbitmq", "retry_wait_time", RETRY_CONNECT_DELAY)
+			time.Sleep(RETRY_CONNECT_DELAY)
+			continue
+		} else if ch, err := conn.Channel(); err != nil {
+			logging.LogError(err, "Failed to open rabbitmq channel", "retry_wait_time", RETRY_CONNECT_DELAY)
+			time.Sleep(RETRY_CONNECT_DELAY)
+			continue
+		} else if err = ch.ExchangeDeclare(
+			exchange, // exchange name
+			"topic",  // type of exchange, ex: topic, fanout, direct, etc
+			true,     // durable
+			true,     // auto-deleted
+			false,    // internal
+			false,    // no-wait
+			nil,      // arguments
+		); err != nil {
+			logging.LogError(err, "Failed to declare exchange", "exchange", exchange, "exchange_type", "direct", "retry_wait_time", RETRY_CONNECT_DELAY)
+			time.Sleep(RETRY_CONNECT_DELAY)
+			continue
+		} else if q, err := ch.QueueDeclare(
+			"",             // name, queue
+			false,          // durable
+			true,           // delete when unused
+			exclusiveQueue, // exclusive
+			false,          // no-wait
+			nil,            // arguments
+		); err != nil {
+			logging.LogError(err, "Failed to declare queue", "retry_wait_time", RETRY_CONNECT_DELAY)
+			ch.Close()
+			time.Sleep(RETRY_CONNECT_DELAY)
+			continue
+		} else if err = ch.QueueBind(
+			q.Name,     // queue name
+			routingKey, // routing key
+			exchange,   // exchange name
+			false,      // nowait
+			nil,        // arguments
+		); err != nil {
+			logging.LogError(err, "Failed to bind to queue to receive messages", "retry_wait_time", RETRY_CONNECT_DELAY)
+			ch.Close()
+			time.Sleep(RETRY_CONNECT_DELAY)
+			continue
+		} else if msgs, err := ch.Consume(
+			q.Name, // queue name
+			"",     // consumer
+			true,   // auto-ack
+			false,  // exclusive
+			false,  // no local
+			false,  // no wait
+			nil,    // args
+		); err != nil {
+			logging.LogError(err, "Failed to start consuming on queue", "queue", q.Name)
+			ch.Close()
+		} else {
+			forever := make(chan bool)
+			go func() {
+				for d := range msgs {
+					go handler(d.Body)
+				}
+				forever <- true
+			}()
+			logging.LogInfo("Started listening for messages", "exchange", exchange, "queue", queue, "routingKey", routingKey)
+			<-forever
+			ch.Close()
+			logging.LogError(nil, "Stopped listening for messages", "exchange", exchange, "queue", queue, "routingKey", routingKey)
+		}
+
 	}
 }
 func getMeaningfulRabbitmqError(ret amqp.Return) string {
@@ -560,6 +622,7 @@ func WrapPayloadBuild(msg []byte) {
 			PT_BUILD_RESPONSE_ROUTING_KEY,
 			"",
 			payloadBuildResponse,
+			false,
 		); err != nil {
 			logging.LogError(err, "Failed to send payload response back to Mythic")
 		}

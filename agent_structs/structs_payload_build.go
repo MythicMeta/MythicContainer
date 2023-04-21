@@ -2,9 +2,13 @@ package agentstructs
 
 // PAYLOAD_BUILD STRUCTS
 
+// PayloadBuildMessage - A structure of the build information the user provided to generate an instance of the payload type.
+// This information gets passed to your payload type's build function.
 type PayloadBuildMessage struct {
 	// PayloadType - the name of the payload type for the build
 	PayloadType string `json:"payload_type"`
+	// Filename - the name of the file the user originally supplied for this build
+	Filename string `json:"filename"`
 	// CommandList - the list of commands the user selected to include in the build
 	CommandList []string `json:"commands"`
 	// build param name : build value
@@ -22,6 +26,7 @@ type PayloadBuildMessage struct {
 	PayloadFileUUID string `json:"payload_file_uuid"`
 }
 
+// PayloadBuildC2Profile - A structure of the selected C2 Profile information the user selected to build into a payload.
 type PayloadBuildC2Profile struct {
 	Name  string `json:"name"`
 	IsP2P bool   `json:"is_p2p"`
@@ -38,11 +43,15 @@ const (
 	PAYLOAD_BUILD_STATUS_ERROR                        = "error"
 )
 
+// PayloadBuildResponse - The result of calling a payload type's build function. This returns not only the actual
+// payload bytes, but surrounding metadata such as updated filenames, command lists, and stdout/stderr messages.
 type PayloadBuildResponse struct {
 	// PayloadUUID - The UUID associated with this payload
 	PayloadUUID string `json:"uuid"`
 	// Success - was this build process successful or not
 	Success bool `json:"success"`
+	// UpdatedFilename - Optionally updated filename based on build parameters to more closely match the return file type
+	UpdatedFilename *string `json:"updated_filename,omitempty"`
 	// Payload - the raw bytes of the payload that was compiled/created
 	Payload *[]byte `json:"payload,omitempty"`
 	// UpdatedCommandList - if you want to adjust the list of commands in this payload from what the user provided,

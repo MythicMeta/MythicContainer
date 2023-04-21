@@ -39,8 +39,8 @@ type loggingMessageBase struct {
 type LoggingDefinition struct {
 	LogToFilePath         string
 	LogLevel              string
-	logMaxSizeInMB        int
-	logMaxBackups         int
+	LogMaxSizeInMB        int
+	LogMaxBackups         int
 	NewCallbackFunction   func(input NewCallbackLog)
 	NewCredentialFunction func(input NewCredentialLog)
 	NewKeylogFunction     func(input NewKeylogLog)
@@ -102,9 +102,9 @@ func (r *allLoggingData) AddLoggingDefinition(def LoggingDefinition) {
 	if def.LogToFilePath != "" {
 		fileLogger := &lumberjack.Logger{
 			Filename:   def.LogToFilePath,
-			MaxSize:    def.logMaxSizeInMB,
+			MaxSize:    def.LogMaxSizeInMB,
 			MaxAge:     0, // don't remove files after x days
-			MaxBackups: def.logMaxBackups,
+			MaxBackups: def.LogMaxBackups,
 			LocalTime:  false, // use UTC times
 			Compress:   true,
 		}

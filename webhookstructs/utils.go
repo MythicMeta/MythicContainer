@@ -21,6 +21,8 @@ const (
 	WEBHOOK_TYPE_NEW_CALLBACK WEBHOOK_TYPE = "new_callback"
 	WEBHOOK_TYPE_NEW_FEEDBACK              = "new_feedback"
 	WEBHOOK_TYPE_NEW_STARTUP               = "new_startup"
+	WEBHOOK_TYPE_NEW_ALERT                 = "new_alert"
+	WEBHOOK_TYPE_NEW_CUSTOM                = "new_custom"
 )
 
 type WebhookDefinition struct {
@@ -29,6 +31,8 @@ type WebhookDefinition struct {
 	NewFeedbackFunction func(input NewFeedbackWebookMessage)
 	NewCallbackFunction func(input NewCallbackWebookMessage)
 	NewStartupFunction  func(input NewStartupWebhookMessage)
+	NewAlertFunction    func(input NewAlertWebhookMessage)
+	NewCustomFunction   func(input NewCustomWebhookMessage)
 }
 
 type RabbitmqRPCMethod struct {
@@ -132,6 +136,16 @@ func (r *allWebhookData) GetWebhookURL(input interface{}, channelType WEBHOOK_TY
 		if msg.OperationWebhook != "" {
 			return msg.OperationWebhook
 		}
+	case WEBHOOK_TYPE_NEW_ALERT:
+		msg := input.(NewAlertWebhookMessage)
+		if msg.OperationWebhook != "" {
+			return msg.OperationWebhook
+		}
+	case WEBHOOK_TYPE_NEW_CUSTOM:
+		msg := input.(NewCustomWebhookMessage)
+		if msg.OperationWebhook != "" {
+			return msg.OperationWebhook
+		}
 	default:
 	}
 	// allow the environment to override the program definition
@@ -168,6 +182,20 @@ func (r *allWebhookData) GetWebhookChannel(input interface{}, channelType WEBHOO
 			return msg.OperationChannel
 		} else if utils.MythicConfig.WebhookStartupChannel != "" {
 			return utils.MythicConfig.WebhookStartupChannel
+		}
+	case WEBHOOK_TYPE_NEW_ALERT:
+		msg := input.(NewAlertWebhookMessage)
+		if msg.OperationChannel != "" {
+			return msg.OperationChannel
+		} else if utils.MythicConfig.WebhookAlertChannel != "" {
+			return utils.MythicConfig.WebhookAlertChannel
+		}
+	case WEBHOOK_TYPE_NEW_CUSTOM:
+		msg := input.(NewCustomWebhookMessage)
+		if msg.OperationChannel != "" {
+			return msg.OperationChannel
+		} else if utils.MythicConfig.WebhookCustomChannel != "" {
+			return utils.MythicConfig.WebhookCustomChannel
 		}
 	default:
 		logging.LogError(nil, "unknown webhook type when getting webhook channel", "type", channelType)

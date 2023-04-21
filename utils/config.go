@@ -27,6 +27,8 @@ type Config struct {
 	WebhookFeedbackChannel string
 	WebhookCallbackChannel string
 	WebhookStartupChannel  string
+	WebhookAlertChannel    string
+	WebhookCustomChannel   string
 }
 
 var (
@@ -51,6 +53,8 @@ func init() {
 	mythicEnv.SetDefault("webhook_default_feedback_channel", "")
 	mythicEnv.SetDefault("webhook_default_callback_channel", "")
 	mythicEnv.SetDefault("webhook_default_startup_channel", "")
+	mythicEnv.SetDefault("webhook_default_alert_channel", "")
+	mythicEnv.SetDefault("webhook_default_custom_channel", "")
 	// pull in environment variables and configuration from .env if needed
 	mythicEnv.SetConfigName(".env")
 	mythicEnv.SetConfigType("env")
@@ -94,6 +98,8 @@ func setConfigFromEnv(mythicEnv *viper.Viper) {
 	MythicConfig.WebhookFeedbackChannel = mythicEnv.GetString("webhook_default_feedback_channel")
 	MythicConfig.WebhookCallbackChannel = mythicEnv.GetString("webhook_default_callback_channel")
 	MythicConfig.WebhookStartupChannel = mythicEnv.GetString("webhook_default_startup_channel")
+	MythicConfig.WebhookAlertChannel = mythicEnv.GetString("webhook_default_alert_channel")
+	MythicConfig.WebhookCustomChannel = mythicEnv.GetString("webhook_default_custom_channel")
 }
 
 func getCwdFromExe() string {

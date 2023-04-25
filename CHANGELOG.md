@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.0.0-rc13] - 2023-04-25
+
+### Changed
+
+- Fixed a bug where new alert and new custom webhook fields weren't tracked for existence
+
 ## [v1.0.0-rc12] - 2023-04-21
 
 ### Changed

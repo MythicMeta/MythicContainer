@@ -148,6 +148,14 @@ func (r *rabbitMQConnection) startListeners(services []string) {
 					if webhookDef.NewFeedbackFunction != nil {
 						listenerExists = true
 					}
+				case webhookstructs.WEBHOOK_TYPE_NEW_ALERT:
+					if webhookDef.NewAlertFunction != nil {
+						listenerExists = true
+					}
+				case webhookstructs.WEBHOOK_TYPE_NEW_CUSTOM:
+					if webhookDef.NewCustomFunction != nil {
+						listenerExists = true
+					}
 				default:
 					logging.LogError(nil, "Unknown webhook type in rabbitmq initialize", "webhook type", directQueue.RabbitmqRoutingKey)
 				}

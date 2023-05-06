@@ -27,6 +27,7 @@ type MythicRPCCallbackUpdateMessage struct {
 	Domain            *string   `json:"domain,omitempty"`
 	Architecture      *string   `json:"architecture,omitempty"`
 	Description       *string   `json:"description,omitempty"`
+	ProcessName       *string   `json:"process_name,omitempty"`
 }
 type MythicRPCCallbackUpdateMessageResponse struct {
 	Success bool   `json:"success"`

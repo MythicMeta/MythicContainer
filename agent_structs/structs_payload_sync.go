@@ -27,6 +27,7 @@ const (
 	BUILD_PARAMETER_TYPE_DICTIONARY                         = "Dictionary"
 	BUILD_PARAMETER_TYPE_ARRAY                              = "Array"
 	BUILD_PARAMETER_TYPE_NUMBER                             = "Number"
+	BUILD_PARAMETER_TYPE_FILE                               = "File"
 )
 
 // BuildParameter - A structure defining the metadata about a build parameter for the user to select when building a payload.

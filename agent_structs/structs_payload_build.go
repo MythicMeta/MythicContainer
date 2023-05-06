@@ -13,6 +13,8 @@ type PayloadBuildMessage struct {
 	CommandList []string `json:"commands"`
 	// build param name : build value
 	// BuildParameters - map of param name -> build value from the user for the build parameters defined
+	// File type build parameters are supplied as a string UUID to use with MythicRPC for fetching file contents
+	// Array type build parameters are supplied as []string{}
 	BuildParameters map[string]interface{} `json:"build_parameters"`
 	// C2Profiles - list of C2 profiles selected to include in the payload and their associated parameters
 	C2Profiles []PayloadBuildC2Profile `json:"c2profiles"`

@@ -38,6 +38,9 @@ func (cmd *CommandParameter) GetCurrentValue() interface{} {
 func (arg *PTTaskMessageArgsData) SetManualArgs(args string) {
 	arg.manualArgs = &args
 }
+func (arg *PTTaskMessageArgsData) SetManualParameterGroup(groupName string) {
+	arg.manualParameterGroupName = groupName
+}
 func (arg *PTTaskMessageArgsData) GetArg(name string) (interface{}, error) {
 	for _, currentArg := range arg.args {
 		if currentArg.Name == name || currentArg.CLIName == name {
@@ -166,6 +169,8 @@ func (arg *PTTaskMessageArgsData) GetParameterGroupName() (string, error) {
 	var suppliedArgNames []string
 	if len(arg.args) == 0 {
 		return "Default", nil
+	} else if arg.manualParameterGroupName != "" {
+		return arg.manualParameterGroupName, nil
 	}
 	// first get a unique list of all possible groupNames for the arguments
 	for _, currentArg := range arg.args {
@@ -309,6 +314,7 @@ func (arg *PTTaskMessageArgsData) VerifyRequiredArgsHaveValues() (bool, error) {
 		}
 		return true, nil
 	}
+
 }
 func (arg *PTTaskMessageArgsData) GetFinalArgs() (string, error) {
 	if arg.manualArgs != nil {

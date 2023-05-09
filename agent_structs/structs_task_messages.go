@@ -102,11 +102,12 @@ type PtTaskFunctionParseArgDictionary func(args *PTTaskMessageArgsData, input ma
 // PTTaskMessageArgsData - struct for tracking, adding, removing, updating, validating, etc arguments for a task.
 // If you want to set your own manual arguments, use the .SetManualArgs function.
 type PTTaskMessageArgsData struct {
-	args            []CommandParameter
-	commandLine     string
-	rawCommandLine  string
-	taskingLocation string
-	manualArgs      *string
+	args                     []CommandParameter
+	commandLine              string
+	rawCommandLine           string
+	taskingLocation          string
+	manualArgs               *string
+	manualParameterGroupName string
 }
 
 const (
@@ -182,7 +183,8 @@ type PTTaskCreateTaskingMessageResponse struct {
 	TokenID *uint64 `json:"token_id,omitempty"`
 	// CompletionFunctionName - name of the completion function to call from the Command's TaskCompletionFunctions dictionary
 	CompletionFunctionName *string `json:"completion_function_name,omitempty"`
-	// ParameterGroupName - manually give the parameter group name instead of having Mythic determine it
+	// ParameterGroupName - Don't set this explicitly. If you want to set the name of the parameter group explicitly, use
+	// the taskData.Args.SetManualParameterGroup("name here") function.
 	ParameterGroupName string `json:"parameter_group_name"`
 }
 

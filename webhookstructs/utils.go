@@ -164,38 +164,38 @@ func (r *allWebhookData) GetWebhookChannel(input interface{}, channelType WEBHOO
 	switch channelType {
 	case WEBHOOK_TYPE_NEW_FEEDBACK:
 		msg := input.(NewFeedbackWebookMessage)
-		if msg.OperationChannel != "" {
-			return msg.OperationChannel
-		} else if utils.MythicConfig.WebhookFeedbackChannel != "" {
+		if utils.MythicConfig.WebhookFeedbackChannel != "" {
 			return utils.MythicConfig.WebhookFeedbackChannel
+		} else if msg.OperationChannel != "" {
+			return msg.OperationChannel
 		}
 	case WEBHOOK_TYPE_NEW_CALLBACK:
 		msg := input.(NewCallbackWebookMessage)
-		if msg.OperationChannel != "" {
-			return msg.OperationChannel
-		} else if utils.MythicConfig.WebhookCallbackChannel != "" {
+		if utils.MythicConfig.WebhookCallbackChannel != "" {
 			return utils.MythicConfig.WebhookCallbackChannel
+		} else if msg.OperationChannel != "" {
+			return msg.OperationChannel
 		}
 	case WEBHOOK_TYPE_NEW_STARTUP:
 		msg := input.(NewStartupWebhookMessage)
-		if msg.OperationChannel != "" {
-			return msg.OperationChannel
-		} else if utils.MythicConfig.WebhookStartupChannel != "" {
+		if utils.MythicConfig.WebhookStartupChannel != "" {
 			return utils.MythicConfig.WebhookStartupChannel
+		} else if msg.OperationChannel != "" {
+			return msg.OperationChannel
 		}
 	case WEBHOOK_TYPE_NEW_ALERT:
 		msg := input.(NewAlertWebhookMessage)
-		if msg.OperationChannel != "" {
-			return msg.OperationChannel
-		} else if utils.MythicConfig.WebhookAlertChannel != "" {
+		if utils.MythicConfig.WebhookAlertChannel != "" {
 			return utils.MythicConfig.WebhookAlertChannel
+		} else if msg.OperationChannel != "" {
+			return msg.OperationChannel
 		}
 	case WEBHOOK_TYPE_NEW_CUSTOM:
 		msg := input.(NewCustomWebhookMessage)
-		if msg.OperationChannel != "" {
-			return msg.OperationChannel
-		} else if utils.MythicConfig.WebhookCustomChannel != "" {
+		if utils.MythicConfig.WebhookCustomChannel != "" {
 			return utils.MythicConfig.WebhookCustomChannel
+		} else if msg.OperationChannel != "" {
+			return msg.OperationChannel
 		}
 	default:
 		logging.LogError(nil, "unknown webhook type when getting webhook channel", "type", channelType)

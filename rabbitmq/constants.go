@@ -14,13 +14,12 @@ const (
 
 type CallbackPortType = string
 
-const containerVersion = "v1.0.2"
+const containerVersion = "v1.0.3"
 
 const (
-	CALLBACK_PORT_TYPE_SOCKS           CallbackPortType = "socks"
-	CALLBACK_PORT_TYPE_SOCKS_WITH_AUTH                  = "socks5"
-	CALLBACK_PORT_TYPE_RPORTFWD                         = "rportfwd"
-	CALLBACK_PORT_TYPE_INTERACTIVE                      = "interactive"
+	CALLBACK_PORT_TYPE_SOCKS       CallbackPortType = "socks"
+	CALLBACK_PORT_TYPE_RPORTFWD                     = "rpfwd"
+	CALLBACK_PORT_TYPE_INTERACTIVE                  = "interactive"
 )
 
 // Direct fanout rabbitmq routes where Mythic is consuming messages, but others can also listen in and consume

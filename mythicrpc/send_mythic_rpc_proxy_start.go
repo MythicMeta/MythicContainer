@@ -8,8 +8,18 @@ import (
 )
 
 type MythicRPCProxyStartMessage struct {
-	TaskID   int    `json:"task_id"`
-	Port     int    `json:"port"`
+	// TaskID - the TaskID that's starting the proxy connection
+	TaskID int `json:"task_id"`
+	// LocalPort - for SOCKS, this is the port to open on the Mythic server.
+	// For rpfwd, this is the port to open on the host where your agent is running.
+	LocalPort int `json:"local_port"`
+	// RemotePort - This only needs to be set for rpfwd - this is the remote port to connect to when the LocalPort gets a connection
+	RemotePort int `json:"remote_port"`
+	// RemoteIP - This only needs to be set for rpfwd - this is the remote ip to connect to when the LocalPort gets a connection
+	RemoteIP string `json:"remote_ip"`
+	// PortType - What type of proxy connection are you opening
+	// CALLBACK_PORT_TYPE_SOCKS
+	// CALLBACK_PORT_TYPE_RPORTFWD
 	PortType string `json:"port_type"`
 }
 type MythicRPCProxyStartMessageResponse struct {

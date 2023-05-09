@@ -9,9 +9,11 @@ import (
 )
 
 type MythicRPCCallbackSearchMessage struct {
-	// AgentCallbackID (Required) - this is the UUID of the callback associated with this search.
+	// AgentCallbackUUID (Required) - this is the UUID of the callback associated with this search.If this isn't supplied, AgentCallbackID must be supplied.
 	// This provides the necessary context to scope the search to the right operation.
-	AgentCallbackID int `json:"agent_callback_id"`
+	AgentCallbackUUID string `json:"agent_callback_id"`
+	// AgentCallbackID (required) - this is the ID of the callback associated with this search. If this isn't supplied, AgentCallbackUUID must be supplied.
+	AgentCallbackID int `json:"callback_id"`
 	// SearchCallbackID (Optional) - if you know the real callback ID, you can search via that here.
 	SearchCallbackID *int `json:"search_callback_id"`
 	// SearchCallbackDisplayID (Optional) - if you know the display id for the callback (the one that shows up in the UI), then you can search via that here.

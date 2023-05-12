@@ -117,6 +117,18 @@ func (r *allLoggingData) AddLoggingDefinition(def LoggingDefinition) {
 	} else {
 		var zl zerolog.Logger
 		zl = zerolog.New(os.Stdout)
+		switch def.LogLevel {
+		case "warning":
+			zl = zl.Level(zerolog.WarnLevel)
+		case "info":
+			zl = zl.Level(zerolog.InfoLevel)
+		case "debug":
+			zl = zl.Level(zerolog.DebugLevel)
+		case "trace":
+			zl = zl.Level(zerolog.TraceLevel)
+		default:
+			zl = zl.Level(zerolog.InfoLevel)
+		}
 		zl = zl.With().Timestamp().Logger()
 		newLogger := zerologr.New(&zl)
 		r.logger = &newLogger

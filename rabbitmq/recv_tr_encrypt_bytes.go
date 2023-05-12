@@ -9,10 +9,13 @@ import (
 
 // Register this RPC method with rabbitmq so it can be called
 func init() {
-	translationstructs.AllTranslationData.Get("").AddRPCMethod(translationstructs.RabbitmqRPCMethod{
-		RabbitmqRoutingKey:         TR_RPC_ENCRYPT_BYTES,
-		RabbitmqProcessingFunction: processTrRPCEncryptBytes,
-	})
+	/*
+		translationstructs.AllTranslationData.Get("").AddRPCMethod(translationstructs.RabbitmqRPCMethod{
+			RabbitmqRoutingKey:         TR_RPC_ENCRYPT_BYTES,
+			RabbitmqProcessingFunction: processTrRPCEncryptBytes,
+		})
+
+	*/
 }
 
 // All rabbitmq methods must take byte inputs and return an interface.

@@ -22,22 +22,16 @@ func init() {
 	var zl zerolog.Logger
 	switch utils.MythicConfig.DebugLevel {
 	case "warning":
-		zl = zerolog.New(os.Stdout)
-		zerolog.SetGlobalLevel(zerolog.WarnLevel)
+		zl = zerolog.New(os.Stdout).Level(zerolog.WarnLevel)
 	case "info":
-		zl = zerolog.New(os.Stdout)
-		zerolog.SetGlobalLevel(zerolog.InfoLevel)
+		zl = zerolog.New(os.Stdout).Level(zerolog.InfoLevel)
 	case "debug":
-		zl = zerolog.New(zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC3339})
-		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+		zl = zerolog.New(zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC3339}).Level(zerolog.DebugLevel)
 	case "trace":
-		zl = zerolog.New(zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC3339})
-		zerolog.SetGlobalLevel(zerolog.TraceLevel)
+		zl = zerolog.New(zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC3339}).Level(zerolog.TraceLevel)
 	default:
-		zl = zerolog.New(os.Stdout)
-		zerolog.SetGlobalLevel(zerolog.InfoLevel)
+		zl = zerolog.New(os.Stdout).Level(zerolog.InfoLevel)
 	}
-
 	zl = zl.With().Timestamp().Logger()
 	logger = zerologr.New(&zl)
 	logger.Info("Logging Initialized")

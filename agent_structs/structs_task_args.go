@@ -74,27 +74,63 @@ func (arg *PTTaskMessageArgsData) GetBooleanArg(name string) (bool, error) {
 		return getTypedValue[bool](val)
 	}
 }
-func (arg *PTTaskMessageArgsData) GetDictionaryArg(name string) (map[string]interface{}, error) {
+func (arg *PTTaskMessageArgsData) GetDictionaryArg(name string) (map[string]string, error) {
 	if val, err := arg.GetArg(name); err != nil {
 		return nil, err
+	} else if initialDict, err := getTypedValue[map[string]interface{}](val); err != nil {
+		return nil, err
 	} else {
-		return getTypedValue[map[string]interface{}](val)
+		finalMap := make(map[string]string, len(initialDict))
+		for key, val := range initialDict {
+			switch v := val.(type) {
+			case string:
+				finalMap[key] = v
+			default:
+				finalMap[key] = fmt.Sprintf("%v", v)
+			}
+		}
+		return finalMap, nil
 	}
 }
 
-type c2ProfileInfo struct {
+// GetFileArg returns the file UUID that was registered with Mythic before tasking
+func (arg *PTTaskMessageArgsData) GetFileArg(name string) (string, error) {
+	return arg.GetStringArg(name)
+}
+
+// GetPayloadListArg returns the payload UUID that was selected from a dropdown list in the UI
+func (arg *PTTaskMessageArgsData) GetPayloadListArg(name string) (string, error) {
+	return arg.GetStringArg(name)
+}
+
+func (arg *PTTaskMessageArgsData) GetChooseOneArg(name string) (string, error) {
+	return arg.GetStringArg(name)
+}
+func (arg *PTTaskMessageArgsData) GetArrayArg(name string) ([]string, error) {
+	if val, err := arg.GetArg(name); err != nil {
+		return []string{}, err
+	} else {
+		return getTypedValue[[]string](val)
+	}
+}
+func (arg *PTTaskMessageArgsData) GetChooseMultipleArg(name string) ([]string, error) {
+	return arg.GetArrayArg(name)
+}
+
+type C2ProfileInfo struct {
 	Name       string                 `json:"name" mapstructure:"name"`
 	Parameters map[string]interface{} `json:"parameters" mapstructure:"parameters"`
 }
-type connectionInfo struct {
+type ConnectionInfo struct {
 	CallbackUUID  string        `json:"callback_uuid" mapstructure:"callback_uuid"`
 	AgentUUID     string        `json:"agent_uuid" mapstructure:"agent_uuid"`
 	Host          string        `json:"host" mapstructure:"host"`
-	C2ProfileInfo c2ProfileInfo `json:"c2_profile" mapstructure:"c2_profile"`
+	C2ProfileInfo C2ProfileInfo `json:"c2_profile" mapstructure:"c2_profile"`
 }
 
-func (arg *PTTaskMessageArgsData) GetConnectionInfoArg(name string) (connectionInfo, error) {
-	connectionInformation := connectionInfo{}
+// GetConnectionInfoArg returns structured information about a new P2P connection that can be established
+func (arg *PTTaskMessageArgsData) GetConnectionInfoArg(name string) (ConnectionInfo, error) {
+	connectionInformation := ConnectionInfo{}
 	if val, err := arg.GetArg(name); err != nil {
 		return connectionInformation, err
 	} else if err := mapstructure.Decode(val, &connectionInformation); err != nil {
@@ -103,13 +139,46 @@ func (arg *PTTaskMessageArgsData) GetConnectionInfoArg(name string) (connectionI
 		return connectionInformation, nil
 	}
 }
+
+// GetLinkInfoArg returns structured information about an existing (or now dead) P2P connection
+func (arg *PTTaskMessageArgsData) GetLinkInfoArg(name string) (ConnectionInfo, error) {
+	connectionInformation := ConnectionInfo{}
+	if val, err := arg.GetArg(name); err != nil {
+		return connectionInformation, err
+	} else if err := mapstructure.Decode(val, &connectionInformation); err != nil {
+		return connectionInformation, err
+	} else {
+		return connectionInformation, nil
+	}
+}
+
+type CredentialInfo struct {
+	Realm      string `json:"realm" mapstructure:"realm"`
+	Account    string `json:"account" mapstructure:"account"`
+	Credential string `json:"credential" mapstructure:"credential"`
+	Comment    string `json:"comment" mapstructure:"comment"`
+	Type       string `json:"type" mapstructure:"type"`
+}
+
+// GetCredentialArg returns all the data about a credential from Mythic's credential store
+func (arg *PTTaskMessageArgsData) GetCredentialArg(name string) (CredentialInfo, error) {
+	credentialInfo := CredentialInfo{}
+	if val, err := arg.GetArg(name); err != nil {
+		return credentialInfo, err
+	} else if err := mapstructure.Decode(val, &credentialInfo); err != nil {
+		return credentialInfo, err
+	} else {
+		return credentialInfo, nil
+	}
+}
+
 func getTypedValue[T any](value interface{}) (T, error) {
 	switch v := value.(type) {
 	case T:
 		return v, nil
 	default:
 		var emptyResult T
-		return emptyResult, errors.New("Bad type for value")
+		return emptyResult, errors.New("bad type for value")
 	}
 }
 func (arg *PTTaskMessageArgsData) HasArg(name string) bool {

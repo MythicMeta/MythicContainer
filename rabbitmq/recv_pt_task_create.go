@@ -59,6 +59,12 @@ func processPtTaskCreateMessages(msg []byte) {
 						finalResponse.Error = fmt.Sprintf("Failed to generate final arguments:\n%s", err.Error())
 					} else {
 						finalResponse.Params = params
+						unusedParams := incomingMessage.Args.GetUnusedArgs()
+						if finalResponse.Stdout != nil {
+							*finalResponse.Stdout = (*finalResponse.Stdout) + "\n" + unusedParams
+						} else {
+							finalResponse.Stdout = &unusedParams
+						}
 						if finalResponse.ParameterGroupName == "" {
 							if newGroupName, err := incomingMessage.Args.GetParameterGroupName(); err != nil {
 								logging.LogError(err, "Failed to get new parameter group name for task")

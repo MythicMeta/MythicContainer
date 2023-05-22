@@ -2,6 +2,7 @@ package rabbitmq
 
 import (
 	"encoding/json"
+	"errors"
 	"time"
 
 	agentstructs "github.com/MythicMeta/MythicContainer/agent_structs"
@@ -31,7 +32,7 @@ func SyncPayloadData(syncPayloadName *string) {
 					logging.LogError(err, "Failed to marshal sync response back to struct")
 					time.Sleep(RETRY_CONNECT_DELAY)
 				} else if !response.Success {
-					logging.LogError(nil, response.Error)
+					logging.LogError(errors.New(response.Error), "waiting and trying again...")
 					time.Sleep(RETRY_CONNECT_DELAY)
 				} else {
 					logging.LogInfo("Successfully synced payload type!", "name", pt)

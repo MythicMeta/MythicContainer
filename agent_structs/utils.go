@@ -2,6 +2,7 @@ package agentstructs
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"github.com/MythicMeta/MythicContainer/logging"
 	"github.com/MythicMeta/MythicContainer/utils"
@@ -88,12 +89,25 @@ func (r *allPayloadData) AddCommand(cmd Command) {
 				ParameterIsRequired: true,
 			})
 		}
+		for j := 0; j < len(cmd.CommandParameters[i].ParameterGroupInformation); j++ {
+			if cmd.CommandParameters[i].DefaultValue == nil && !cmd.CommandParameters[i].ParameterGroupInformation[j].ParameterIsRequired {
+				logging.LogError(errors.New("command parameter has default value of nil"),
+					"default value should be set to blank value of appropriate type or a meaningful default value for this parameter",
+					"command", cmd.Name, "parameter", cmd.CommandParameters[i].Name)
+			}
+		}
 	}
 	if cmd.CommandAttributes.FilterCommandAvailabilityByAgentBuildParameters == nil {
 		cmd.CommandAttributes.FilterCommandAvailabilityByAgentBuildParameters = make(map[string]string)
 	}
 	if cmd.CommandAttributes.SupportedOS == nil {
 		cmd.CommandAttributes.SupportedOS = make([]string, 0)
+	}
+	for i := 0; i < len(r.allCommands); i++ {
+		if r.allCommands[i].Name == cmd.Name {
+			logging.LogError(errors.New("can't add command, duplicate name detected"),
+				"two commands with same name detected", "name", cmd.Name)
+		}
 	}
 	r.mutex.Lock()
 	r.allCommands = append(r.allCommands, cmd)

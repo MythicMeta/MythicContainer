@@ -12,10 +12,12 @@ import (
 // Args helper functions
 func GenerateArgsData(cmdParams []CommandParameter, task PTTaskMessageAllData) (PTTaskMessageArgsData, error) {
 	args := PTTaskMessageArgsData{
-		taskingLocation: task.Task.TaskingLocation,
-		commandLine:     task.Task.Params,
-		rawCommandLine:  task.Task.OriginalParams,
+		taskingLocation:          task.Task.TaskingLocation,
+		commandLine:              task.Task.Params,
+		rawCommandLine:           task.Task.OriginalParams,
+		manualParameterGroupName: task.Task.ParameterGroupName,
 	}
+	//fmt.Printf("parameter group name: %s\n", task.Task.ParameterGroupName)
 	for paramIndex := range cmdParams {
 		param := cmdParams[paramIndex]
 		for groupInfoIndex := range param.ParameterGroupInformation {
@@ -396,7 +398,12 @@ func (arg *PTTaskMessageArgsData) GetFinalArgs() (string, error) {
 		// go through groupArgs and make a JSON string out of the argument values
 		argMap := map[string]interface{}{}
 		for _, currentArg := range groupArgs {
-			argMap[currentArg.Name] = currentArg.GetCurrentValue()
+			currentArgValue := currentArg.GetCurrentValue()
+			if currentArgValue != nil {
+				argMap[currentArg.Name] = currentArg.GetCurrentValue()
+			} else {
+				logging.LogInfo("Not sending nil value for task", "parameter", currentArg.Name)
+			}
 		}
 		if jsonBytes, err := json.Marshal(argMap); err != nil {
 			logging.LogError(err, "Failed to convert args to JSON string", "argMap", argMap)
@@ -404,5 +411,42 @@ func (arg *PTTaskMessageArgsData) GetFinalArgs() (string, error) {
 		} else {
 			return string(jsonBytes), nil
 		}
+	}
+}
+func (arg *PTTaskMessageArgsData) GetUnusedArgs() string {
+	if arg.manualArgs != nil {
+		return "Manual args explicitly set, all args unused\n"
+	}
+	groupName, err := arg.GetParameterGroupName()
+	if err != nil {
+		return fmt.Errorf("failed to get parameter group name: %w", err).Error()
+	}
+	returnString := fmt.Sprintf("The following args aren't being used because they don't belong to the %s parameter group: \n",
+		groupName)
+	unusedGroupArguments := []CommandParameter{}
+	for _, currentArg := range arg.args {
+		foundGroup := false
+		for _, currentGroup := range currentArg.ParameterGroupInformation {
+			if currentGroup.GroupName == groupName {
+				foundGroup = true
+			}
+		}
+		if !foundGroup {
+			unusedGroupArguments = append(unusedGroupArguments, currentArg)
+		}
+	}
+	if len(unusedGroupArguments) == 0 {
+		return returnString + "No arguments unused\n"
+	}
+	// go through groupArgs and make a JSON string out of the argument values
+	argMap := map[string]interface{}{}
+	for _, currentArg := range unusedGroupArguments {
+		argMap[currentArg.Name] = currentArg.GetCurrentValue()
+	}
+	if jsonBytes, err := json.MarshalIndent(argMap, "", "  "); err != nil {
+		logging.LogError(err, "Failed to convert args to JSON string", "argMap", argMap)
+		return returnString + fmt.Errorf("failed to convert unused args to JSON string: %w", err).Error()
+	} else {
+		return returnString + string(jsonBytes)
 	}
 }

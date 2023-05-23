@@ -8,12 +8,13 @@ import (
 )
 
 type MythicRPCFileUpdateMessage struct {
-	AgentFileID     string  `json:"file_id"`
-	Comment         string  `json:"comment"`
-	Filename        string  `json:"filename"`
-	AppendContents  *[]byte `json:"append_contents,omitempty"`
-	ReplaceContents *[]byte `json:"-"`
-	Delete          bool    `json:"delete"`
+	AgentFileID      string  `json:"file_id"`
+	Comment          string  `json:"comment"`
+	Filename         string  `json:"filename"`
+	AppendContents   *[]byte `json:"append_contents,omitempty"`
+	ReplaceContents  *[]byte `json:"-"`
+	Delete           bool    `json:"delete"`
+	DeleteAfterFetch *bool   `json:"delete_after_fetch"`
 }
 
 // Every mythicRPC function call must return a response that includes the following two values

@@ -14,7 +14,7 @@ const (
 
 type CallbackPortType = string
 
-const containerVersion = "v1.0.6"
+const containerVersion = "v1.1.0"
 
 const (
 	CALLBACK_PORT_TYPE_SOCKS       CallbackPortType = "socks"
@@ -103,6 +103,10 @@ const (
 	C2_RPC_OPSEC_CHECKS_ROUTING_KEY = "c2_rpc_opsec_check"
 	//
 	C2_RPC_CONFIG_CHECK_ROUTING_KEY = "c2_rpc_config_check"
+	//
+	C2_RPC_GET_IOC_ROUTING_KEY = "c2_rpc_get_ioc"
+	//
+	C2_RPC_SAMPLE_MESSAGE_ROUTING_KEY = "c2_rpc_sample_message"
 	//
 	C2_RPC_REDIRECTOR_RULES_ROUTING_KEY = "c2_rpc_redirector_rules"
 	//

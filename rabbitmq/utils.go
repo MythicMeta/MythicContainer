@@ -597,38 +597,7 @@ func UploadPayloadData(payloadBuildMsg agentstructs.PayloadBuildMessage, payload
 
 	return nil
 }
-func WrapPayloadBuild(msg []byte) {
-	payloadBuildMsg := agentstructs.PayloadBuildMessage{}
-	if err := json.Unmarshal(msg, &payloadBuildMsg); err != nil {
-		logging.LogError(err, "Failed to process payload build message")
-	} else {
-		var payloadBuildResponse agentstructs.PayloadBuildResponse
-		if payloadBuildFunc := agentstructs.AllPayloadData.Get(payloadBuildMsg.PayloadType).GetBuildFunction(); payloadBuildFunc == nil {
-			logging.LogError(nil, "Failed to get payload build function. Do you have a function called 'build'?")
-			payloadBuildResponse.Success = false
-		} else {
-			payloadBuildResponse = agentstructs.AllPayloadData.Get(payloadBuildMsg.PayloadType).GetBuildFunction()(payloadBuildMsg)
-		}
-		// handle sending off the payload via a web request separately from the rest of the message
-		if payloadBuildResponse.Payload != nil {
-			if err := UploadPayloadData(payloadBuildMsg, payloadBuildResponse); err != nil {
-				logging.LogError(err, "Failed to send payload back to Mythic via web request")
-				payloadBuildResponse.BuildMessage = payloadBuildResponse.BuildMessage + "\nFailed to send payload back to Mythic: " + err.Error()
-				payloadBuildResponse.Success = false
-			}
-		}
-		if err := RabbitMQConnection.SendStructMessage(
-			MYTHIC_EXCHANGE,
-			PT_BUILD_RESPONSE_ROUTING_KEY,
-			"",
-			payloadBuildResponse,
-			false,
-		); err != nil {
-			logging.LogError(err, "Failed to send payload response back to Mythic")
-		}
-		logging.LogDebug("Finished processing payload build message")
-	}
-}
+
 func prepTaskArgs(command agentstructs.Command, taskMessage *agentstructs.PTTaskMessageAllData) error {
 	if args, err := agentstructs.GenerateArgsData(command.CommandParameters, *taskMessage); err != nil {
 		logging.LogError(err, "Failed to generate args data for create tasking")

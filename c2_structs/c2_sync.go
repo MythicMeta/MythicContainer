@@ -35,6 +35,8 @@ type C2Profile struct {
 	ConfigCheckFunction        func(message C2ConfigCheckMessage) C2ConfigCheckMessageResponse                          `json:"-"`
 	GetRedirectorRulesFunction func(message C2GetRedirectorRuleMessage) C2GetRedirectorRuleMessageResponse              `json:"-"`
 	OPSECCheckFunction         func(message C2OPSECMessage) C2OPSECMessageResponse                                      `json:"-"`
+	GetIOCFunction             func(message C2GetIOCMessage) C2GetIOCMessageResponse                                    `json:"-"`
+	SampleMessageFunction      func(message C2SampleMessageMessage) C2SampleMessageResponse                             `json:"-"`
 	CustomRPCFunctions         map[string]func(message C2RPCOtherServiceRPCMessage) C2RPCOtherServiceRPCMessageResponse `json:"-"`
 }
 

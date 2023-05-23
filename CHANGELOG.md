@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.0.9-rc01] - 2023-05-22
+
+### Changed
+
+- Added base functionality for two new C2 RPC functions - GetIOC and SampleMessage
+- Changed PayloadBuildMessage.BuildParameters to be a struct with a Parameters map inside of it
+  - Added a suite of helper functions on it to get build parameters of various types
+- Updated PTTaskMessageArgsData.Get*Arg functions to return default type-based blank values if nil
+- Added suite of helper functions to PayloadBuildMessage.PayloadBuildC2Profile entries for getting C2 Parameter arguments
+- Bumped the container version to v1.1.0 to account for new getIOC and SampleMessage C2 RPC Functionality
+
 ## [v1.0.8] - 2023-05-22
 
 ### Changed

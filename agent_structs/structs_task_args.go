@@ -54,6 +54,8 @@ func (arg *PTTaskMessageArgsData) GetArg(name string) (interface{}, error) {
 func (arg *PTTaskMessageArgsData) GetStringArg(name string) (string, error) {
 	if val, err := arg.GetArg(name); err != nil {
 		return "", err
+	} else if val == nil {
+		return "", nil
 	} else {
 		return getTypedValue[string](val)
 	}
@@ -61,6 +63,8 @@ func (arg *PTTaskMessageArgsData) GetStringArg(name string) (string, error) {
 func (arg *PTTaskMessageArgsData) GetNumberArg(name string) (float64, error) {
 	if val, err := arg.GetArg(name); err != nil {
 		return 0, err
+	} else if val == nil {
+		return 0, nil
 	} else if floatVal, err := getTypedValue[float64](val); err == nil {
 		return floatVal, nil
 	} else if intVal, err := getTypedValue[int](val); err == nil {
@@ -72,6 +76,8 @@ func (arg *PTTaskMessageArgsData) GetNumberArg(name string) (float64, error) {
 func (arg *PTTaskMessageArgsData) GetBooleanArg(name string) (bool, error) {
 	if val, err := arg.GetArg(name); err != nil {
 		return false, err
+	} else if val == nil {
+		return false, nil
 	} else {
 		return getTypedValue[bool](val)
 	}
@@ -79,6 +85,8 @@ func (arg *PTTaskMessageArgsData) GetBooleanArg(name string) (bool, error) {
 func (arg *PTTaskMessageArgsData) GetDictionaryArg(name string) (map[string]string, error) {
 	if val, err := arg.GetArg(name); err != nil {
 		return nil, err
+	} else if val == nil {
+		return make(map[string]string), nil
 	} else if initialDict, err := getTypedValue[map[string]interface{}](val); err != nil {
 		return nil, err
 	} else {
@@ -111,6 +119,8 @@ func (arg *PTTaskMessageArgsData) GetChooseOneArg(name string) (string, error) {
 func (arg *PTTaskMessageArgsData) GetArrayArg(name string) ([]string, error) {
 	if val, err := arg.GetArg(name); err != nil {
 		return []string{}, err
+	} else if val == nil {
+		return []string{}, nil
 	} else {
 		return getTypedValue[[]string](val)
 	}
@@ -135,6 +145,8 @@ func (arg *PTTaskMessageArgsData) GetConnectionInfoArg(name string) (ConnectionI
 	connectionInformation := ConnectionInfo{}
 	if val, err := arg.GetArg(name); err != nil {
 		return connectionInformation, err
+	} else if val == nil {
+		return connectionInformation, nil
 	} else if err := mapstructure.Decode(val, &connectionInformation); err != nil {
 		return connectionInformation, err
 	} else {
@@ -147,6 +159,8 @@ func (arg *PTTaskMessageArgsData) GetLinkInfoArg(name string) (ConnectionInfo, e
 	connectionInformation := ConnectionInfo{}
 	if val, err := arg.GetArg(name); err != nil {
 		return connectionInformation, err
+	} else if val == nil {
+		return connectionInformation, nil
 	} else if err := mapstructure.Decode(val, &connectionInformation); err != nil {
 		return connectionInformation, err
 	} else {
@@ -167,6 +181,8 @@ func (arg *PTTaskMessageArgsData) GetCredentialArg(name string) (CredentialInfo,
 	credentialInfo := CredentialInfo{}
 	if val, err := arg.GetArg(name); err != nil {
 		return credentialInfo, err
+	} else if val == nil {
+		return credentialInfo, nil
 	} else if err := mapstructure.Decode(val, &credentialInfo); err != nil {
 		return credentialInfo, err
 	} else {

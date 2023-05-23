@@ -1,9 +1,11 @@
 package c2structs
 
 import (
+	"errors"
 	"fmt"
 	"github.com/MythicMeta/MythicContainer/logging"
 	"github.com/MythicMeta/MythicContainer/utils"
+	"github.com/mitchellh/mapstructure"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -137,4 +139,124 @@ func (r *allC2Data) GetDirectMethods() []RabbitmqDirectMethod {
 }
 func (r *allC2Data) GetRoutingKey(baseRoutingKey string) string {
 	return fmt.Sprintf("%s_%s", r.GetC2Name(), baseRoutingKey)
+}
+
+type CryptoArg struct {
+	Value  string `json:"value" mapstructure:"value"`
+	EncKey string `json:"enc_key" mapstructure:"enc_key"`
+	DecKey string `json:"dec_key" mapstructure:"dec_key"`
+}
+
+type C2Parameters struct {
+	Name       string                 `json:"c2_profile_name"`
+	Parameters map[string]interface{} `json:"parameters"`
+}
+
+func (arg *C2Parameters) GetArg(name string) (interface{}, error) {
+	for key, currentArg := range arg.Parameters {
+		if key == name {
+			return currentArg, nil
+		}
+	}
+	return nil, errors.New("failed to find argument")
+}
+func (arg *C2Parameters) GetArgNames() []string {
+	argNames := []string{}
+	for key, _ := range arg.Parameters {
+		argNames = append(argNames, key)
+	}
+	return argNames
+}
+func (arg *C2Parameters) GetStringArg(name string) (string, error) {
+	if val, err := arg.GetArg(name); err != nil {
+		return "", err
+	} else if val == nil {
+		return "", nil
+	} else {
+		return getTypedValue[string](val)
+	}
+}
+func (arg *C2Parameters) GetNumberArg(name string) (float64, error) {
+	if val, err := arg.GetArg(name); err != nil {
+		return 0, err
+	} else if val == nil {
+		return 0, nil
+	} else if floatVal, err := getTypedValue[float64](val); err == nil {
+		return floatVal, nil
+	} else if intVal, err := getTypedValue[int](val); err == nil {
+		return float64(intVal), nil
+	} else {
+		return 0, err
+	}
+}
+func (arg *C2Parameters) GetBooleanArg(name string) (bool, error) {
+	if val, err := arg.GetArg(name); err != nil {
+		return false, err
+	} else if val == nil {
+		return false, nil
+	} else {
+		return getTypedValue[bool](val)
+	}
+}
+func (arg *C2Parameters) GetDictionaryArg(name string) (map[string]string, error) {
+	if val, err := arg.GetArg(name); err != nil {
+		return nil, err
+	} else if val == nil {
+		return make(map[string]string), nil
+	} else if initialDict, err := getTypedValue[map[string]interface{}](val); err != nil {
+		return nil, err
+	} else {
+		finalMap := make(map[string]string, len(initialDict))
+		for key, val := range initialDict {
+			switch v := val.(type) {
+			case string:
+				finalMap[key] = v
+			default:
+				finalMap[key] = fmt.Sprintf("%v", v)
+			}
+		}
+		return finalMap, nil
+	}
+}
+func (arg *C2Parameters) GetChooseOneArg(name string) (string, error) {
+	return arg.GetStringArg(name)
+}
+func (arg *C2Parameters) GetArrayArg(name string) ([]string, error) {
+	if val, err := arg.GetArg(name); err != nil {
+		return []string{}, err
+	} else if val == nil {
+		return []string{}, nil
+	} else {
+		return getTypedValue[[]string](val)
+	}
+}
+func (arg *C2Parameters) GetChooseMultipleArg(name string) ([]string, error) {
+	return arg.GetArrayArg(name)
+}
+func (arg *C2Parameters) GetDateArg(name string) (string, error) {
+	return arg.GetStringArg(name)
+}
+func (arg *C2Parameters) GetFileArg(name string) (string, error) {
+	return arg.GetStringArg(name)
+}
+func (arg *C2Parameters) GetCryptoArg(name string) (CryptoArg, error) {
+	cryptoArg := CryptoArg{}
+	if val, err := arg.GetArg(name); err != nil {
+		return cryptoArg, err
+	} else if val == nil {
+		return cryptoArg, nil
+	} else if err := mapstructure.Decode(val, &cryptoArg); err != nil {
+		return cryptoArg, err
+	} else {
+		return cryptoArg, nil
+	}
+}
+func getTypedValue[T any](value interface{}) (T, error) {
+	switch v := value.(type) {
+	case T:
+		return v, nil
+	default:
+		var emptyResult T
+		return emptyResult, errors.New("bad type for value")
+	}
 }

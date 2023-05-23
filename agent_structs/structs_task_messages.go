@@ -102,12 +102,15 @@ type PtTaskFunctionParseArgDictionary func(args *PTTaskMessageArgsData, input ma
 // PTTaskMessageArgsData - struct for tracking, adding, removing, updating, validating, etc arguments for a task.
 // If you want to set your own manual arguments, use the .SetManualArgs function.
 type PTTaskMessageArgsData struct {
-	args                     []CommandParameter
-	commandLine              string
-	rawCommandLine           string
-	taskingLocation          string
-	manualArgs               *string
+	args            []CommandParameter
+	commandLine     string
+	rawCommandLine  string
+	taskingLocation string
+	manualArgs      *string
+	// manualParameterGroupName use this in case of a user-explicit group
 	manualParameterGroupName string
+	// initialParameterGroupName use this in case of multiple matching parameter groups
+	initialParameterGroupName string
 }
 
 const (

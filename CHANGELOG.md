@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.0.9-rc02] - 2023-05-23
+
+### Changed
+
+- Modified many of the similar C2 message structs to support new helper functions for getting arguments
+- Modified the use of the supplied parameter group from the Mythic UI to be a tie breaker rather than as a manually set group name
+
 ## [v1.0.9-rc01] - 2023-05-22
 
 ### Changed

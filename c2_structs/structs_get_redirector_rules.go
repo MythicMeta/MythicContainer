@@ -5,8 +5,7 @@ package c2structs
 type C2_GET_REDIRECTOR_RULE_STATUS = string
 
 type C2GetRedirectorRuleMessage struct {
-	Name       string                 `json:"c2_profile_name"`
-	Parameters map[string]interface{} `json:"parameters"`
+	C2Parameters
 }
 
 type C2GetRedirectorRuleMessageResponse struct {

@@ -4,8 +4,7 @@ package c2structs
 
 // C2GetIOCMessage given the following C2 configuration, determine the IOCs that a defender should look for
 type C2GetIOCMessage struct {
-	Name       string                 `json:"c2_profile_name"`
-	Parameters map[string]interface{} `json:"parameters"`
+	C2Parameters
 }
 
 // IOC identify the type of ioc with Type and the actual IOC value

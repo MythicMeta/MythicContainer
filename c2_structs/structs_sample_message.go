@@ -5,8 +5,7 @@ package c2structs
 // C2SampleMessageMessage - Generate sample C2 Traffic based on this configuration so that the
 // operator and developer can more easily troubleshoot
 type C2SampleMessageMessage struct {
-	Name       string                 `json:"c2_profile_name"`
-	Parameters map[string]interface{} `json:"parameters"`
+	C2Parameters
 }
 
 // C2SampleMessageResponse - Provide a string representation of the C2 Traffic that the corresponding

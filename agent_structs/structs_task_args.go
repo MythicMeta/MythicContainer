@@ -12,10 +12,10 @@ import (
 // Args helper functions
 func GenerateArgsData(cmdParams []CommandParameter, task PTTaskMessageAllData) (PTTaskMessageArgsData, error) {
 	args := PTTaskMessageArgsData{
-		taskingLocation:          task.Task.TaskingLocation,
-		commandLine:              task.Task.Params,
-		rawCommandLine:           task.Task.OriginalParams,
-		manualParameterGroupName: task.Task.ParameterGroupName,
+		taskingLocation:           task.Task.TaskingLocation,
+		commandLine:               task.Task.Params,
+		rawCommandLine:            task.Task.OriginalParams,
+		initialParameterGroupName: task.Task.ParameterGroupName,
 	}
 	//fmt.Printf("parameter group name: %s\n", task.Task.ParameterGroupName)
 	for paramIndex := range cmdParams {
@@ -306,6 +306,9 @@ func (arg *PTTaskMessageArgsData) GetParameterGroupName() (string, error) {
 		if len(finalMatchingGroupNames) == 0 {
 			return "", errors.New(fmt.Sprintf("Supplied Arguments, %v, match more than one parameter group (%v), and all require at least one more value from the user", suppliedArgNames, groupNameOptions))
 		} else if len(finalMatchingGroupNames) > 1 {
+			if utils.StringSliceContains(finalMatchingGroupNames, arg.initialParameterGroupName) {
+				return arg.initialParameterGroupName, nil
+			}
 			return "", errors.New(fmt.Sprintf("Supplied Arguments, %v, match more than one parameter group (%v)", suppliedArgNames, finalMatchingGroupNames))
 		} else {
 			return finalMatchingGroupNames[0], nil

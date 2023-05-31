@@ -26,6 +26,7 @@ const (
 	LOG_TYPE_FILE                = "new_file"
 	LOG_TYPE_PAYLOAD             = "new_payload"
 	LOG_TYPE_KEYLOG              = "new_keylog"
+	LOG_TYPE_RESPONSE            = "new_response"
 )
 
 type loggingMessageBase struct {
@@ -48,6 +49,7 @@ type LoggingDefinition struct {
 	NewPayloadFunction    func(input NewPayloadLog)
 	NewArtifactFunction   func(input NewArtifactLog)
 	NewTaskFunction       func(input NewTaskLog)
+	NewResponseFunction   func(input NewResponseLog)
 }
 
 type RabbitmqRPCMethod struct {

@@ -502,7 +502,7 @@ func (r *rabbitMQConnection) ReceiveFromMythicDirectTopicExchange(exchange strin
 			time.Sleep(RETRY_CONNECT_DELAY)
 			continue
 		} else if q, err := ch.QueueDeclare(
-			"",             // name, queue
+			routingKey,     // name, queue
 			false,          // durable
 			true,           // delete when unused
 			exclusiveQueue, // exclusive

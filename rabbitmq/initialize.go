@@ -112,6 +112,10 @@ func (r *rabbitMQConnection) startListeners(services []string) {
 					if loggingDef.NewTaskFunction != nil {
 						listenerExists = true
 					}
+				case loggingstructs.LOG_TYPE_RESPONSE:
+					if loggingDef.NewResponseFunction != nil {
+						listenerExists = true
+					}
 				default:
 				}
 			}

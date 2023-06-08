@@ -626,9 +626,10 @@ func prepTaskArgs(command agentstructs.Command, taskMessage *agentstructs.PTTask
 						} else {
 							break
 						}
+					} else {
+						logging.LogError(err, "Failed to parse arguments from parsed_cli into dictionary and no ParseArgString function defined, using raw command line")
 					}
-					logging.LogError(err, "Failed to parse arguments from parsed_cli into dictionary")
-					return errors.New(fmt.Sprintf("Failed to parse arguments from parsed_cli into dictionary:\n%s", err.Error()))
+
 				} else if err := command.TaskFunctionParseArgDictionary(&taskMessage.Args, tempArgs); err != nil {
 					logging.LogError(err, "Failed to run ParseArgDictionary function", "command Name", command.Name)
 					return errors.New(fmt.Sprintf("Failed to run %s's ParseArgDictionary function:\n%s", command.Name, err.Error()))

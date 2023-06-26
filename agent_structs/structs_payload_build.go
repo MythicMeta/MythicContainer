@@ -26,6 +26,8 @@ type PayloadBuildMessage struct {
 	C2Profiles []PayloadBuildC2Profile `json:"c2profiles" mapstructure:"c2profiles"`
 	// WrappedPayload - bytes of the wrapped payload if one exists
 	WrappedPayload *[]byte `json:"wrapped_payload,omitempty" mapstructure:"wrapped_payload"`
+	// WrappedPayloadUUID - the UUID of the wrapped payload if one exists
+	WrappedPayloadUUID *string `json:"wrapped_payload_uuid,omitempty" mapstructure:"wrapped_payload_uuid"`
 	// SelectedOS - the operating system the user selected when building the agent
 	SelectedOS string `json:"selected_os" mapstructure:"selected_os"`
 	// PayloadUUID - the Mythic generated UUID for this payload instance

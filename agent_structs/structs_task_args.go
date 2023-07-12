@@ -7,6 +7,7 @@ import (
 	"github.com/MythicMeta/MythicContainer/logging"
 	"github.com/MythicMeta/MythicContainer/utils"
 	"github.com/mitchellh/mapstructure"
+	"reflect"
 )
 
 // Args helper functions
@@ -121,8 +122,14 @@ func (arg *PTTaskMessageArgsData) GetArrayArg(name string) ([]string, error) {
 		return []string{}, err
 	} else if val == nil {
 		return []string{}, nil
+	} else if interfaceArray, err := getTypedValue[[]interface{}](val); err != nil {
+		return []string{}, err
 	} else {
-		return getTypedValue[[]string](val)
+		stringArray := make([]string, len(interfaceArray))
+		for index, _ := range interfaceArray {
+			stringArray[index] = fmt.Sprintf("%v", interfaceArray[index])
+		}
+		return stringArray, nil
 	}
 }
 func (arg *PTTaskMessageArgsData) GetChooseMultipleArg(name string) ([]string, error) {
@@ -196,6 +203,7 @@ func getTypedValue[T any](value interface{}) (T, error) {
 		return v, nil
 	default:
 		var emptyResult T
+		logging.LogInfo("bad type", "value", value, "type", reflect.TypeOf(value))
 		return emptyResult, errors.New("bad type for value")
 	}
 }

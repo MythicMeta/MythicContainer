@@ -106,19 +106,25 @@ func C2RPCStartServer(input c2structs.C2RPCStartServerMessage) c2structs.C2RPCSt
 		case <-time.After(3 * time.Second):
 			tellGoroutineToFinish <- true
 		}
-		if c2structs.AllC2Data.Get(input.Name).RunningServerProcess != nil && c2structs.AllC2Data.Get(input.Name).RunningServerProcess.ProcessState.ExitCode() == -1 {
-			// we're still running after 3 seconds
-			responseMsg.Message = output
-			responseMsg.Error = ""
-			responseMsg.Success = true
-			responseMsg.InternalServerRunning = true
-			return responseMsg
-		} else {
-			// we're not running after 3 seconds anymore, something must have stopped it
+		result := make(chan error, 1)
+		go func() {
+			result <- c2structs.AllC2Data.Get(input.Name).RunningServerProcess.Wait()
+		}()
+		select {
+		case <-time.After(1 * time.Second):
+			err = nil
+		case err = <-result:
+		}
+		if err != nil {
 			responseMsg.Error = output
 			c2structs.AllC2Data.Get(input.Name).RunningServerProcess = nil
 			return responseMsg
 		}
+		responseMsg.Message = output
+		responseMsg.Error = ""
+		responseMsg.Success = true
+		responseMsg.InternalServerRunning = true
+		return responseMsg
 	}
 }
 

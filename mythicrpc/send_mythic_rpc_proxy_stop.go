@@ -13,8 +13,9 @@ type MythicRPCProxyStopMessage struct {
 	PortType string `json:"port_type"`
 }
 type MythicRPCProxyStopMessageResponse struct {
-	Success bool   `json:"success"`
-	Error   string `json:"error"`
+	Success   bool   `json:"success"`
+	Error     string `json:"error"`
+	LocalPort int    `json:"local_port"`
 }
 
 func SendMythicRPCProxyStop(input MythicRPCProxyStopMessage) (*MythicRPCProxyStopMessageResponse, error) {

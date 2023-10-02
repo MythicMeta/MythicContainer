@@ -13,6 +13,7 @@ type MythicRPCPayloadUpdateBuildStepMessage struct {
 	StepStdout  string `json:"step_stdout"`
 	StepStderr  string `json:"step_stderr"`
 	StepSuccess bool   `json:"step_success"`
+	StepSkip    bool   `json:"step_skip"`
 }
 
 // Every mythicRPC function call must return a response that includes the following two values

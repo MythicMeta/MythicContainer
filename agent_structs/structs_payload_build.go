@@ -126,8 +126,14 @@ func (arg *PayloadBuildC2Profile) GetArrayArg(name string) ([]string, error) {
 		return []string{}, err
 	} else if val == nil {
 		return []string{}, nil
+	} else if interfaceArray, err := getTypedValue[[]interface{}](val); err != nil {
+		return []string{}, err
 	} else {
-		return getTypedValue[[]string](val)
+		stringArray := make([]string, len(interfaceArray))
+		for index, _ := range interfaceArray {
+			stringArray[index] = fmt.Sprintf("%v", interfaceArray[index])
+		}
+		return stringArray, nil
 	}
 }
 func (arg *PayloadBuildC2Profile) GetChooseMultipleArg(name string) ([]string, error) {
@@ -149,6 +155,24 @@ func (arg *PayloadBuildC2Profile) GetCryptoArg(name string) (CryptoArg, error) {
 		return cryptoArg, err
 	} else {
 		return cryptoArg, nil
+	}
+}
+func (arg *PayloadBuildC2Profile) GetTypedArrayArg(name string) ([][]string, error) {
+	if val, err := arg.GetArg(name); err != nil {
+		return [][]string{}, err
+	} else if val == nil {
+		return [][]string{}, nil
+	} else if interfaceArray, err := getTypedValue[[][]interface{}](val); err != nil {
+		return [][]string{}, err
+	} else {
+		stringArray := make([][]string, len(interfaceArray))
+		for index, _ := range interfaceArray {
+			stringArray[index] = []string{}
+			for index2, _ := range interfaceArray[index] {
+				stringArray[index] = append(stringArray[index], fmt.Sprintf("%v", interfaceArray[index][index2]))
+			}
+		}
+		return stringArray, nil
 	}
 }
 
@@ -230,8 +254,14 @@ func (arg *PayloadBuildArguments) GetArrayArg(name string) ([]string, error) {
 		return []string{}, err
 	} else if val == nil {
 		return []string{}, nil
+	} else if interfaceArray, err := getTypedValue[[]interface{}](val); err != nil {
+		return []string{}, err
 	} else {
-		return getTypedValue[[]string](val)
+		stringArray := make([]string, len(interfaceArray))
+		for index, _ := range interfaceArray {
+			stringArray[index] = fmt.Sprintf("%v", interfaceArray[index])
+		}
+		return stringArray, nil
 	}
 }
 func (arg *PayloadBuildArguments) GetChooseMultipleArg(name string) ([]string, error) {
@@ -253,6 +283,24 @@ func (arg *PayloadBuildArguments) GetCryptoArg(name string) (CryptoArg, error) {
 		return cryptoArg, err
 	} else {
 		return cryptoArg, nil
+	}
+}
+func (arg *PayloadBuildArguments) GetTypedArrayArg(name string) ([][]string, error) {
+	if val, err := arg.GetArg(name); err != nil {
+		return [][]string{}, err
+	} else if val == nil {
+		return [][]string{}, nil
+	} else if interfaceArray, err := getTypedValue[[][]interface{}](val); err != nil {
+		return [][]string{}, err
+	} else {
+		stringArray := make([][]string, len(interfaceArray))
+		for index, _ := range interfaceArray {
+			stringArray[index] = []string{}
+			for index2, _ := range interfaceArray[index] {
+				stringArray[index] = append(stringArray[index], fmt.Sprintf("%v", interfaceArray[index][index2]))
+			}
+		}
+		return stringArray, nil
 	}
 }
 

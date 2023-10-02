@@ -37,6 +37,7 @@ type C2Profile struct {
 	OPSECCheckFunction         func(message C2OPSECMessage) C2OPSECMessageResponse                                      `json:"-"`
 	GetIOCFunction             func(message C2GetIOCMessage) C2GetIOCMessageResponse                                    `json:"-"`
 	SampleMessageFunction      func(message C2SampleMessageMessage) C2SampleMessageResponse                             `json:"-"`
+	HostFileFunction           func(message C2HostFileMessage) C2HostFileMessageResponse                                `json:"-"`
 	CustomRPCFunctions         map[string]func(message C2RPCOtherServiceRPCMessage) C2RPCOtherServiceRPCMessageResponse `json:"-"`
 }
 
@@ -49,6 +50,7 @@ const (
 	C2_PARAMETER_TYPE_DATE                            = "Date"
 	C2_PARAMETER_TYPE_DICTIONARY                      = "Dictionary"
 	C2_PARAMETER_TYPE_NUMBER                          = "Number"
+	C2_PARAMETER_TYPE_TYPED_ARRAY                     = "TypedArray"
 )
 
 type C2Parameter struct {

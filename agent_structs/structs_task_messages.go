@@ -218,6 +218,11 @@ type PTTaskCompletionFunctionMessage struct {
 	SubtaskGroup           *SubtaskGroupName     `json:"subtask_group_name,omitempty"`
 	CompletionFunctionName string                `json:"function_name"`
 }
+
+// PTTaskCompletionFunction takes in taskData, subtaskData, groupName
+// taskData is always your current task
+// subtaskData is optional if this is executing once a subtask finishes execution
+// subtaskGroupName is optional if the subtask was part of a named group
 type PTTaskCompletionFunction func(*PTTaskMessageAllData, *PTTaskMessageAllData, *SubtaskGroupName) PTTaskCompletionFunctionMessageResponse
 type PTTaskCompletionFunctionMessageResponse struct {
 	TaskID                 int     `json:"task_id"`

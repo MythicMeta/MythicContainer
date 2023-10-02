@@ -28,6 +28,7 @@ const (
 	BUILD_PARAMETER_TYPE_ARRAY                              = "Array"
 	BUILD_PARAMETER_TYPE_NUMBER                             = "Number"
 	BUILD_PARAMETER_TYPE_FILE                               = "File"
+	BUILD_PARAMETER_TYPE_TYPED_ARRAY                        = "TypedArray"
 )
 
 // BuildParameter - A structure defining the metadata about a build parameter for the user to select when building a payload.
@@ -188,6 +189,7 @@ const (
 	COMMAND_PARAMETER_TYPE_PAYLOAD_LIST                         = "PayloadList"
 	COMMAND_PARAMETER_TYPE_CONNECTION_INFO                      = "AgentConnect"
 	COMMAND_PARAMETER_TYPE_LINK_INFO                            = "LinkInfo"
+	COMMAND_PARAMETER_TYPE_TYPED_ARRAY                          = "TypedArray"
 )
 
 // CommandParameter - The base definition for a parameter (i.e. argument) to your command
@@ -202,7 +204,8 @@ type CommandParameter struct {
 	ParameterType CommandParameterType `json:"parameter_type"`
 	// Description - The description of the parameter that's displayed to the user when they hover over the ModalDisplayName
 	Description string `json:"description"`
-	// Choices - If the ParameterType is ChooseOne or ChooseMultiple, these are the choices for the user
+	// Choices - If the ParameterType is ChooseOne or ChooseMultiple, these are the choices for the user.
+	// If the ParameterType is TypedArray, these are the options for each array entry
 	Choices []string `json:"choices"`
 	// DefaultValue - The default value to present to the user when they pull up the modal view
 	DefaultValue interface{} `json:"default_value"`
@@ -218,6 +221,8 @@ type CommandParameter struct {
 	FilterCommandChoicesByCommandAttributes map[string]string `json:"choice_filter_by_command_attributes"`
 	// DynamicQueryFunction -  Provide a dynamic query function to be called when the user views that parameter option in the UI to populate choices for the ChooseOne or ChooseMultiple Parameter Types.
 	DynamicQueryFunction PTTaskingDynamicQueryFunction `json:"dynamic_query_function"`
+	// TypedArrayParseFunction - Provide a function to be called when the user types out a typedArray value on the CLI, but that needs to be parsed for a Modal Popup
+	TypedArrayParseFunction PTTaskingTypedArrayParseFunction `json:"typedarray_parse_function"`
 	// ParameterGroupInformation - Define 0+ different parameter groups that this parameter belongs to.
 	ParameterGroupInformation []ParameterGroupInfo `json:"parameter_group_info"`
 	value                     interface{}          // the current value for the parameter
@@ -225,8 +230,16 @@ type CommandParameter struct {
 }
 
 type PTTaskingDynamicQueryFunction func(PTRPCDynamicQueryFunctionMessage) []string
+type PTTaskingTypedArrayParseFunction func(message PTRPCTypedArrayParseFunctionMessage) [][]string
 
 func (f PTTaskingDynamicQueryFunction) MarshalJSON() ([]byte, error) {
+	if f != nil {
+		return json.Marshal("function defined")
+	} else {
+		return json.Marshal("")
+	}
+}
+func (f PTTaskingTypedArrayParseFunction) MarshalJSON() ([]byte, error) {
 	if f != nil {
 		return json.Marshal("function defined")
 	} else {

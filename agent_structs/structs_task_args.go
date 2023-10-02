@@ -135,6 +135,24 @@ func (arg *PTTaskMessageArgsData) GetArrayArg(name string) ([]string, error) {
 func (arg *PTTaskMessageArgsData) GetChooseMultipleArg(name string) ([]string, error) {
 	return arg.GetArrayArg(name)
 }
+func (arg *PTTaskMessageArgsData) GetTypedArrayArg(name string) ([][]string, error) {
+	if val, err := arg.GetArg(name); err != nil {
+		return [][]string{}, err
+	} else if val == nil {
+		return [][]string{}, nil
+	} else if interfaceArray, err := getTypedValue[[][]interface{}](val); err != nil {
+		return [][]string{}, err
+	} else {
+		stringArray := make([][]string, len(interfaceArray))
+		for index, _ := range interfaceArray {
+			stringArray[index] = []string{}
+			for index2, _ := range interfaceArray[index] {
+				stringArray[index] = append(stringArray[index], fmt.Sprintf("%v", interfaceArray[index][index2]))
+			}
+		}
+		return stringArray, nil
+	}
+}
 
 type C2ProfileInfo struct {
 	Name       string                 `json:"name" mapstructure:"name"`

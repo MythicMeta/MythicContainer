@@ -2,12 +2,13 @@ package rabbitmq
 
 import (
 	"fmt"
+	"os"
+	"sync"
+
 	"github.com/MythicMeta/MythicContainer/grpc"
 	"github.com/MythicMeta/MythicContainer/loggingstructs"
 	"github.com/MythicMeta/MythicContainer/translationstructs"
 	"github.com/MythicMeta/MythicContainer/webhookstructs"
-	"os"
-	"sync"
 
 	agentstructs "github.com/MythicMeta/MythicContainer/agent_structs"
 	c2structs "github.com/MythicMeta/MythicContainer/c2_structs"
@@ -66,7 +67,8 @@ func (r *rabbitMQConnection) startListeners(services []string) {
 			rpcQueue.Queue,
 			rpcQueue.RoutingKeyFunction(rpcQueue.ContainerNameFunction()),
 			rpcQueue.Handler,
-			exclusiveQueue)
+			exclusiveQueue,
+			nil)
 	}
 	for _, directQueue := range r.DirectQueues {
 		go RabbitMQConnection.ReceiveFromMythicDirectExchange(
@@ -74,7 +76,8 @@ func (r *rabbitMQConnection) startListeners(services []string) {
 			directQueue.Queue,
 			directQueue.RoutingKeyFunction(directQueue.ContainerNameFunction()),
 			directQueue.Handler,
-			exclusiveQueue)
+			exclusiveQueue,
+			nil)
 	}
 	// handle starting any queues that are necessary for a logging container
 	if utils.StringSliceContains(services, "logger") {
@@ -180,6 +183,12 @@ func (r *rabbitMQConnection) startListeners(services []string) {
 		//SyncAllC2Data(nil)
 		for _, c2 := range c2structs.AllC2Data.GetAllNames() {
 			// now that we're about to listen and sync, make sure all generic listeners are applied to all c2 profiles
+			var wg sync.WaitGroup
+			wgCapacity := (len(c2structs.AllC2Data.Get(c2).GetRPCMethods()) +
+				len(c2structs.AllC2Data.Get("").GetRPCMethods()) +
+				len(c2structs.AllC2Data.Get(c2).GetDirectMethods()) +
+				len(c2structs.AllC2Data.Get("").GetDirectMethods()))
+			wg.Add(wgCapacity)
 			if c2structs.AllC2Data.Get(c2).GetC2Name() != "" {
 				logging.LogInfo(fmt.Sprintf("Initializing RabbitMQ for C2 Service: %s\n", c2))
 				for _, rpcQueue := range c2structs.AllC2Data.Get(c2).GetRPCMethods() {
@@ -189,6 +198,7 @@ func (r *rabbitMQConnection) startListeners(services []string) {
 						c2structs.AllC2Data.Get(c2).GetRoutingKey(rpcQueue.RabbitmqRoutingKey),
 						rpcQueue.RabbitmqProcessingFunction,
 						exclusiveQueue,
+						&wg,
 					)
 				}
 				for _, rpcQueue := range c2structs.AllC2Data.Get("").GetRPCMethods() {
@@ -198,6 +208,7 @@ func (r *rabbitMQConnection) startListeners(services []string) {
 						c2structs.AllC2Data.Get(c2).GetRoutingKey(rpcQueue.RabbitmqRoutingKey),
 						rpcQueue.RabbitmqProcessingFunction,
 						exclusiveQueue,
+						&wg,
 					)
 				}
 				for _, directQueue := range c2structs.AllC2Data.Get(c2).GetDirectMethods() {
@@ -207,6 +218,7 @@ func (r *rabbitMQConnection) startListeners(services []string) {
 						c2structs.AllC2Data.Get(c2).GetRoutingKey(directQueue.RabbitmqRoutingKey),
 						directQueue.RabbitmqProcessingFunction,
 						exclusiveQueue,
+						&wg,
 					)
 				}
 				for _, directQueue := range c2structs.AllC2Data.Get("").GetDirectMethods() {
@@ -216,8 +228,10 @@ func (r *rabbitMQConnection) startListeners(services []string) {
 						c2structs.AllC2Data.Get(c2).GetRoutingKey(directQueue.RabbitmqRoutingKey),
 						directQueue.RabbitmqProcessingFunction,
 						exclusiveQueue,
+						&wg,
 					)
 				}
+				wg.Wait()
 				SyncAllC2Data(&c2)
 			} else {
 				errorMessage := "Tasked C2 Container to start, but C2 agent name is empty.\n"
@@ -245,6 +259,7 @@ func (r *rabbitMQConnection) startListeners(services []string) {
 						agentstructs.AllPayloadData.Get(pt).GetRoutingKey(rpcQueue.RabbitmqRoutingKey),
 						rpcQueue.RabbitmqProcessingFunction,
 						!exclusiveQueue,
+						nil,
 					)
 				}
 				for _, rpcQueue := range agentstructs.AllPayloadData.Get("").GetRPCMethods() {
@@ -254,6 +269,7 @@ func (r *rabbitMQConnection) startListeners(services []string) {
 						agentstructs.AllPayloadData.Get(pt).GetRoutingKey(rpcQueue.RabbitmqRoutingKey),
 						rpcQueue.RabbitmqProcessingFunction,
 						!exclusiveQueue,
+						nil,
 					)
 				}
 				for _, directQueue := range agentstructs.AllPayloadData.Get(pt).GetDirectMethods() {
@@ -263,6 +279,7 @@ func (r *rabbitMQConnection) startListeners(services []string) {
 						agentstructs.AllPayloadData.Get(pt).GetRoutingKey(directQueue.RabbitmqRoutingKey),
 						directQueue.RabbitmqProcessingFunction,
 						!exclusiveQueue,
+						nil,
 					)
 				}
 				for _, directQueue := range agentstructs.AllPayloadData.Get("").GetDirectMethods() {
@@ -272,6 +289,7 @@ func (r *rabbitMQConnection) startListeners(services []string) {
 						agentstructs.AllPayloadData.Get(pt).GetRoutingKey(directQueue.RabbitmqRoutingKey),
 						directQueue.RabbitmqProcessingFunction,
 						!exclusiveQueue,
+						nil,
 					)
 				}
 			} else {
@@ -298,6 +316,7 @@ func (r *rabbitMQConnection) startListeners(services []string) {
 						translationstructs.AllTranslationData.Get(pt).GetRoutingKey(rpcQueue.RabbitmqRoutingKey),
 						rpcQueue.RabbitmqProcessingFunction,
 						!exclusiveQueue,
+						nil,
 					)
 				}
 				/*

@@ -5,13 +5,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/google/uuid"
 	"io"
 	"mime/multipart"
 	"net"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
+
+	"github.com/google/uuid"
 
 	agentstructs "github.com/MythicMeta/MythicContainer/agent_structs"
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -212,11 +214,16 @@ func (r *rabbitMQConnection) SendRPCMessage(exchange string, queue string, body 
 			return nil, err
 		}*/
 }
-func (r *rabbitMQConnection) ReceiveFromMythicDirectExchange(exchange string, queue string, routingKey string, handler QueueHandler, exclusiveQueue bool) {
+func (r *rabbitMQConnection) ReceiveFromMythicDirectExchange(exchange string, queue string, routingKey string, handler QueueHandler, exclusiveQueue bool, wg *sync.WaitGroup) {
 	// exchange is a direct exchange
 	// queue is where the messages get sent to (local name)
 	// routingKey is the specific direct topic we're interested in for the exchange
 	// handler processes the messages we get on our queue
+	defer func() {
+		if wg != nil {
+			wg.Done()
+		}
+	}()
 	for {
 		if conn, err := r.GetConnection(); err != nil {
 			logging.LogError(err, "Failed to connect to rabbitmq", "retry_wait_time", RETRY_CONNECT_DELAY)
@@ -288,7 +295,12 @@ func (r *rabbitMQConnection) ReceiveFromMythicDirectExchange(exchange string, qu
 
 	}
 }
-func (r *rabbitMQConnection) ReceiveFromRPCQueue(exchange string, queue string, routingKey string, handler RPCQueueHandler, exclusiveQueue bool) {
+func (r *rabbitMQConnection) ReceiveFromRPCQueue(exchange string, queue string, routingKey string, handler RPCQueueHandler, exclusiveQueue bool, wg *sync.WaitGroup) {
+	defer func() {
+		if wg != nil {
+			wg.Done()
+		}
+	}()
 	for {
 		if conn, err := r.GetConnection(); err != nil {
 			logging.LogError(err, "Failed to connect to rabbitmq", "retry_wait_time", RETRY_CONNECT_DELAY)

@@ -219,11 +219,6 @@ func (r *rabbitMQConnection) ReceiveFromMythicDirectExchange(exchange string, qu
 	// queue is where the messages get sent to (local name)
 	// routingKey is the specific direct topic we're interested in for the exchange
 	// handler processes the messages we get on our queue
-	defer func() {
-		if wg != nil {
-			wg.Done()
-		}
-	}()
 	for {
 		if conn, err := r.GetConnection(); err != nil {
 			logging.LogError(err, "Failed to connect to rabbitmq", "retry_wait_time", RETRY_CONNECT_DELAY)
@@ -288,6 +283,10 @@ func (r *rabbitMQConnection) ReceiveFromMythicDirectExchange(exchange string, qu
 				forever <- true
 			}()
 			logging.LogInfo("Started listening for messages", "exchange", exchange, "queue", queue, "routingKey", routingKey)
+			if wg != nil {
+				wg.Done()
+				wg = nil
+			}
 			<-forever
 			ch.Close()
 			logging.LogError(nil, "Stopped listening for messages", "exchange", exchange, "queue", queue, "routingKey", routingKey)
@@ -296,11 +295,6 @@ func (r *rabbitMQConnection) ReceiveFromMythicDirectExchange(exchange string, qu
 	}
 }
 func (r *rabbitMQConnection) ReceiveFromRPCQueue(exchange string, queue string, routingKey string, handler RPCQueueHandler, exclusiveQueue bool, wg *sync.WaitGroup) {
-	defer func() {
-		if wg != nil {
-			wg.Done()
-		}
-	}()
 	for {
 		if conn, err := r.GetConnection(); err != nil {
 			logging.LogError(err, "Failed to connect to rabbitmq", "retry_wait_time", RETRY_CONNECT_DELAY)
@@ -383,6 +377,10 @@ func (r *rabbitMQConnection) ReceiveFromRPCQueue(exchange string, queue string, 
 				forever <- true
 			}()
 			logging.LogInfo("Started listening for rpc messages", "exchange", exchange, "queue", queue, "routingKey", routingKey)
+			if wg != nil {
+				wg.Done()
+				wg = nil
+			}
 			<-forever
 			ch.Close()
 			logging.LogError(nil, "Stopped listening for messages", "exchange", exchange, "queue", queue, "routingKey", routingKey)

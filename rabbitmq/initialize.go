@@ -82,6 +82,7 @@ func (r *rabbitMQConnection) startListeners(services []string) {
 			exclusiveQueue,
 			&wg)
 	}
+	wg.Wait()
 	// handle starting any queues that are necessary for a logging container
 	if utils.StringSliceContains(services, "logger") {
 		logging.LogInfo("Initializing RabbitMQ for SIEM Logging Services")

@@ -25,7 +25,7 @@ type agentMessagePostResponseCredentials struct {
 	ExtraData      string `json:"metadata" mapstructure:"metadata"`
 }
 
-func SendMythicRPCCredentialCreate(input MythicRPCCommandSearchMessage) (*MythicRPCCredentialCreateMessageResponse, error) {
+func SendMythicRPCCredentialCreate(input MythicRPCCredentialCreateMessage) (*MythicRPCCredentialCreateMessageResponse, error) {
 	response := MythicRPCCredentialCreateMessageResponse{}
 	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(
 		rabbitmq.MYTHIC_EXCHANGE,

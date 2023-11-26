@@ -4,14 +4,14 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/MythicMeta/MythicContainer/logging"
-	"github.com/MythicMeta/MythicContainer/utils"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
 	"sync"
+
+	"github.com/MythicMeta/MythicContainer/logging"
+	"github.com/MythicMeta/MythicContainer/utils"
 )
 
 type RabbitmqRPCMethod struct {
@@ -131,7 +131,7 @@ func (r *allPayloadData) AddIcon(filePath string) {
 			r.payloadDefinition.AgentIcon = nil
 			logging.LogError(err, "Failed to open file path for agent icon")
 			os.Exit(1)
-		} else if agentIcon, err := ioutil.ReadAll(file); err != nil {
+		} else if agentIcon, err := io.ReadAll(file); err != nil {
 			r.payloadDefinition.AgentIcon = nil
 			logging.LogError(err, "Failed to read agent icon")
 			os.Exit(1)

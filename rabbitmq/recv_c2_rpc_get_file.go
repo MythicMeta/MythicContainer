@@ -3,11 +3,12 @@ package rabbitmq
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/MythicMeta/MythicContainer/c2_structs"
-	"github.com/MythicMeta/MythicContainer/logging"
-	"io/ioutil"
+	"io"
 	"os"
 	"path/filepath"
+
+	c2structs "github.com/MythicMeta/MythicContainer/c2_structs"
+	"github.com/MythicMeta/MythicContainer/logging"
 )
 
 // Register this RPC method with rabbitmq so it can be called
@@ -40,7 +41,7 @@ func C2RPCGetFile(input c2structs.C2RPCGetFileMessage) c2structs.C2RPCGetFileMes
 		responseMsg.Error = fmt.Sprintf("Failed to locate file: %s\n", err.Error())
 	} else if file, err := os.Open(filePath); err != nil {
 		responseMsg.Error = fmt.Sprintf("Failed to open file: %s", err.Error())
-	} else if contents, err := ioutil.ReadAll(file); err != nil {
+	} else if contents, err := io.ReadAll(file); err != nil {
 		responseMsg.Error = fmt.Sprintf("Failed to read file: %s", err.Error())
 	} else {
 		responseMsg.Success = true

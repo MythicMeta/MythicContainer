@@ -6,7 +6,7 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/MythicMeta/MythicContainer/utils"
+	"github.com/MythicMeta/MythicContainer/config"
 	"github.com/go-logr/logr"
 	"github.com/go-logr/zerologr"
 	"github.com/rs/zerolog"
@@ -20,7 +20,7 @@ func init() {
 	zerologr.NameFieldName = "logger"
 	zerologr.NameSeparator = "/"
 	var zl zerolog.Logger
-	switch utils.MythicConfig.DebugLevel {
+	switch config.MythicConfig.DebugLevel {
 	case "warning":
 		zl = zerolog.New(os.Stdout).Level(zerolog.WarnLevel)
 	case "info":

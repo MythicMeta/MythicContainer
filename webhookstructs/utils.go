@@ -5,12 +5,14 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"github.com/MythicMeta/MythicContainer/logging"
-	"github.com/MythicMeta/MythicContainer/utils"
 	"io"
 	"net/http"
 	"sync"
 	"time"
+
+	"github.com/MythicMeta/MythicContainer/config"
+	"github.com/MythicMeta/MythicContainer/logging"
+	"github.com/MythicMeta/MythicContainer/utils"
 )
 
 const EMIT_WEBHOOK_ROUTING_KEY_PREFIX = "emit_webhook"
@@ -149,8 +151,8 @@ func (r *allWebhookData) GetWebhookURL(input interface{}, channelType WEBHOOK_TY
 	default:
 	}
 	// allow the environment to override the program definition
-	if utils.MythicConfig.WebhookDefaultURL != "" {
-		return utils.MythicConfig.WebhookDefaultURL
+	if config.MythicConfig.WebhookDefaultURL != "" {
+		return config.MythicConfig.WebhookDefaultURL
 	} else {
 		return r.webhookDefinition.WebhookURL
 	}
@@ -164,44 +166,44 @@ func (r *allWebhookData) GetWebhookChannel(input interface{}, channelType WEBHOO
 	switch channelType {
 	case WEBHOOK_TYPE_NEW_FEEDBACK:
 		msg := input.(NewFeedbackWebookMessage)
-		if utils.MythicConfig.WebhookFeedbackChannel != "" {
-			return utils.MythicConfig.WebhookFeedbackChannel
+		if config.MythicConfig.WebhookFeedbackChannel != "" {
+			return config.MythicConfig.WebhookFeedbackChannel
 		} else if msg.OperationChannel != "" {
 			return msg.OperationChannel
 		}
 	case WEBHOOK_TYPE_NEW_CALLBACK:
 		msg := input.(NewCallbackWebookMessage)
-		if utils.MythicConfig.WebhookCallbackChannel != "" {
-			return utils.MythicConfig.WebhookCallbackChannel
+		if config.MythicConfig.WebhookCallbackChannel != "" {
+			return config.MythicConfig.WebhookCallbackChannel
 		} else if msg.OperationChannel != "" {
 			return msg.OperationChannel
 		}
 	case WEBHOOK_TYPE_NEW_STARTUP:
 		msg := input.(NewStartupWebhookMessage)
-		if utils.MythicConfig.WebhookStartupChannel != "" {
-			return utils.MythicConfig.WebhookStartupChannel
+		if config.MythicConfig.WebhookStartupChannel != "" {
+			return config.MythicConfig.WebhookStartupChannel
 		} else if msg.OperationChannel != "" {
 			return msg.OperationChannel
 		}
 	case WEBHOOK_TYPE_NEW_ALERT:
 		msg := input.(NewAlertWebhookMessage)
-		if utils.MythicConfig.WebhookAlertChannel != "" {
-			return utils.MythicConfig.WebhookAlertChannel
+		if config.MythicConfig.WebhookAlertChannel != "" {
+			return config.MythicConfig.WebhookAlertChannel
 		} else if msg.OperationChannel != "" {
 			return msg.OperationChannel
 		}
 	case WEBHOOK_TYPE_NEW_CUSTOM:
 		msg := input.(NewCustomWebhookMessage)
-		if utils.MythicConfig.WebhookCustomChannel != "" {
-			return utils.MythicConfig.WebhookCustomChannel
+		if config.MythicConfig.WebhookCustomChannel != "" {
+			return config.MythicConfig.WebhookCustomChannel
 		} else if msg.OperationChannel != "" {
 			return msg.OperationChannel
 		}
 	default:
 		logging.LogError(nil, "unknown webhook type when getting webhook channel", "type", channelType)
 	}
-	if utils.MythicConfig.WebhookDefaultChannel != "" {
-		return utils.MythicConfig.WebhookDefaultChannel
+	if config.MythicConfig.WebhookDefaultChannel != "" {
+		return config.MythicConfig.WebhookDefaultChannel
 	} else {
 		return r.webhookDefinition.WebhookChannel
 	}

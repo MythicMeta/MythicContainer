@@ -16,8 +16,8 @@ import (
 	"github.com/google/uuid"
 
 	agentstructs "github.com/MythicMeta/MythicContainer/agent_structs"
+	"github.com/MythicMeta/MythicContainer/config"
 	"github.com/MythicMeta/MythicContainer/logging"
-	"github.com/MythicMeta/MythicContainer/utils"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -32,11 +32,11 @@ func (r *rabbitMQConnection) GetConnection() (*amqp.Connection, error) {
 		for {
 			logging.LogInfo("Attempting to connect to rabbitmq")
 			conn, err := amqp.DialConfig(fmt.Sprintf("amqp://%s:%s@%s:%d/%s",
-				utils.MythicConfig.RabbitmqUser,
-				utils.MythicConfig.RabbitmqPassword,
-				utils.MythicConfig.RabbitmqHost,
-				utils.MythicConfig.RabbitmqPort,
-				utils.MythicConfig.RabbitmqVHost),
+				config.MythicConfig.RabbitmqUser,
+				config.MythicConfig.RabbitmqPassword,
+				config.MythicConfig.RabbitmqHost,
+				config.MythicConfig.RabbitmqPort,
+				config.MythicConfig.RabbitmqVHost),
 				amqp.Config{
 					Dial: func(network, addr string) (net.Conn, error) {
 						return net.DialTimeout(network, addr, 10*time.Second)
@@ -588,7 +588,7 @@ func UploadPayloadData(payloadBuildMsg agentstructs.PayloadBuildMessage, payload
 		return err
 	}
 	writer.Close()
-	if request, err := http.NewRequest("POST", fmt.Sprintf("http://%s:%d/direct/upload/%s", utils.MythicConfig.MythicServerHost, utils.MythicConfig.MythicServerPort, payloadBuildMsg.PayloadFileUUID), body); err != nil {
+	if request, err := http.NewRequest("POST", fmt.Sprintf("http://%s:%d/direct/upload/%s", config.MythicConfig.MythicServerHost, config.MythicConfig.MythicServerPort, payloadBuildMsg.PayloadFileUUID), body); err != nil {
 		logging.LogError(err, "Failed to create new POST request to send payload to Mythic")
 		return err
 	} else {

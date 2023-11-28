@@ -1,14 +1,10 @@
 package rabbitmq
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
-	"mime/multipart"
 	"net"
-	"net/http"
 	"strings"
 	"sync"
 	"time"
@@ -568,44 +564,6 @@ func getMeaningfulRabbitmqError(ret amqp.Return) string {
 	default:
 		return fmt.Sprintf("Failed to deliver message to exchange/queue. Error code: %d, Error Text: %s", ret.ReplyCode, ret.ReplyText)
 	}
-}
-
-// payload helper functions
-func UploadPayloadData(payloadBuildMsg agentstructs.PayloadBuildMessage, payloadBuildMsgResponse agentstructs.PayloadBuildResponse) error {
-	body := &bytes.Buffer{}
-	writer := multipart.NewWriter(body)
-	if fileWriter, err := writer.CreateFormFile("file", "payload"); err != nil {
-		logging.LogError(err, "Failed to create new form file to upload payload")
-		return err
-	} else if _, err = io.Copy(fileWriter, bytes.NewReader(*payloadBuildMsgResponse.Payload)); err != nil {
-		logging.LogError(err, "Failed to write payload bytes to form")
-		return err
-	} else if fieldWriter, err := writer.CreateFormField("agent-file-id"); err != nil {
-		logging.LogError(err, "Failed to add new form field to upload payload")
-		return err
-	} else if _, err := fieldWriter.Write([]byte(payloadBuildMsg.PayloadFileUUID)); err != nil {
-		logging.LogError(err, "Failed to add in agent-file-id to form")
-		return err
-	}
-	writer.Close()
-	if request, err := http.NewRequest("POST", fmt.Sprintf("http://%s:%d/direct/upload/%s", config.MythicConfig.MythicServerHost, config.MythicConfig.MythicServerPort, payloadBuildMsg.PayloadFileUUID), body); err != nil {
-		logging.LogError(err, "Failed to create new POST request to send payload to Mythic")
-		return err
-	} else {
-		request.Header.Add("Content-Type", writer.FormDataContentType())
-		if resp, err := http.DefaultClient.Do(request); err != nil {
-			logging.LogError(err, "Failed to send payload over to Mythic")
-			return err
-		} else {
-			defer resp.Body.Close()
-			if resp.StatusCode != 200 {
-				logging.LogError(nil, "Failed to send payload to Mythic", "status code", resp.StatusCode)
-				return errors.New(fmt.Sprintf("Failed to send payload to Mythic with status code: %d\n", resp.StatusCode))
-			}
-		}
-	}
-
-	return nil
 }
 
 func prepTaskArgs(command agentstructs.Command, taskMessage *agentstructs.PTTaskMessageAllData) error {

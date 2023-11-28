@@ -11,7 +11,7 @@ import (
 	"sync"
 
 	"github.com/MythicMeta/MythicContainer/logging"
-	"github.com/MythicMeta/MythicContainer/utils"
+	"github.com/MythicMeta/MythicContainer/utils/helpers"
 )
 
 type RabbitmqRPCMethod struct {
@@ -45,7 +45,7 @@ type containerPayloadData struct {
 func (r *containerPayloadData) GetAllPayloadTypeNames() []string {
 	names := []string{}
 	for key, _ := range r.PayloadMap {
-		if key != "" && !utils.StringSliceContains(names, key) {
+		if key != "" && !helpers.StringSliceContains(names, key) {
 			names = append(names, key)
 		}
 

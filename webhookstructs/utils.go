@@ -12,7 +12,7 @@ import (
 
 	"github.com/MythicMeta/MythicContainer/config"
 	"github.com/MythicMeta/MythicContainer/logging"
-	"github.com/MythicMeta/MythicContainer/utils"
+	"github.com/MythicMeta/MythicContainer/utils/helpers"
 )
 
 const EMIT_WEBHOOK_ROUTING_KEY_PREFIX = "emit_webhook"
@@ -76,7 +76,7 @@ type containerWebhookData struct {
 func (r *containerWebhookData) GetAllNames() []string {
 	names := []string{}
 	for key, _ := range r.WebhookMap {
-		if key != "" && !utils.StringSliceContains(names, key) {
+		if key != "" && !helpers.StringSliceContains(names, key) {
 			names = append(names, key)
 		}
 	}

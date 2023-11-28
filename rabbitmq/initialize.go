@@ -13,7 +13,7 @@ import (
 	agentstructs "github.com/MythicMeta/MythicContainer/agent_structs"
 	c2structs "github.com/MythicMeta/MythicContainer/c2_structs"
 	"github.com/MythicMeta/MythicContainer/logging"
-	"github.com/MythicMeta/MythicContainer/utils"
+	"github.com/MythicMeta/MythicContainer/utils/helpers"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -84,7 +84,7 @@ func (r *rabbitMQConnection) startListeners(services []string) {
 	}
 	wg.Wait()
 	// handle starting any queues that are necessary for a logging container
-	if utils.StringSliceContains(services, "logger") {
+	if helpers.StringSliceContains(services, "logger") {
 		logging.LogInfo("Initializing RabbitMQ for SIEM Logging Services")
 		for _, directQueue := range loggingstructs.AllLoggingData.Get("").GetDirectMethods() {
 			listenerExists := false
@@ -139,7 +139,7 @@ func (r *rabbitMQConnection) startListeners(services []string) {
 		}
 	}
 	// handle starting any queues that are necessary for a webhook container
-	if utils.StringSliceContains(services, "webhook") {
+	if helpers.StringSliceContains(services, "webhook") {
 		logging.LogInfo("Initializing RabbitMQ for Webhook Services")
 		for _, directQueue := range webhookstructs.AllWebhookData.Get("").GetDirectMethods() {
 			listenerExists := false
@@ -183,7 +183,7 @@ func (r *rabbitMQConnection) startListeners(services []string) {
 		}
 	}
 	// handle starting any queues that are necessary for the c2 profile
-	if utils.StringSliceContains(services, "c2") {
+	if helpers.StringSliceContains(services, "c2") {
 		//SyncAllC2Data(nil)
 		for _, c2 := range c2structs.AllC2Data.GetAllNames() {
 			// now that we're about to listen and sync, make sure all generic listeners are applied to all c2 profiles
@@ -244,7 +244,7 @@ func (r *rabbitMQConnection) startListeners(services []string) {
 		}
 	}
 	// handle starting any queues that are necessary for the payload type
-	if utils.StringSliceContains(services, "payload") {
+	if helpers.StringSliceContains(services, "payload") {
 		agentstructs.AllPayloadData.Get("").AddDirectMethod(agentstructs.RabbitmqDirectMethod{
 			RabbitmqRoutingKey:         PAYLOAD_BUILD_ROUTING_KEY,
 			RabbitmqProcessingFunction: WrapPayloadBuild,
@@ -303,7 +303,7 @@ func (r *rabbitMQConnection) startListeners(services []string) {
 		}
 	}
 	// handle starting any queues that are necessary for the translation container
-	if utils.StringSliceContains(services, "translation") {
+	if helpers.StringSliceContains(services, "translation") {
 		logging.LogInfo("Initializing RabbitMQ for Translation Services")
 		SyncTranslationData(nil)
 		for _, pt := range translationstructs.AllTranslationData.GetAllPayloadTypeNames() {

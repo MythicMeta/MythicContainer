@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/MythicMeta/MythicContainer/utils"
+	"github.com/MythicMeta/MythicContainer/utils/helpers"
 	"github.com/spf13/viper"
 )
 
@@ -39,7 +39,7 @@ var (
 func init() {
 	mythicEnv := viper.New()
 	// mythic config
-	mythicEnv.SetDefault("debug_level", "staging")
+	mythicEnv.SetDefault("debug_level", "warning")
 	mythicEnv.SetDefault("mythic_server_grpc_port", 17444)
 	mythicEnv.SetDefault("mythic_server_port", 17443)
 	// rabbitmq configuration
@@ -59,10 +59,10 @@ func init() {
 	// pull in environment variables and configuration from .env if needed
 	mythicEnv.SetConfigName(".env")
 	mythicEnv.SetConfigType("env")
-	mythicEnv.AddConfigPath(utils.GetCwdFromExe())
+	mythicEnv.AddConfigPath(helpers.GetCwdFromExe())
 	mythicEnv.AutomaticEnv()
-	if !utils.FileExists(filepath.Join(utils.GetCwdFromExe(), ".env")) {
-		_, err := os.Create(filepath.Join(utils.GetCwdFromExe(), ".env"))
+	if !helpers.FileExists(filepath.Join(helpers.GetCwdFromExe(), ".env")) {
+		_, err := os.Create(filepath.Join(helpers.GetCwdFromExe(), ".env"))
 		if err != nil {
 			log.Fatalf("[-] .env doesn't exist and couldn't be created: %v", err)
 		}
@@ -90,9 +90,6 @@ func setConfigFromEnv(mythicEnv *viper.Viper) {
 	MythicConfig.MythicServerPort = mythicEnv.GetUint("mythic_server_port")
 	MythicConfig.MythicServerGRPCPort = mythicEnv.GetUint("mythic_server_grpc_port")
 	MythicConfig.MythicServerHost = mythicEnv.GetString("mythic_server_host")
-	if MythicConfig.MythicServerHost == "" {
-		log.Fatalf("[-] Missing MYTHIC_SERVER_HOST environment variable point to mythic server IP")
-	}
 	// webhook configuration
 	MythicConfig.WebhookDefaultURL = mythicEnv.GetString("webhook_default_url")
 	MythicConfig.WebhookDefaultChannel = mythicEnv.GetString("webhook_default_channel")

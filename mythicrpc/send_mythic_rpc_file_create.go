@@ -5,6 +5,7 @@ import (
 
 	"github.com/MythicMeta/MythicContainer/logging"
 	"github.com/MythicMeta/MythicContainer/rabbitmq"
+	"github.com/MythicMeta/MythicContainer/utils/mythicutils"
 )
 
 type MythicRPCFileCreateMessage struct {
@@ -37,7 +38,7 @@ func SendMythicRPCFileCreate(input MythicRPCFileCreateMessage) (*MythicRPCFileCr
 		logging.LogError(err, "Failed to parse response back to struct", "response", response)
 		return nil, err
 	} else if response.Success {
-		if err := sendFileToMythic(&input.FileContents, response.AgentFileId); err != nil {
+		if err := mythicutils.SendFileToMythic(&input.FileContents, response.AgentFileId); err != nil {
 			logging.LogError(err, "Failed to send file contents to Mythic")
 			return nil, err
 		} else {

@@ -5,6 +5,7 @@ import (
 
 	"github.com/MythicMeta/MythicContainer/logging"
 	"github.com/MythicMeta/MythicContainer/rabbitmq"
+	"github.com/MythicMeta/MythicContainer/utils/mythicutils"
 )
 
 type MythicRPCFileUpdateMessage struct {
@@ -37,7 +38,7 @@ func SendMythicRPCFileUpdate(input MythicRPCFileUpdateMessage) (*MythicRPCFileUp
 		return nil, err
 	} else if response.Success {
 		if input.ReplaceContents != nil {
-			if err := sendFileToMythic(input.ReplaceContents, input.AgentFileID); err != nil {
+			if err := mythicutils.SendFileToMythic(input.ReplaceContents, input.AgentFileID); err != nil {
 				response.Success = false
 				response.Error = err.Error()
 			}

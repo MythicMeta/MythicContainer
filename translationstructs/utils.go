@@ -2,7 +2,7 @@ package translationstructs
 
 import (
 	"fmt"
-	"github.com/MythicMeta/MythicContainer/utils"
+	"github.com/MythicMeta/MythicContainer/utils/helpers"
 	"sync"
 )
 
@@ -35,7 +35,7 @@ type containerPayloadData struct {
 func (r *containerPayloadData) GetAllPayloadTypeNames() []string {
 	names := []string{}
 	for key, _ := range r.PayloadMap {
-		if key != "" && !utils.StringSliceContains(names, key) {
+		if key != "" && !helpers.StringSliceContains(names, key) {
 			names = append(names, key)
 		}
 

@@ -1,17 +1,25 @@
-package mythicrpc
+package mythicutils
 
 import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/MythicMeta/MythicContainer/logging"
-	"github.com/MythicMeta/MythicContainer/utils"
 	"io"
+	"log"
 	"mime/multipart"
 	"net/http"
+
+	"github.com/MythicMeta/MythicContainer/config"
+	"github.com/MythicMeta/MythicContainer/logging"
 )
 
-func sendFileToMythic(content *[]byte, fileID string) error {
+func init() {
+	if config.MythicConfig.MythicServerHost == "" {
+		log.Fatalf("[-] Missing MYTHIC_SERVER_HOST environment variable point to mythic server IP")
+	}
+}
+
+func SendFileToMythic(content *[]byte, fileID string) error {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 	if fileWriter, err := writer.CreateFormFile("file", "payload"); err != nil {
@@ -29,8 +37,8 @@ func sendFileToMythic(content *[]byte, fileID string) error {
 	}
 	writer.Close()
 	if request, err := http.NewRequest("POST",
-		fmt.Sprintf("http://%s:%d/direct/upload/%s", utils.MythicConfig.MythicServerHost,
-			utils.MythicConfig.MythicServerPort, fileID), body); err != nil {
+		fmt.Sprintf("http://%s:%d/direct/upload/%s", config.MythicConfig.MythicServerHost,
+			config.MythicConfig.MythicServerPort, fileID), body); err != nil {
 		logging.LogError(err, "Failed to create new POST request to send payload to Mythic")
 		return err
 	} else {
@@ -49,10 +57,11 @@ func sendFileToMythic(content *[]byte, fileID string) error {
 
 	return nil
 }
-func getFileFromMythic(fileID string) (*[]byte, error) {
+
+func GetFileFromMythic(fileID string) (*[]byte, error) {
 	if request, err := http.NewRequest("GET",
-		fmt.Sprintf("http://%s:%d/direct/download/%s", utils.MythicConfig.MythicServerHost,
-			utils.MythicConfig.MythicServerPort, fileID), nil); err != nil {
+		fmt.Sprintf("http://%s:%d/direct/download/%s", config.MythicConfig.MythicServerHost,
+			config.MythicConfig.MythicServerPort, fileID), nil); err != nil {
 		logging.LogError(err, "Failed to create new GET request to get file from Mythic")
 		return nil, err
 	} else {

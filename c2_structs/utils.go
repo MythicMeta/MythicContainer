@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/MythicMeta/MythicContainer/logging"
-	"github.com/MythicMeta/MythicContainer/utils"
+	"github.com/MythicMeta/MythicContainer/utils/helpers"
 	"github.com/mitchellh/mapstructure"
 	"os"
 	"os/exec"
@@ -42,7 +42,7 @@ type containerC2Data struct {
 func (r *containerC2Data) GetAllNames() []string {
 	names := []string{}
 	for key, _ := range r.C2Map {
-		if key != "" && !utils.StringSliceContains(names, key) {
+		if key != "" && !helpers.StringSliceContains(names, key) {
 			names = append(names, key)
 		}
 

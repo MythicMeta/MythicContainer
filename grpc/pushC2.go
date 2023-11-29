@@ -2,12 +2,13 @@ package grpc
 
 import (
 	"fmt"
-	"github.com/MythicMeta/MythicContainer/logging"
-	"github.com/MythicMeta/MythicContainer/utils"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 	"math"
 	"time"
+
+	"github.com/MythicMeta/MythicContainer/config"
+	"github.com/MythicMeta/MythicContainer/logging"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 func GetNewPushC2ClientConnection() *grpc.ClientConn {
@@ -15,7 +16,7 @@ func GetNewPushC2ClientConnection() *grpc.ClientConn {
 	opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	opts = append(opts, grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(math.MaxInt)))
 	opts = append(opts, grpc.WithDefaultCallOptions(grpc.MaxCallSendMsgSize(math.MaxInt)))
-	connectionString := fmt.Sprintf("%s:%d", utils.MythicConfig.MythicServerHost, utils.MythicConfig.MythicServerGRPCPort)
+	connectionString := fmt.Sprintf("%s:%d", config.MythicConfig.MythicServerHost, config.MythicConfig.MythicServerGRPCPort)
 	for {
 		logging.LogDebug("Attempting to connect to grpc...")
 		if conn, err := grpc.Dial(connectionString, opts...); err != nil {

@@ -3,7 +3,7 @@ package loggingstructs
 import (
 	"errors"
 	"fmt"
-	"github.com/MythicMeta/MythicContainer/utils"
+	"github.com/MythicMeta/MythicContainer/utils/helpers"
 	"github.com/go-logr/logr"
 	"github.com/go-logr/zerologr"
 	"github.com/rs/zerolog"
@@ -81,7 +81,7 @@ type containerLoggingData struct {
 func (r *containerLoggingData) GetAllNames() []string {
 	names := []string{}
 	for key, _ := range r.LoggingMap {
-		if key != "" && !utils.StringSliceContains(names, key) {
+		if key != "" && !helpers.StringSliceContains(names, key) {
 			names = append(names, key)
 		}
 	}

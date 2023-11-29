@@ -5,16 +5,17 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/MythicMeta/MythicContainer/grpc/services"
-	"github.com/MythicMeta/MythicContainer/logging"
-	"github.com/MythicMeta/MythicContainer/translationstructs"
-	"github.com/MythicMeta/MythicContainer/utils"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 	"io"
 	"math"
 	"sync"
 	"time"
+
+	"github.com/MythicMeta/MythicContainer/config"
+	"github.com/MythicMeta/MythicContainer/grpc/services"
+	"github.com/MythicMeta/MythicContainer/logging"
+	"github.com/MythicMeta/MythicContainer/translationstructs"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 const grpcReconnectDelay = 5 * time.Second
@@ -24,7 +25,7 @@ func Initialize(translationContainerName string) {
 	opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	opts = append(opts, grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(math.MaxInt)))
 	opts = append(opts, grpc.WithDefaultCallOptions(grpc.MaxCallSendMsgSize(math.MaxInt)))
-	connectionString := fmt.Sprintf("%s:%d", utils.MythicConfig.MythicServerHost, utils.MythicConfig.MythicServerGRPCPort)
+	connectionString := fmt.Sprintf("%s:%d", config.MythicConfig.MythicServerHost, config.MythicConfig.MythicServerGRPCPort)
 	for {
 		logging.LogDebug("Attempting to connect to grpc...")
 		if conn, err := grpc.Dial(connectionString, opts...); err != nil {

@@ -1,4 +1,10 @@
-package utils
+package helpers
+
+import (
+	"log"
+	"os"
+	"path/filepath"
+)
 
 func StringSliceContains(source []string, str string) bool {
 	for _, v := range source {
@@ -20,4 +26,22 @@ func RemoveStringFromSliceNoOrder(source []string, str string) []string {
 	}
 	// we didn't find the element to remove
 	return source
+}
+
+func GetCwdFromExe() string {
+	exe, err := os.Executable()
+	if err != nil {
+		log.Fatalf("[-] Failed to get path to current executable: %v", err)
+	}
+	return filepath.Dir(exe)
+}
+
+func FileExists(path string) bool {
+	info, err := os.Stat(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false
+		}
+	}
+	return !info.IsDir()
 }

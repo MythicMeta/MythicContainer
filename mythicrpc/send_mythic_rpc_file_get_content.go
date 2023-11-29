@@ -1,5 +1,7 @@
 package mythicrpc
 
+import "github.com/MythicMeta/MythicContainer/utils/mythicutils"
+
 type MythicRPCFileGetContentMessage struct {
 	AgentFileID string `json:"file_id"`
 }
@@ -13,7 +15,7 @@ type MythicRPCFileGetContentMessageResponse struct {
 
 func SendMythicRPCFileGetContent(input MythicRPCFileGetContentMessage) (*MythicRPCFileGetContentMessageResponse, error) {
 	response := MythicRPCFileGetContentMessageResponse{}
-	if content, err := getFileFromMythic(input.AgentFileID); err != nil {
+	if content, err := mythicutils.GetFileFromMythic(input.AgentFileID); err != nil {
 		response.Success = false
 		response.Error = err.Error()
 		return &response, nil

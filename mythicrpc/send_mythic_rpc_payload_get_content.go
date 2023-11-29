@@ -1,5 +1,7 @@
 package mythicrpc
 
+import "github.com/MythicMeta/MythicContainer/utils/mythicutils"
+
 type MythicRPCPayloadGetContentMessage struct {
 	PayloadUUID string `json:"uuid"`
 }
@@ -13,7 +15,7 @@ type MythicRPCPayloadGetContentMessageResponse struct {
 
 func SendMythicRPCPayloadGetContent(input MythicRPCPayloadGetContentMessage) (*MythicRPCPayloadGetContentMessageResponse, error) {
 	response := MythicRPCPayloadGetContentMessageResponse{}
-	if contents, err := getFileFromMythic(input.PayloadUUID); err != nil {
+	if contents, err := mythicutils.GetFileFromMythic(input.PayloadUUID); err != nil {
 		response.Error = err.Error()
 		response.Success = false
 	} else {

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/MythicMeta/MythicContainer/logging"
-	"github.com/MythicMeta/MythicContainer/utils"
+	"github.com/MythicMeta/MythicContainer/utils/helpers"
 	"github.com/mitchellh/mapstructure"
 	"reflect"
 )
@@ -288,7 +288,7 @@ func (arg *PTTaskMessageArgsData) GetParameterGroupName() (string, error) {
 	// first get a unique list of all possible groupNames for the arguments
 	for _, currentArg := range arg.args {
 		for _, currentGroupInfo := range currentArg.ParameterGroupInformation {
-			if !utils.StringSliceContains(groupNameOptions, currentGroupInfo.GroupName) {
+			if !helpers.StringSliceContains(groupNameOptions, currentGroupInfo.GroupName) {
 				groupNameOptions = append(groupNameOptions, currentGroupInfo.GroupName)
 			}
 		}
@@ -299,7 +299,7 @@ func (arg *PTTaskMessageArgsData) GetParameterGroupName() (string, error) {
 			suppliedArgNames = append(suppliedArgNames, currentArg.Name)
 			groupNameIntersection := []string{}
 			for _, currentGroupInfo := range currentArg.ParameterGroupInformation {
-				if utils.StringSliceContains(groupNameOptions, currentGroupInfo.GroupName) {
+				if helpers.StringSliceContains(groupNameOptions, currentGroupInfo.GroupName) {
 					groupNameIntersection = append(groupNameIntersection, currentGroupInfo.GroupName)
 				}
 			}
@@ -332,7 +332,7 @@ func (arg *PTTaskMessageArgsData) GetParameterGroupName() (string, error) {
 		if len(finalMatchingGroupNames) == 0 {
 			return "", errors.New(fmt.Sprintf("Supplied Arguments, %v, match more than one parameter group (%v), and all require at least one more value from the user", suppliedArgNames, groupNameOptions))
 		} else if len(finalMatchingGroupNames) > 1 {
-			if utils.StringSliceContains(finalMatchingGroupNames, arg.initialParameterGroupName) {
+			if helpers.StringSliceContains(finalMatchingGroupNames, arg.initialParameterGroupName) {
 				return arg.initialParameterGroupName, nil
 			}
 			return "", errors.New(fmt.Sprintf("Supplied Arguments, %v, match more than one parameter group (%v)", suppliedArgNames, finalMatchingGroupNames))

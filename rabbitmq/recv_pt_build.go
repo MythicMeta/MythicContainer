@@ -2,8 +2,10 @@ package rabbitmq
 
 import (
 	"encoding/json"
+
 	agentstructs "github.com/MythicMeta/MythicContainer/agent_structs"
 	"github.com/MythicMeta/MythicContainer/logging"
+	"github.com/MythicMeta/MythicContainer/utils/mythicutils"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -32,7 +34,7 @@ func WrapPayloadBuild(msg []byte) {
 	}
 	// handle sending off the payload via a web request separately from the rest of the message
 	if payloadBuildResponse.Payload != nil {
-		if err := UploadPayloadData(payloadBuildMsg, payloadBuildResponse); err != nil {
+		if err := mythicutils.SendFileToMythic(payloadBuildResponse.Payload, payloadBuildMsg.PayloadFileUUID); err != nil {
 			logging.LogError(err, "Failed to send payload back to Mythic via web request")
 			payloadBuildResponse.BuildMessage = payloadBuildResponse.BuildMessage + "\nFailed to send payload back to Mythic: " + err.Error()
 			payloadBuildResponse.Success = false

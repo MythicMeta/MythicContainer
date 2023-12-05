@@ -13,13 +13,10 @@ import (
 	"github.com/MythicMeta/MythicContainer/logging"
 )
 
-func init() {
+func SendFileToMythic(content *[]byte, fileID string) error {
 	if config.MythicConfig.MythicServerHost == "" {
 		log.Fatalf("[-] Missing MYTHIC_SERVER_HOST environment variable point to mythic server IP")
 	}
-}
-
-func SendFileToMythic(content *[]byte, fileID string) error {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 	if fileWriter, err := writer.CreateFormFile("file", "payload"); err != nil {
@@ -59,6 +56,9 @@ func SendFileToMythic(content *[]byte, fileID string) error {
 }
 
 func GetFileFromMythic(fileID string) (*[]byte, error) {
+	if config.MythicConfig.MythicServerHost == "" {
+		log.Fatalf("[-] Missing MYTHIC_SERVER_HOST environment variable point to mythic server IP")
+	}
 	if request, err := http.NewRequest("GET",
 		fmt.Sprintf("http://%s:%d/direct/download/%s", config.MythicConfig.MythicServerHost,
 			config.MythicConfig.MythicServerPort, fileID), nil); err != nil {

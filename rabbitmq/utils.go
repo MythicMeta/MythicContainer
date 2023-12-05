@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net"
 	"strings"
 	"sync"
@@ -25,6 +26,9 @@ func (r *rabbitMQConnection) GetConnection() (*amqp.Connection, error) {
 		r.mutex.Unlock()
 		return r.conn, nil
 	} else {
+		if config.MythicConfig.RabbitmqHost == "" {
+			log.Fatalf("[-] Missing RABBITMQ_HOST environment variable point to rabbitmq server IP")
+		}
 		for {
 			logging.LogInfo("Attempting to connect to rabbitmq")
 			conn, err := amqp.DialConfig(fmt.Sprintf("amqp://%s:%s@%s:%d/%s",

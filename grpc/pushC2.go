@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"fmt"
+	"log"
 	"math"
 	"time"
 
@@ -16,6 +17,9 @@ func GetNewPushC2ClientConnection() *grpc.ClientConn {
 	opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	opts = append(opts, grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(math.MaxInt)))
 	opts = append(opts, grpc.WithDefaultCallOptions(grpc.MaxCallSendMsgSize(math.MaxInt)))
+	if config.MythicConfig.MythicServerHost == "" {
+		log.Fatalf("[-] Missing MYTHIC_SERVER_HOST environment variable point to mythic server IP")
+	}
 	connectionString := fmt.Sprintf("%s:%d", config.MythicConfig.MythicServerHost, config.MythicConfig.MythicServerGRPCPort)
 	for {
 		logging.LogDebug("Attempting to connect to grpc...")

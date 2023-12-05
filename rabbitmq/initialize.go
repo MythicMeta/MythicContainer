@@ -2,6 +2,8 @@ package rabbitmq
 
 import (
 	"fmt"
+	"github.com/MythicMeta/MythicContainer/config"
+	"log"
 	"os"
 	"sync"
 
@@ -60,6 +62,9 @@ func (r *rabbitMQConnection) AddDirectQueue(input DirectQueueStruct) {
 }
 func (r *rabbitMQConnection) startListeners(services []string) {
 	// handle starting any queues that a developer isn't responsible for
+	if config.MythicConfig.RabbitmqHost == "" {
+		log.Fatalf("[-] Missing RABBITMQ_HOST environment variable point to rabbitmq server IP")
+	}
 	var wg sync.WaitGroup
 	exclusiveQueue := true
 	for _, rpcQueue := range r.RPCQueues {
@@ -360,7 +365,6 @@ func (r *rabbitMQConnection) startListeners(services []string) {
 			}
 		}
 	}
-
 	logging.LogInfo("[+] All services initialized!")
 }
 

@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.2.1] - 2023-12-05
+
+### Changed
+
+- Pulled in a PR from @MEHrn00 to fix a typo in one of the MythicRPC calling definitions
+- Removed the `init` function in the `mythicutils` package and added a log.fatalf check within rabbitmq, grpc, and mythicutils for `MYTHIC_SERVER_HOST` and `RABBITMQ_HOST` 
+  - The presence of these variables for use with connecting to Mythic via rabbitmq, grpc, and http are checked right before use rather than on initialization of their modules
+  - This allows easier testing of various components
+
+
 ## [v1.2.0] - 2023-11-29
 
 ### Changed

@@ -80,8 +80,8 @@ type MythicRPCCallbackSearchMessageResponse struct {
 	Results []MythicRPCCallbackSearchMessageResult `json:"results"`
 }
 
-func SendMythicRPCCallbackSearch(input MythicRPCCallbackSearchMessage) (*MythicRPCCallbackRemoveCommandMessageResponse, error) {
-	response := MythicRPCCallbackRemoveCommandMessageResponse{}
+func SendMythicRPCCallbackSearch(input MythicRPCCallbackSearchMessage) (*MythicRPCCallbackSearchMessageResponse, error) {
+	response := MythicRPCCallbackSearchMessageResponse{}
 	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(
 		rabbitmq.MYTHIC_EXCHANGE,
 		rabbitmq.MYTHIC_RPC_CALLBACK_SEARCH,

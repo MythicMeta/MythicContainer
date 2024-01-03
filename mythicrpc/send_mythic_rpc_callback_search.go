@@ -59,7 +59,7 @@ type MythicRPCCallbackSearchMessageResult struct {
 	Description           string    `mapstructure:"description" json:"description"`
 	OperatorID            int       `mapstructure:"operator_id" json:"operator_id"`
 	Active                bool      `mapstructure:"active" json:"active"`
-	RegisteredPayloadUUID int       `mapstructure:"registered_payload_uuid" json:"registered_payload_uuid"`
+	RegisteredPayloadUUID string    `mapstructure:"registered_payload_uuid" json:"registered_payload_uuid"`
 	IntegrityLevel        int       `mapstructure:"integrity_level" json:"integrity_level"`
 	Locked                bool      `mapstructure:"locked" json:"locked"`
 	LockedOperatorID      int       `mapstructure:"locked_operator_id" json:"locked_operator_id"`

@@ -9,6 +9,14 @@ type PTRPCDynamicQueryFunctionMessage struct {
 	PayloadType string `json:"payload_type" binding:"required"`
 	// Callback - the ID of the callback where this query function is called
 	Callback int `json:"callback" binding:"required"`
+	// PayloadOS - the string OS selected during payload creation
+	PayloadOS string `json:"payload_os"`
+	// PayloadUUID - the UUID of the backing payload that can be used to fetch more information about the payload
+	PayloadUUID string `json:"payload_uuid"`
+	// CallbackDisplayID - the number seen on the active callbacks page for the callback in question
+	CallbackDisplayID int `json:"callback_display_id"`
+	// AgentCallbackID - the UUID of the callback known by the agent
+	AgentCallbackID string `json:"agent_callback_id"`
 }
 
 type PTRPCDynamicQueryFunctionMessageResponse struct {

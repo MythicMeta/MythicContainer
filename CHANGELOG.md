@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.3.2] - 2024-01-11
+
+### Changed
+
+- Removed the FileRegister MythicRPC Call
+- Updated the FileCreate MythicRPC Call to allow TaskID, PayloadUUID, or AgentCallbackID to be supplied
+  - This makes it possible to register new files with Mythic during payload build, translation containers, etc
+- Updated the DynamicQuery Parameters to now also have PayloadOS, PayloadUUID, CallbackDisplayID, and AgentCallbackID
+  - This should make it easier to use MythicRPC functionality to make more informed decisions
+- Updated container version to v1.1.4, Needs Mythic v3.2.13+
+  
 ## [v1.3.1] - 2024-01-10
 
 ### Changed
@@ -11,7 +22,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added new MythicRPC function for searching a callbacks' edges
 - Added new MythicRPC function for created a task in a specific callback
 - Added new Payload definition function for `onNewCallback`
-- Updated Container version to 1.2.0
 
 ## [v1.2.1] - 2023-12-05
 

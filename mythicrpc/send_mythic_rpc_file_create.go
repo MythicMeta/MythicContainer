@@ -8,8 +8,11 @@ import (
 	"github.com/MythicMeta/MythicContainer/utils/mythicutils"
 )
 
+// MythicRPCFileCreateMessage Must supply one of TaskID, PayloadUUID, or AgentCallbackID so that Mythic can track the file for the right operation
 type MythicRPCFileCreateMessage struct {
 	TaskID              int    `json:"task_id"`
+	PayloadUUID         string `json:"payload_uuid"`
+	AgentCallbackID     string `json:"agent_callback_id"`
 	FileContents        []byte `json:"-"`
 	DeleteAfterFetch    bool   `json:"delete_after_fetch"`
 	Filename            string `json:"filename"`

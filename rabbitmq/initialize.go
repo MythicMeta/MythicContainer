@@ -381,4 +381,5 @@ func StartServices(services []string) {
 	// define the exchange, mythic's queue name, which direct messages to get, and a function to handle messages for that queue
 	// payload functionality
 	RabbitMQConnection.startListeners(services)
+	logging.LogInfo("Successfully Started", "containerVersion", containerVersion)
 }

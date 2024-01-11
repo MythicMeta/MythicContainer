@@ -252,3 +252,20 @@ type PTTaskProcessResponseMessageResponse struct {
 	Success bool   `json:"success"`
 	Error   string `json:"error"`
 }
+
+// On New Callback Structs
+
+type PTOnNewCallbackAllData struct {
+	Callback        PTTaskMessageCallbackData            `json:"callback"`
+	BuildParameters []PayloadConfigurationBuildParameter `json:"build_parameters"`
+	Commands        []string                             `json:"commands"`
+	Payload         PTTaskMessagePayloadData             `json:"payload"`
+	C2Profiles      []PayloadConfigurationC2Profile      `json:"c2info"`
+	PayloadType     string                               `json:"payload_type"`
+}
+
+type PTOnNewCallbackResponse struct {
+	AgentCallbackID string `json:"agent_callback_id"`
+	Success         bool   `json:"success"`
+	Error           string `json:"error"`
+}

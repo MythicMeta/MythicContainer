@@ -14,7 +14,7 @@ const (
 
 type CallbackPortType = string
 
-const containerVersion = "v1.1.2"
+const containerVersion = "v1.2.0"
 
 const (
 	CALLBACK_PORT_TYPE_SOCKS       CallbackPortType = "socks"
@@ -29,6 +29,9 @@ const (
 	//		send PayloadTypeSyncMessage to this route
 	PT_SYNC_ROUTING_KEY       = "pt_sync"
 	PT_RPC_RESYNC_ROUTING_KEY = "pt_rpc_resync"
+	// Result of informing a container of a new callback based on its payload type
+	// 		send PTOnNewCallbackResponse to this route
+	PT_ON_NEW_CALLBACK_RESPONSE_ROUTING_KEY = "pt_on_new_callback_response"
 	//	Result of asking a container to build a new payload
 	//		send PayloadBuildResponse to this route
 	PT_BUILD_RESPONSE_ROUTING_KEY = "pt_build_response"
@@ -74,7 +77,7 @@ const (
 	//		send PayloadBuildResponse to PAYLOAD_BUILD_RESPONSE_ROUTING_KEY for Mythic to process response
 	//
 	PAYLOAD_BUILD_ROUTING_KEY = "payload_build"
-
+	PT_ON_NEW_CALLBACK        = "pt_on_new_callback"
 	//
 	PAYLOAD_BUILD_C2_ROUTING_KEY = "payload_c2_build"
 	//	Sending a pre-flight tasking check to this queue
@@ -158,6 +161,7 @@ const (
 	MYTHIC_RPC_PAYLOAD_ADD_COMMAND         = "mythic_rpc_payload_add_command"
 	MYTHIC_RPC_PAYLOAD_REMOVE_COMMAND      = "mythic_rpc_payload_remove_command"
 	// MYTHIC_RPC_TASK_SEARCH task operations
+	MYTHIC_RPC_TASK_CREATE                    = "mythic_rpc_task_create"
 	MYTHIC_RPC_TASK_SEARCH                    = "mythic_rpc_task_search"
 	MYTHIC_RPC_TASK_DISPLAY_TO_REAL_ID_SEARCH = "mythic_rpc_task_display_to_real_id_search"
 	MYTHIC_RPC_TASK_UPDATE                    = "mythic_rpc_task_update"

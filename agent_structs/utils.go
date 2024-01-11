@@ -25,13 +25,14 @@ type RabbitmqDirectMethod struct {
 
 // REQUIRED, Don't Modify
 type allPayloadData struct {
-	allCommands       []Command
-	payloadDefinition PayloadType
-	mutex             sync.RWMutex
-	containerVersion  string
-	rpcMethods        []RabbitmqRPCMethod
-	directMethods     []RabbitmqDirectMethod
-	buildFunction     func(PayloadBuildMessage) PayloadBuildResponse
+	allCommands           []Command
+	payloadDefinition     PayloadType
+	mutex                 sync.RWMutex
+	containerVersion      string
+	rpcMethods            []RabbitmqRPCMethod
+	directMethods         []RabbitmqDirectMethod
+	buildFunction         func(PayloadBuildMessage) PayloadBuildResponse
+	onNewCallbackFunction func(PTOnNewCallbackAllData) PTOnNewCallbackResponse
 }
 
 var (
@@ -116,6 +117,9 @@ func (r *allPayloadData) AddCommand(cmd Command) {
 func (r *allPayloadData) AddBuildFunction(f func(PayloadBuildMessage) PayloadBuildResponse) {
 	r.buildFunction = f
 }
+func (r *allPayloadData) AddOnNewCallbackFunction(f func(PTOnNewCallbackAllData) PTOnNewCallbackResponse) {
+	r.onNewCallbackFunction = f
+}
 func (r *allPayloadData) AddPayloadDefinition(payloadDef PayloadType) {
 	if payloadDef.CustomRPCFunctions == nil {
 		payloadDef.CustomRPCFunctions = make(map[string]func(message PTRPCOtherServiceRPCMessage) PTRPCOtherServiceRPCMessageResponse)
@@ -158,6 +162,9 @@ func (r *allPayloadData) GetCommands() []Command {
 }
 func (r *allPayloadData) GetBuildFunction() func(PayloadBuildMessage) PayloadBuildResponse {
 	return r.buildFunction
+}
+func (r *allPayloadData) GetOnNewCallbackFunction() func(PTOnNewCallbackAllData) PTOnNewCallbackResponse {
+	return r.onNewCallbackFunction
 }
 func (r *allPayloadData) AddContainerVersion(ver string) {
 	r.containerVersion = ver

@@ -571,58 +571,82 @@ func getMeaningfulRabbitmqError(ret amqp.Return) string {
 }
 
 func prepTaskArgs(command agentstructs.Command, taskMessage *agentstructs.PTTaskMessageAllData) error {
-	if args, err := agentstructs.GenerateArgsData(command.CommandParameters, *taskMessage); err != nil {
+	args, err := agentstructs.GenerateArgsData(command.CommandParameters, *taskMessage)
+	if err != nil {
 		logging.LogError(err, "Failed to generate args data for create tasking")
 		return errors.New(fmt.Sprintf("Failed to generate args data:\n%s", err.Error()))
-	} else {
-		taskMessage.Args = args
-		switch taskMessage.Args.GetTaskingLocation() {
-		case "command_line":
-			if command.TaskFunctionParseArgString != nil {
-				// from scripting or if there are no parameters defined, this gets called
-				if err := command.TaskFunctionParseArgString(&taskMessage.Args, taskMessage.Args.GetCommandLine()); err != nil {
-					logging.LogError(err, "Failed to run ParseArgString function", "command Name", command.Name)
-					return errors.New(fmt.Sprintf("Failed to run %s's ParseArgString function:\n%s", command.Name, err.Error()))
-				}
-			}
-		default:
-			// try to parse dictionary first - parsed_cli, browser script, etc
-			if command.TaskFunctionParseArgDictionary != nil {
-				tempArgs := map[string]interface{}{}
-				if err := json.Unmarshal([]byte(taskMessage.Args.GetCommandLine()), &tempArgs); err != nil {
-					// failed to parse as a dictionary, so try parsing as
-					if command.TaskFunctionParseArgString != nil {
-						if err := command.TaskFunctionParseArgString(&taskMessage.Args, taskMessage.Args.GetCommandLine()); err != nil {
-							logging.LogError(err, "Failed to run ParseArgString function", "command Name", command.Name)
-							return errors.New(fmt.Sprintf("Failed to run %s's ParseArgString function:\n%s", command.Name, err.Error()))
-						} else {
-							break
-						}
-					} else {
-						logging.LogError(err, "Failed to parse arguments from parsed_cli into dictionary and no ParseArgString function defined, using raw command line")
-					}
-
-				} else if err := command.TaskFunctionParseArgDictionary(&taskMessage.Args, tempArgs); err != nil {
-					logging.LogError(err, "Failed to run ParseArgDictionary function", "command Name", command.Name)
-					return errors.New(fmt.Sprintf("Failed to run %s's ParseArgDictionary function:\n%s", command.Name, err.Error()))
-				}
-				// if no dictionary function, fall back to the string function if it exists
-			} else if command.TaskFunctionParseArgString != nil {
-
-				if err := command.TaskFunctionParseArgString(&taskMessage.Args, taskMessage.Args.GetCommandLine()); err != nil {
-					logging.LogError(err, "Failed to run ParseArgString function", "command Name", command.Name)
-					return errors.New(fmt.Sprintf("Failed to run %s's ParseArgString function:\n%s", command.Name, err.Error()))
-				}
-			}
-		}
-		// before we process the function's create_tasking, let's make sure that we have all the right arguments supplied by the user
-		// if something is "required" then the user needs to specify it, otherwise it's not required because a default value works fine
-		if requiredArgsHaveValues, err := taskMessage.Args.VerifyRequiredArgsHaveValues(); err != nil {
-			logging.LogError(err, "Failed to verify if all required args have values")
-			return errors.New(fmt.Sprintf("Failed to verify if all required args have values:\n%s", err.Error()))
-		} else if !requiredArgsHaveValues {
-			return errors.New(fmt.Sprintf("Some required args are missing values"))
-		}
-		return nil
 	}
+	taskMessage.Args = args
+	switch taskMessage.Args.GetTaskingLocation() {
+	case "command_line":
+		if command.TaskFunctionParseArgString != nil {
+			// from scripting or if there are no parameters defined, this gets called
+			err = command.TaskFunctionParseArgString(&taskMessage.Args, taskMessage.Args.GetCommandLine())
+			if err != nil {
+				logging.LogError(err, "Failed to run ParseArgString function", "command Name", command.Name)
+				return errors.New(fmt.Sprintf("Failed to run %s's ParseArgString function:\n%s", command.Name, err.Error()))
+			}
+		}
+	default:
+		// try to parse dictionary first - parsed_cli, browser script, etc
+		if command.TaskFunctionParseArgDictionary != nil {
+			tempArgs := map[string]interface{}{}
+			if err := json.Unmarshal([]byte(taskMessage.Args.GetCommandLine()), &tempArgs); err != nil {
+				// failed to parse as a dictionary, so try parsing as
+				if command.TaskFunctionParseArgString != nil {
+					if err := command.TaskFunctionParseArgString(&taskMessage.Args, taskMessage.Args.GetCommandLine()); err != nil {
+						logging.LogError(err, "Failed to run ParseArgString function", "command Name", command.Name)
+						return errors.New(fmt.Sprintf("Failed to run %s's ParseArgString function:\n%s", command.Name, err.Error()))
+					} else {
+						break
+					}
+				} else {
+					logging.LogError(err, "Failed to parse arguments from parsed_cli into dictionary and no ParseArgString function defined, using raw command line")
+				}
+
+			} else if err := command.TaskFunctionParseArgDictionary(&taskMessage.Args, tempArgs); err != nil {
+				logging.LogError(err, "Failed to run ParseArgDictionary function", "command Name", command.Name)
+				return errors.New(fmt.Sprintf("Failed to run %s's ParseArgDictionary function:\n%s", command.Name, err.Error()))
+			}
+			// if no dictionary function, fall back to the string function if it exists
+		} else if command.TaskFunctionParseArgString != nil {
+
+			if err := command.TaskFunctionParseArgString(&taskMessage.Args, taskMessage.Args.GetCommandLine()); err != nil {
+				logging.LogError(err, "Failed to run ParseArgString function", "command Name", command.Name)
+				return errors.New(fmt.Sprintf("Failed to run %s's ParseArgString function:\n%s", command.Name, err.Error()))
+			}
+		}
+	}
+	// in case we auto-parsed a typed array into ["", "val"] data, submit it for processing first
+	for _, arg := range taskMessage.Args.GetTypedArrayEntriesThatNeedProcessing() {
+		//logging.LogInfo("arg would need more processing", "arg", arg)
+		currentArg, _ := taskMessage.Args.GetTypedArrayArg(arg.Name)
+		newUntypedArray := make([]string, len(currentArg))
+		for i := 0; i < len(newUntypedArray); i++ {
+			newUntypedArray[i] = currentArg[i][1]
+		}
+		newArg := arg.TypedArrayParseFunction(agentstructs.PTRPCTypedArrayParseFunctionMessage{
+			Command:       command.Name,
+			ParameterName: arg.Name,
+			PayloadType:   taskMessage.PayloadType,
+			Callback:      taskMessage.Callback.ID,
+			InputArray:    newUntypedArray,
+		})
+		err = taskMessage.Args.SetArgValue(arg.Name, newArg)
+		if err != nil {
+			logging.LogError(err, "failed to set new typed array value")
+		}
+	}
+	// before we process the function's create_tasking, let's make sure that we have all the right arguments supplied by the user
+	// if something is "required" then the user needs to specify it, otherwise it's not required because a default value works fine
+	requiredArgsHaveValues, err := taskMessage.Args.VerifyRequiredArgsHaveValues()
+	if err != nil {
+		logging.LogError(err, "Failed to verify if all required args have values")
+		return errors.New(fmt.Sprintf("Failed to verify if all required args have values:\n%s", err.Error()))
+	}
+	if !requiredArgsHaveValues {
+		return errors.New(fmt.Sprintf("Some required args are missing values"))
+	}
+	return nil
+
 }

@@ -140,14 +140,14 @@ func (arg *PTTaskMessageArgsData) GetTypedArrayArg(name string) ([][]string, err
 		return [][]string{}, err
 	} else if val == nil {
 		return [][]string{}, nil
-	} else if interfaceArray, err := getTypedValue[[][]interface{}](val); err != nil {
+	} else if interfaceArray, err := getTypedValue[[]interface{}](val); err != nil {
 		return [][]string{}, err
 	} else {
 		stringArray := make([][]string, len(interfaceArray))
 		for index, _ := range interfaceArray {
 			stringArray[index] = []string{}
-			for index2, _ := range interfaceArray[index] {
-				stringArray[index] = append(stringArray[index], fmt.Sprintf("%v", interfaceArray[index][index2]))
+			for index2, _ := range interfaceArray[index].([]interface{}) {
+				stringArray[index] = append(stringArray[index], fmt.Sprintf("%v", interfaceArray[index].([]interface{})[index2]))
 			}
 		}
 		return stringArray, nil
@@ -264,6 +264,24 @@ func (arg *PTTaskMessageArgsData) AddArg(newArg CommandParameter) error {
 	// don't have it, so add it
 	arg.args = append(arg.args, newArg)
 	return nil
+}
+func (arg *PTTaskMessageArgsData) GetTypedArrayEntriesThatNeedProcessing() []CommandParameter {
+	argumentsToProcess := []CommandParameter{}
+	for i := 0; i < len(arg.args); i++ {
+		if arg.args[i].ParameterType == COMMAND_PARAMETER_TYPE_TYPED_ARRAY && arg.args[i].TypedArrayParseFunction != nil {
+			currentVal, err := arg.GetTypedArrayArg(arg.args[i].Name)
+			if err != nil {
+				logging.LogError(err, "failed to get typed array information")
+
+				continue
+			}
+			if len(currentVal) > 0 && len(currentVal[0]) > 0 && currentVal[0][0] == "" {
+				// this means we need to reprocess it
+				argumentsToProcess = append(argumentsToProcess, arg.args[i])
+			}
+		}
+	}
+	return argumentsToProcess
 }
 func (arg *PTTaskMessageArgsData) SetArgValue(name string, value interface{}) error {
 	// first see if newArg is in our list, if it is, update it, else add it

@@ -212,30 +212,28 @@ func GetRoutingKeyFor(webhookType string) string {
 	return fmt.Sprintf("%s.%s", EMIT_WEBHOOK_ROUTING_KEY_PREFIX, webhookType)
 }
 func SubmitWebRequest(method string, url string, body interface{}) ([]byte, int, error) {
-	if messageBytes, err := json.Marshal(body); err != nil {
+	messageBytes, err := json.Marshal(body)
+	if err != nil {
 		logging.LogError(err, "Failed to marshal new webhook message")
 		return nil, 0, err
-	} else if req, err := http.NewRequest(method, url, bytes.NewBuffer(messageBytes)); err != nil {
+	}
+	req, err := http.NewRequest(method, url, bytes.NewBuffer(messageBytes))
+	if err != nil {
 		logging.LogError(err, "Failed to make new http request")
 		return nil, 0, err
-	} else {
-		req.ContentLength = int64(len(messageBytes))
-		if resp, err := HTTPClient.Do(req); err != nil {
-			logging.LogError(err, "Failed to make http request")
-			return nil, 0, err
-		} else {
-			defer resp.Body.Close()
-			if resp.StatusCode != 200 && resp.StatusCode != 201 {
-				logging.LogError(nil, "Got bad status code", "code", resp.StatusCode)
-				return nil, resp.StatusCode, nil
-			}
-			if resultBody, err := io.ReadAll(resp.Body); err != nil {
-				logging.LogError(err, "Failed to get response from webhook")
-				return nil, 0, err
-			} else {
-				//logging.LogDebug("webhook output", "response", body)
-				return resultBody, resp.StatusCode, nil
-			}
-		}
 	}
+	req.ContentLength = int64(len(messageBytes))
+	resp, err := HTTPClient.Do(req)
+	if err != nil {
+		logging.LogError(err, "Failed to make http request")
+		return nil, 0, err
+	}
+	defer resp.Body.Close()
+	resultBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		logging.LogError(err, "Failed to get response from webhook")
+		return nil, resp.StatusCode, err
+	}
+	//logging.LogDebug("webhook output", "response", body)
+	return resultBody, resp.StatusCode, nil
 }

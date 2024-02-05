@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.3.4] - 2024-02-05
+
+### Changed
+
+- Updated the SubmitWebRequest method to always return the body and status code so the client can check success or error on their own
+
 ## [v1.3.3] - 2024-01-15
 
 ### Changed

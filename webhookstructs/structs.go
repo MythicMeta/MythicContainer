@@ -6,6 +6,7 @@ type webhookMessageBase struct {
 	OperationWebhook string       `json:"operation_webhook"`
 	OperationChannel string       `json:"operation_channel"`
 	OperatorUsername string       `json:"operator_username"`
+	ServerName       string       `json:"server_name"`
 	Action           WEBHOOK_TYPE `json:"action"`
 }
 

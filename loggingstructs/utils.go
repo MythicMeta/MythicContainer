@@ -34,6 +34,7 @@ type loggingMessageBase struct {
 	OperationName    string   `json:"operation_name"`
 	OperatorUsername string   `json:"username"`
 	Timestamp        string   `json:"timestamp"`
+	ServerName       string   `json:"server_name"`
 	Action           LOG_TYPE `json:"action"`
 }
 

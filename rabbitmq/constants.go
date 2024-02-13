@@ -14,7 +14,7 @@ const (
 
 type CallbackPortType = string
 
-const containerVersion = "v1.1.4"
+const containerVersion = "v1.1.6"
 
 const (
 	CALLBACK_PORT_TYPE_SOCKS       CallbackPortType = "socks"

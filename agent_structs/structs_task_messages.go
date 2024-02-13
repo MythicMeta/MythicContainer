@@ -17,6 +17,8 @@ type PTTaskMessageAllData struct {
 	C2Profiles []PayloadConfigurationC2Profile `json:"c2info"`
 	// PayloadType - Read-only the name of the payload type associated with this task
 	PayloadType string `json:"payload_type"`
+	// Secrets - Map of user supplied secrets to their values to help with tasking
+	Secrets map[string]interface{} `json:"secrets"`
 	// Args - Read-Write argument data for adding/removing/modifying args associated with this task instance.
 	// Mainly for create tasking function to augment parameters
 	Args PTTaskMessageArgsData
@@ -37,6 +39,7 @@ type PTTaskMessageTaskData struct {
 	Stderr                             string `json:"stderr"`
 	Completed                          bool   `json:"completed"`
 	OperatorUsername                   string `json:"operator_username"`
+	OperatorID                         int    `json:"operator_id"`
 	OpsecPreBlocked                    bool   `json:"opsec_pre_blocked"`
 	OpsecPreMessage                    string `json:"opsec_pre_message"`
 	OpsecPreBypassed                   bool   `json:"opsec_pre_bypassed"`
@@ -262,6 +265,7 @@ type PTOnNewCallbackAllData struct {
 	Payload         PTTaskMessagePayloadData             `json:"payload"`
 	C2Profiles      []PayloadConfigurationC2Profile      `json:"c2info"`
 	PayloadType     string                               `json:"payload_type"`
+	Secrets         map[string]interface{}               `json:"secrets"`
 }
 
 type PTOnNewCallbackResponse struct {

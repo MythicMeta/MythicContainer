@@ -17,6 +17,8 @@ type PTRPCDynamicQueryFunctionMessage struct {
 	CallbackDisplayID int `json:"callback_display_id"`
 	// AgentCallbackID - the UUID of the callback known by the agent
 	AgentCallbackID string `json:"agent_callback_id"`
+	// Secrets - User supplied secrets
+	Secrets map[string]interface{} `json:"secrets"`
 }
 
 type PTRPCDynamicQueryFunctionMessageResponse struct {

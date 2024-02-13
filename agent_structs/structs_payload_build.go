@@ -34,6 +34,8 @@ type PayloadBuildMessage struct {
 	PayloadUUID string `json:"uuid" mapstructure:"uuid"`
 	// PayloadFileUUID - The Mythic generated File UUID associated with this payload
 	PayloadFileUUID string `json:"payload_file_uuid" mapstructure:"payload_file_uuid"`
+	// Secrets - User supplied secrets that get sent down with payload builds
+	Secrets map[string]interface{} `json:"secrets"`
 }
 
 // PayloadBuildC2Profile - A structure of the selected C2 Profile information the user selected to build into a payload.

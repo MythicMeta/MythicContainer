@@ -120,6 +120,8 @@ type PayloadType struct {
 	AgentIcon *[]byte `json:"agent_icon"` // automatically filled in based on Name
 	// CustomRPCFunctions - The RPC functions you want to expose to other PayloadTypes or C2 Profiles
 	CustomRPCFunctions map[string]func(message PTRPCOtherServiceRPCMessage) PTRPCOtherServiceRPCMessageResponse `json:"-"`
+	// MessageFormat identifies if the agent uses json or xml messages with Mythic. If you're using a translation container for a custom format, you'd set this to whichever (json/xml) you're going to do your conversions to.
+	MessageFormat string `json:"message_format"`
 }
 
 // Command - The base definition of a command

@@ -55,7 +55,7 @@ func (r *containerC2Data) Get(name string) *allC2Data {
 	}
 	if existingC2Data, ok := r.C2Map[name]; !ok {
 		newC2Data := allC2Data{}
-		newC2Data.OutputChannel = make(chan string, 20)
+		newC2Data.OutputChannel = make(chan string, 200)
 		r.C2Map[name] = &newC2Data
 		return &newC2Data
 	} else {

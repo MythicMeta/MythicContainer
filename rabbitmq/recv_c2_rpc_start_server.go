@@ -130,13 +130,19 @@ func C2RPCStartServer(input c2structs.C2RPCStartServerMessage) c2structs.C2RPCSt
 
 func readStdOutToChan(name string, stdOut *bufio.Scanner) {
 	for stdOut.Scan() {
-		c2structs.AllC2Data.Get(name).OutputChannel <- stdOut.Text()
+		select {
+		case c2structs.AllC2Data.Get(name).OutputChannel <- stdOut.Text():
+		default:
+		}
 	}
 	logging.LogDebug("readStdOutToChan exited")
 }
 func readStdErrToChan(name string, stdErr *bufio.Scanner) {
 	for stdErr.Scan() {
-		c2structs.AllC2Data.Get(name).OutputChannel <- stdErr.Text()
+		select {
+		case c2structs.AllC2Data.Get(name).OutputChannel <- stdErr.Text():
+		default:
+		}
 	}
 	logging.LogDebug("readStdErrToChan exited")
 }

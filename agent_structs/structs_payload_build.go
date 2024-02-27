@@ -21,7 +21,7 @@ type PayloadBuildMessage struct {
 	// BuildParameters - map of param name -> build value from the user for the build parameters defined
 	// File type build parameters are supplied as a string UUID to use with MythicRPC for fetching file contents
 	// Array type build parameters are supplied as []string{}
-	BuildParameters PayloadBuildArguments `json:"build_parameters" mapstructure:"build_parameters"`
+	BuildParameters
 	// C2Profiles - list of C2 profiles selected to include in the payload and their associated parameters
 	C2Profiles []PayloadBuildC2Profile `json:"c2profiles" mapstructure:"c2profiles"`
 	// WrappedPayload - bytes of the wrapped payload if one exists
@@ -178,11 +178,11 @@ func (arg *PayloadBuildC2Profile) GetTypedArrayArg(name string) ([][]string, err
 	}
 }
 
-type PayloadBuildArguments struct {
+type BuildParameters struct {
 	Parameters map[string]interface{} `json:"build_parameters" mapstructure:"build_parameters"`
 }
 
-func (arg *PayloadBuildArguments) GetArg(name string) (interface{}, error) {
+func (arg *BuildParameters) GetArg(name string) (interface{}, error) {
 	for key, currentArg := range arg.Parameters {
 		if key == name {
 			return currentArg, nil
@@ -190,14 +190,14 @@ func (arg *PayloadBuildArguments) GetArg(name string) (interface{}, error) {
 	}
 	return nil, errors.New("failed to find argument")
 }
-func (arg *PayloadBuildArguments) GetArgNames() []string {
+func (arg *BuildParameters) GetArgNames() []string {
 	argNames := []string{}
 	for key, _ := range arg.Parameters {
 		argNames = append(argNames, key)
 	}
 	return argNames
 }
-func (arg *PayloadBuildArguments) GetStringArg(name string) (string, error) {
+func (arg *BuildParameters) GetStringArg(name string) (string, error) {
 	if val, err := arg.GetArg(name); err != nil {
 		return "", err
 	} else if val == nil {
@@ -206,7 +206,7 @@ func (arg *PayloadBuildArguments) GetStringArg(name string) (string, error) {
 		return getTypedValue[string](val)
 	}
 }
-func (arg *PayloadBuildArguments) GetNumberArg(name string) (float64, error) {
+func (arg *BuildParameters) GetNumberArg(name string) (float64, error) {
 	if val, err := arg.GetArg(name); err != nil {
 		return 0, err
 	} else if val == nil {
@@ -219,7 +219,7 @@ func (arg *PayloadBuildArguments) GetNumberArg(name string) (float64, error) {
 		return 0, err
 	}
 }
-func (arg *PayloadBuildArguments) GetBooleanArg(name string) (bool, error) {
+func (arg *BuildParameters) GetBooleanArg(name string) (bool, error) {
 	if val, err := arg.GetArg(name); err != nil {
 		return false, err
 	} else if val == nil {
@@ -228,7 +228,7 @@ func (arg *PayloadBuildArguments) GetBooleanArg(name string) (bool, error) {
 		return getTypedValue[bool](val)
 	}
 }
-func (arg *PayloadBuildArguments) GetDictionaryArg(name string) (map[string]string, error) {
+func (arg *BuildParameters) GetDictionaryArg(name string) (map[string]string, error) {
 	if val, err := arg.GetArg(name); err != nil {
 		return nil, err
 	} else if val == nil {
@@ -248,10 +248,10 @@ func (arg *PayloadBuildArguments) GetDictionaryArg(name string) (map[string]stri
 		return finalMap, nil
 	}
 }
-func (arg *PayloadBuildArguments) GetChooseOneArg(name string) (string, error) {
+func (arg *BuildParameters) GetChooseOneArg(name string) (string, error) {
 	return arg.GetStringArg(name)
 }
-func (arg *PayloadBuildArguments) GetArrayArg(name string) ([]string, error) {
+func (arg *BuildParameters) GetArrayArg(name string) ([]string, error) {
 	if val, err := arg.GetArg(name); err != nil {
 		return []string{}, err
 	} else if val == nil {
@@ -266,16 +266,16 @@ func (arg *PayloadBuildArguments) GetArrayArg(name string) ([]string, error) {
 		return stringArray, nil
 	}
 }
-func (arg *PayloadBuildArguments) GetChooseMultipleArg(name string) ([]string, error) {
+func (arg *BuildParameters) GetChooseMultipleArg(name string) ([]string, error) {
 	return arg.GetArrayArg(name)
 }
-func (arg *PayloadBuildArguments) GetDateArg(name string) (string, error) {
+func (arg *BuildParameters) GetDateArg(name string) (string, error) {
 	return arg.GetStringArg(name)
 }
-func (arg *PayloadBuildArguments) GetFileArg(name string) (string, error) {
+func (arg *BuildParameters) GetFileArg(name string) (string, error) {
 	return arg.GetStringArg(name)
 }
-func (arg *PayloadBuildArguments) GetCryptoArg(name string) (CryptoArg, error) {
+func (arg *BuildParameters) GetCryptoArg(name string) (CryptoArg, error) {
 	cryptoArg := CryptoArg{}
 	if val, err := arg.GetArg(name); err != nil {
 		return cryptoArg, err
@@ -287,7 +287,7 @@ func (arg *PayloadBuildArguments) GetCryptoArg(name string) (CryptoArg, error) {
 		return cryptoArg, nil
 	}
 }
-func (arg *PayloadBuildArguments) GetTypedArrayArg(name string) ([][]string, error) {
+func (arg *BuildParameters) GetTypedArrayArg(name string) ([][]string, error) {
 	if val, err := arg.GetArg(name); err != nil {
 		return [][]string{}, err
 	} else if val == nil {

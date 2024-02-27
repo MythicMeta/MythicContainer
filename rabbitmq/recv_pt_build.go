@@ -6,23 +6,14 @@ import (
 	agentstructs "github.com/MythicMeta/MythicContainer/agent_structs"
 	"github.com/MythicMeta/MythicContainer/logging"
 	"github.com/MythicMeta/MythicContainer/utils/mythicutils"
-	"github.com/mitchellh/mapstructure"
 )
 
 func WrapPayloadBuild(msg []byte) {
-	payloadMsg := map[string]interface{}{}
+	//payloadMsg := map[string]interface{}{}
 	payloadBuildMsg := agentstructs.PayloadBuildMessage{}
-	err := json.Unmarshal(msg, &payloadMsg)
+	err := json.Unmarshal(msg, &payloadBuildMsg)
 	if err != nil {
 		logging.LogError(err, "Failed to process payload build message")
-		return
-	}
-	payloadMsg["build_parameters"] = map[string]interface{}{
-		"build_parameters": payloadMsg["build_parameters"],
-	}
-	err = mapstructure.Decode(&payloadMsg, &payloadBuildMsg)
-	if err != nil {
-		logging.LogError(err, "failed to decode message into struct")
 		return
 	}
 	var payloadBuildResponse agentstructs.PayloadBuildResponse

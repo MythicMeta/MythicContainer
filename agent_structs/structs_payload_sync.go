@@ -122,6 +122,8 @@ type PayloadType struct {
 	CustomRPCFunctions map[string]func(message PTRPCOtherServiceRPCMessage) PTRPCOtherServiceRPCMessageResponse `json:"-"`
 	// MessageFormat identifies if the agent uses json or xml messages with Mythic. If you're using a translation container for a custom format, you'd set this to whichever (json/xml) you're going to do your conversions to.
 	MessageFormat string `json:"message_format"`
+	// AgentType identifies if the payload type is a standard "agent" or if it is another use case like "service" for 3rd party service agents
+	AgentType string `json:"agent_type"`
 }
 
 // Command - The base definition of a command

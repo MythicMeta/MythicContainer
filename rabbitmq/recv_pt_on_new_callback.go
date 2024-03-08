@@ -29,7 +29,7 @@ func processPtOnNewCallbackMessages(msg []byte) {
 
 	onNewCallbackFunc := agentstructs.AllPayloadData.Get(incomingMessage.PayloadType).GetOnNewCallbackFunction()
 	if onNewCallbackFunc == nil {
-		logging.LogError(nil, "Failed to get payload build function. Do you have a function called 'build'?")
+		logging.LogInfo("Failed to get onNewCallbackFunc function. Do you have a function called 'onNewCallbackFunc'? This is an optional function for a payload type to automatically execute tasking and MythicRPC commands when a new callback happens.")
 		response.Success = false
 	} else {
 		response = onNewCallbackFunc(incomingMessage)

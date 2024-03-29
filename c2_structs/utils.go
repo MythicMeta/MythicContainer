@@ -226,8 +226,14 @@ func (arg *C2Parameters) GetArrayArg(name string) ([]string, error) {
 		return []string{}, err
 	} else if val == nil {
 		return []string{}, nil
+	} else if interfaceArray, err := getTypedValue[[]interface{}](val); err != nil {
+		return []string{}, err
 	} else {
-		return getTypedValue[[]string](val)
+		stringArray := make([]string, len(interfaceArray))
+		for index, _ := range interfaceArray {
+			stringArray[index] = fmt.Sprintf("%v", interfaceArray[index])
+		}
+		return stringArray, nil
 	}
 }
 func (arg *C2Parameters) GetChooseMultipleArg(name string) ([]string, error) {
@@ -249,6 +255,24 @@ func (arg *C2Parameters) GetCryptoArg(name string) (CryptoArg, error) {
 		return cryptoArg, err
 	} else {
 		return cryptoArg, nil
+	}
+}
+func (arg *C2Parameters) GetTypedArrayArg(name string) ([][]string, error) {
+	if val, err := arg.GetArg(name); err != nil {
+		return [][]string{}, err
+	} else if val == nil {
+		return [][]string{}, nil
+	} else if interfaceArray, err := getTypedValue[[][]interface{}](val); err != nil {
+		return [][]string{}, err
+	} else {
+		stringArray := make([][]string, len(interfaceArray))
+		for index, _ := range interfaceArray {
+			stringArray[index] = []string{}
+			for index2, _ := range interfaceArray[index] {
+				stringArray[index] = append(stringArray[index], fmt.Sprintf("%v", interfaceArray[index][index2]))
+			}
+		}
+		return stringArray, nil
 	}
 }
 func getTypedValue[T any](value interface{}) (T, error) {

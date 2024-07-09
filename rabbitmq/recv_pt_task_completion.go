@@ -5,10 +5,11 @@ import (
 	"fmt"
 	agentstructs "github.com/MythicMeta/MythicContainer/agent_structs"
 	"github.com/MythicMeta/MythicContainer/logging"
+	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
 )
 
 func init() {
-	agentstructs.AllPayloadData.Get("").AddDirectMethod(agentstructs.RabbitmqDirectMethod{
+	agentstructs.AllPayloadData.Get("").AddDirectMethod(sharedStructs.RabbitmqDirectMethod{
 		RabbitmqRoutingKey:         PT_TASK_COMPLETION_FUNCTION,
 		RabbitmqProcessingFunction: processPtTaskCompletionMessages,
 	})
@@ -25,7 +26,7 @@ func processPtTaskCompletionMessages(msg []byte) {
 		sendTaskCompletionResponse(response)
 		return
 	} else {
-		for _, command := range agentstructs.AllPayloadData.Get(incomingMessage.TaskData.PayloadType).GetCommands() {
+		for _, command := range agentstructs.AllPayloadData.Get(incomingMessage.TaskData.CommandPayloadType).GetCommands() {
 			if command.Name == incomingMessage.TaskData.Task.CommandName {
 				if err := prepTaskArgs(command, incomingMessage.TaskData); err != nil {
 					response.Error = err.Error()

@@ -3,13 +3,14 @@ package rabbitmq
 import (
 	"encoding/json"
 	"github.com/MythicMeta/MythicContainer/translationstructs"
+	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
 
 	"github.com/MythicMeta/MythicContainer/logging"
 )
 
 // Register this RPC method with rabbitmq so it can be called
 func init() {
-	translationstructs.AllTranslationData.Get("").AddRPCMethod(translationstructs.RabbitmqRPCMethod{
+	translationstructs.AllTranslationData.Get("").AddRPCMethod(sharedStructs.RabbitmqRPCMethod{
 		RabbitmqRoutingKey:         TR_RPC_RESYNC_ROUTING_KEY,
 		RabbitmqProcessingFunction: processTrRPCReSync,
 	})

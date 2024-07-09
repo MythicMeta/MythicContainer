@@ -1,14 +1,17 @@
 package translationstructs
 
+import "github.com/MythicMeta/MythicContainer/utils/sharedStructs"
+
 type TranslationContainer struct {
-	Name                          string                                `json:"name"`
-	Description                   string                                `json:"description"`
-	Author                        string                                `json:"author"`
-	TranslateCustomToMythicFormat TranslateCustomToMythicFormatFunction `json:"-"`
-	TranslateMythicToCustomFormat TranslateMythicToCustomFormatFunction `json:"-"`
-	GenerateEncryptionKeys        GenerateEncryptionKeysFunction        `json:"-"`
-	EncryptBytes                  EncryptBytesFunction                  `json:"-"`
-	DecryptBytes                  DecryptBytesFunction                  `json:"-"`
+	Name                          string                                                                                    `json:"name"`
+	Description                   string                                                                                    `json:"description"`
+	Author                        string                                                                                    `json:"author"`
+	TranslateCustomToMythicFormat TranslateCustomToMythicFormatFunction                                                     `json:"-"`
+	TranslateMythicToCustomFormat TranslateMythicToCustomFormatFunction                                                     `json:"-"`
+	GenerateEncryptionKeys        GenerateEncryptionKeysFunction                                                            `json:"-"`
+	EncryptBytes                  EncryptBytesFunction                                                                      `json:"-"`
+	DecryptBytes                  DecryptBytesFunction                                                                      `json:"-"`
+	OnContainerStartFunction      func(sharedStructs.ContainerOnStartMessage) sharedStructs.ContainerOnStartMessageResponse `json:"-"`
 }
 
 // TR_SYNC STRUCTS

@@ -1,6 +1,8 @@
 package logging
 
 import (
+	"gopkg.in/natefinch/lumberjack.v2"
+	"io"
 	"os"
 	"runtime"
 	"time"
@@ -14,8 +16,42 @@ var (
 )
 
 func init() {
+	UpdateLogToStdout(config.MythicConfig.DebugLevel)
+}
+
+func UpdateLogToFile(filename string, maxSizeInMB int, maxBackups int, debugLevel string) {
+	fileLogger := &lumberjack.Logger{
+		Filename:   filename,
+		MaxSize:    maxSizeInMB,
+		MaxAge:     0, // don't remove files after x days
+		MaxBackups: maxBackups,
+		LocalTime:  false, // use UTC times
+		Compress:   true,
+	}
+	writers := io.MultiWriter(os.Stdout, fileLogger)
 	var zl zerolog.Logger
-	switch config.MythicConfig.DebugLevel {
+	zl = zerolog.New(writers)
+	if debugLevel == "" {
+		debugLevel = config.MythicConfig.DebugLevel
+	}
+	switch debugLevel {
+	case "warning":
+		zl = zl.Level(zerolog.WarnLevel)
+	case "info":
+		zl = zl.Level(zerolog.InfoLevel)
+	case "debug":
+		zl = zl.Level(zerolog.DebugLevel)
+	case "trace":
+		zl = zl.Level(zerolog.TraceLevel)
+	default:
+		zl = zl.Level(zerolog.InfoLevel)
+	}
+	zl = zl.With().Timestamp().Logger()
+	logger = zl
+}
+func UpdateLogToStdout(debugLevel string) {
+	var zl zerolog.Logger
+	switch debugLevel {
 	case "warning":
 		zl = zerolog.New(os.Stdout).Level(zerolog.WarnLevel)
 	case "info":

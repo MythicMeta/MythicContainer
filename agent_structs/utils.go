@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
 	"io"
 	"os"
 	"os/exec"
@@ -14,23 +15,14 @@ import (
 	"github.com/MythicMeta/MythicContainer/utils/helpers"
 )
 
-type RabbitmqRPCMethod struct {
-	RabbitmqRoutingKey         string
-	RabbitmqProcessingFunction func([]byte) interface{}
-}
-type RabbitmqDirectMethod struct {
-	RabbitmqRoutingKey         string
-	RabbitmqProcessingFunction func([]byte)
-}
-
 // REQUIRED, Don't Modify
 type allPayloadData struct {
 	allCommands           []Command
 	payloadDefinition     PayloadType
 	mutex                 sync.RWMutex
 	containerVersion      string
-	rpcMethods            []RabbitmqRPCMethod
-	directMethods         []RabbitmqDirectMethod
+	rpcMethods            []sharedStructs.RabbitmqRPCMethod
+	directMethods         []sharedStructs.RabbitmqDirectMethod
 	buildFunction         func(PayloadBuildMessage) PayloadBuildResponse
 	onNewCallbackFunction func(PTOnNewCallbackAllData) PTOnNewCallbackResponse
 }
@@ -120,6 +112,9 @@ func (r *allPayloadData) AddBuildFunction(f func(PayloadBuildMessage) PayloadBui
 func (r *allPayloadData) AddOnNewCallbackFunction(f func(PTOnNewCallbackAllData) PTOnNewCallbackResponse) {
 	r.onNewCallbackFunction = f
 }
+func (r *allPayloadData) AddCheckIfCallbacksAliveFunction(f func(PTCheckIfCallbacksAliveMessage) PTCheckIfCallbacksAliveMessageResponse) {
+	r.payloadDefinition.CheckIfCallbacksAliveFunction = f
+}
 func (r *allPayloadData) AddPayloadDefinition(payloadDef PayloadType) {
 	if payloadDef.CustomRPCFunctions == nil {
 		payloadDef.CustomRPCFunctions = make(map[string]func(message PTRPCOtherServiceRPCMessage) PTRPCOtherServiceRPCMessageResponse)
@@ -141,6 +136,24 @@ func (r *allPayloadData) AddIcon(filePath string) {
 			os.Exit(1)
 		} else {
 			r.payloadDefinition.AgentIcon = &agentIcon
+		}
+	}
+}
+func (r *allPayloadData) AddDarkModeIcon(filePath string) {
+	if r.payloadDefinition.DarkModeAgentIcon == nil {
+		if _, err := os.Stat(filePath); err != nil {
+			logging.LogError(err, "Failed to find agent icon")
+			r.payloadDefinition.DarkModeAgentIcon = nil
+		} else if file, err := os.Open(filePath); err != nil {
+			r.payloadDefinition.DarkModeAgentIcon = nil
+			logging.LogError(err, "Failed to open file path for agent icon")
+			os.Exit(1)
+		} else if agentIcon, err := io.ReadAll(file); err != nil {
+			r.payloadDefinition.DarkModeAgentIcon = nil
+			logging.LogError(err, "Failed to read agent icon")
+			os.Exit(1)
+		} else {
+			r.payloadDefinition.DarkModeAgentIcon = &agentIcon
 		}
 	}
 }
@@ -166,6 +179,9 @@ func (r *allPayloadData) GetBuildFunction() func(PayloadBuildMessage) PayloadBui
 func (r *allPayloadData) GetOnNewCallbackFunction() func(PTOnNewCallbackAllData) PTOnNewCallbackResponse {
 	return r.onNewCallbackFunction
 }
+func (r *allPayloadData) GetCheckIfCallbacksAliveFunction() func(PTCheckIfCallbacksAliveMessage) PTCheckIfCallbacksAliveMessageResponse {
+	return r.payloadDefinition.CheckIfCallbacksAliveFunction
+}
 func (r *allPayloadData) AddContainerVersion(ver string) {
 	r.containerVersion = ver
 }
@@ -175,20 +191,20 @@ func (r *allPayloadData) GetPayloadName() string {
 func (r *allPayloadData) GetContainerVersion() string {
 	return r.containerVersion
 }
-func (r *allPayloadData) AddRPCMethod(m RabbitmqRPCMethod) {
+func (r *allPayloadData) AddRPCMethod(m sharedStructs.RabbitmqRPCMethod) {
 	r.mutex.Lock()
 	r.rpcMethods = append(r.rpcMethods, m)
 	r.mutex.Unlock()
 }
-func (r *allPayloadData) GetRPCMethods() []RabbitmqRPCMethod {
+func (r *allPayloadData) GetRPCMethods() []sharedStructs.RabbitmqRPCMethod {
 	return r.rpcMethods
 }
-func (r *allPayloadData) AddDirectMethod(m RabbitmqDirectMethod) {
+func (r *allPayloadData) AddDirectMethod(m sharedStructs.RabbitmqDirectMethod) {
 	r.mutex.Lock()
 	r.directMethods = append(r.directMethods, m)
 	r.mutex.Unlock()
 }
-func (r *allPayloadData) GetDirectMethods() []RabbitmqDirectMethod {
+func (r *allPayloadData) GetDirectMethods() []sharedStructs.RabbitmqDirectMethod {
 	return r.directMethods
 }
 func (r *allPayloadData) GetRoutingKey(baseRoutingKey string) string {

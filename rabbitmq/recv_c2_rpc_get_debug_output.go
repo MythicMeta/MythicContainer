@@ -3,14 +3,14 @@ package rabbitmq
 import (
 	"encoding/json"
 	"github.com/MythicMeta/MythicContainer/c2_structs"
-	"time"
-
 	"github.com/MythicMeta/MythicContainer/logging"
+	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
+	"time"
 )
 
 // Register this RPC method with rabbitmq so it can be called
 func init() {
-	c2structs.AllC2Data.Get("").AddRPCMethod(c2structs.RabbitmqRPCMethod{
+	c2structs.AllC2Data.Get("").AddRPCMethod(sharedStructs.RabbitmqRPCMethod{
 		RabbitmqRoutingKey:         C2_RPC_GET_SERVER_DEBUG_OUTPUT,
 		RabbitmqProcessingFunction: processC2RPCGetDebugOutput,
 	})
@@ -39,6 +39,10 @@ func C2RPCGetDebugOutput(input c2structs.C2GetDebugOutputMessage) c2structs.C2Ge
 		finishedReadingOutput := make(chan bool, 1)
 		tellGoroutineToFinish := make(chan bool, 1)
 		go func() {
+			<-time.After(3 * time.Second)
+			tellGoroutineToFinish <- true
+		}()
+		go func() {
 			for {
 				select {
 				case <-tellGoroutineToFinish:
@@ -50,19 +54,10 @@ func C2RPCGetDebugOutput(input c2structs.C2GetDebugOutputMessage) c2structs.C2Ge
 					} else {
 						output += newOutput + "\n"
 					}
-				case <-time.After(3 * time.Second):
-					finishedReadingOutput <- true
-					return
 				}
-
 			}
 		}()
-		select {
-		case <-finishedReadingOutput:
-			tellGoroutineToFinish <- true
-		case <-time.After(3 * time.Second):
-			tellGoroutineToFinish <- true
-		}
+		<-finishedReadingOutput
 
 		if c2structs.AllC2Data.Get(input.Name).RunningServerProcess != nil && c2structs.AllC2Data.Get(input.Name).RunningServerProcess.ProcessState.ExitCode() == -1 {
 			// we're still running
@@ -73,7 +68,12 @@ func C2RPCGetDebugOutput(input c2structs.C2GetDebugOutputMessage) c2structs.C2Ge
 			responseMsg.Success = true
 		} else {
 			err := c2structs.AllC2Data.Get(input.Name).RunningServerProcess.Wait()
-			responseMsg.Message = "Process died with error: " + err.Error()
+			if err != nil {
+				responseMsg.Message = "Process died with error: " + err.Error()
+			} else {
+				responseMsg.Message = "Process exited without error"
+			}
+
 		}
 	} else {
 		responseMsg.Message = "Server not running\n"

@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	agentstructs "github.com/MythicMeta/MythicContainer/agent_structs"
 	"github.com/MythicMeta/MythicContainer/logging"
+	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
 )
 
 // Register this RPC method with rabbitmq so it can be called
 func init() {
-	agentstructs.AllPayloadData.Get("").AddRPCMethod(agentstructs.RabbitmqRPCMethod{
+	agentstructs.AllPayloadData.Get("").AddRPCMethod(sharedStructs.RabbitmqRPCMethod{
 		RabbitmqRoutingKey:         PT_RPC_RESYNC_ROUTING_KEY,
 		RabbitmqProcessingFunction: processPTRPCReSync,
 	})

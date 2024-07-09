@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/MythicMeta/MythicContainer/c2_structs"
+	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -15,7 +16,7 @@ import (
 
 // Register this RPC method with rabbitmq so it can be called
 func init() {
-	c2structs.AllC2Data.Get("").AddRPCMethod(c2structs.RabbitmqRPCMethod{
+	c2structs.AllC2Data.Get("").AddRPCMethod(sharedStructs.RabbitmqRPCMethod{
 		RabbitmqRoutingKey:         C2_RPC_START_SERVER_ROUTING_KEY,
 		RabbitmqProcessingFunction: processC2RPCStartServer,
 	})
@@ -60,27 +61,36 @@ func C2RPCStartServer(input c2structs.C2RPCStartServerMessage) c2structs.C2RPCSt
 		cmd := exec.Command(serverFilePath)
 		cmd.Env = os.Environ()
 		cmd.Dir = filepath.Dir(serverFilePath)
-		if stdOutPipe, err := cmd.StdoutPipe(); err != nil {
+		stdOutPipe, err := cmd.StdoutPipe()
+		if err != nil {
 			logging.LogError(err, "Failed to get stdout pipe")
 			responseMsg.Error = "Failed to get stdout pipe"
 			return responseMsg
-		} else if stdErrPipe, err := cmd.StderrPipe(); err != nil {
+		}
+		stdErrPipe, err := cmd.StderrPipe()
+		if err != nil {
 			logging.LogError(err, "Failed to get stderr pipe")
 			responseMsg.Error = "Failed to get stderr pipe"
 			return responseMsg
-		} else if err := cmd.Start(); err != nil {
+		}
+		err = cmd.Start()
+		if err != nil {
 			logging.LogError(err, "Failed to start server sub process")
 			responseMsg.Error = err.Error()
 			c2structs.AllC2Data.Get(input.Name).RunningServerProcess = nil
 			return responseMsg
-		} else {
-			c2structs.AllC2Data.Get(input.Name).RunningServerProcess = cmd
-			go readStdOutToChan(input.Name, bufio.NewScanner(stdOutPipe))
-			go readStdErrToChan(input.Name, bufio.NewScanner(stdErrPipe))
 		}
+		c2structs.AllC2Data.Get(input.Name).RunningServerProcess = cmd
+		go readStdOutToChan(input.Name, bufio.NewScanner(stdOutPipe))
+		go readStdErrToChan(input.Name, bufio.NewScanner(stdErrPipe))
+
 		output := ""
 		finishedReadingOutput := make(chan bool, 1)
 		tellGoroutineToFinish := make(chan bool, 1)
+		go func() {
+			<-time.After(3 * time.Second)
+			tellGoroutineToFinish <- true
+		}()
 		go func() {
 			for {
 				select {
@@ -94,18 +104,10 @@ func C2RPCStartServer(input c2structs.C2RPCStartServerMessage) c2structs.C2RPCSt
 					} else {
 						output += newOutput + "\n"
 					}
-				case <-time.After(3 * time.Second):
-					finishedReadingOutput <- true
-					return
 				}
 			}
 		}()
-		select {
-		case <-finishedReadingOutput:
-			tellGoroutineToFinish <- true
-		case <-time.After(3 * time.Second):
-			tellGoroutineToFinish <- true
-		}
+		<-finishedReadingOutput
 		result := make(chan error, 1)
 		go func() {
 			result <- c2structs.AllC2Data.Get(input.Name).RunningServerProcess.Wait()
@@ -130,8 +132,10 @@ func C2RPCStartServer(input c2structs.C2RPCStartServerMessage) c2structs.C2RPCSt
 
 func readStdOutToChan(name string, stdOut *bufio.Scanner) {
 	for stdOut.Scan() {
+		output := stdOut.Text()
+		logging.LogDebug(output)
 		select {
-		case c2structs.AllC2Data.Get(name).OutputChannel <- stdOut.Text():
+		case c2structs.AllC2Data.Get(name).OutputChannel <- output:
 		default:
 		}
 	}
@@ -139,8 +143,10 @@ func readStdOutToChan(name string, stdOut *bufio.Scanner) {
 }
 func readStdErrToChan(name string, stdErr *bufio.Scanner) {
 	for stdErr.Scan() {
+		output := stdErr.Text()
+		logging.LogDebug(output)
 		select {
-		case c2structs.AllC2Data.Get(name).OutputChannel <- stdErr.Text():
+		case c2structs.AllC2Data.Get(name).OutputChannel <- output:
 		default:
 		}
 	}

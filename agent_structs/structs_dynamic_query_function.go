@@ -5,8 +5,10 @@ type PTRPCDynamicQueryFunctionMessage struct {
 	Command string `json:"command" binding:"required"`
 	// ParameterName - the specific parameter for the query function called
 	ParameterName string `json:"parameter_name" binding:"required"`
-	// PayloadType - the name of the payload type for the query function called
+	// PayloadType - the name of the payload type of the callback for the query function called
 	PayloadType string `json:"payload_type" binding:"required"`
+	// CommandPayloadType - the name of the payload type associated with this command
+	CommandPayloadType string `json:"command_payload_type"`
 	// Callback - the ID of the callback where this query function is called
 	Callback int `json:"callback" binding:"required"`
 	// PayloadOS - the string OS selected during payload creation

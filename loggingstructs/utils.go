@@ -1,11 +1,9 @@
 package loggingstructs
 
 import (
-	"errors"
 	"fmt"
 	"github.com/MythicMeta/MythicContainer/utils/helpers"
-	"github.com/go-logr/logr"
-	"github.com/go-logr/zerologr"
+	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
 	"github.com/rs/zerolog"
 	"gopkg.in/natefinch/lumberjack.v2"
 	"io"
@@ -39,36 +37,31 @@ type loggingMessageBase struct {
 }
 
 type LoggingDefinition struct {
-	LogToFilePath         string
-	LogLevel              string
-	LogMaxSizeInMB        int
-	LogMaxBackups         int
-	NewCallbackFunction   func(input NewCallbackLog)
-	NewCredentialFunction func(input NewCredentialLog)
-	NewKeylogFunction     func(input NewKeylogLog)
-	NewFileFunction       func(input NewFileLog)
-	NewPayloadFunction    func(input NewPayloadLog)
-	NewArtifactFunction   func(input NewArtifactLog)
-	NewTaskFunction       func(input NewTaskLog)
-	NewResponseFunction   func(input NewResponseLog)
-}
-
-type RabbitmqRPCMethod struct {
-	RabbitmqRoutingKey         string
-	RabbitmqProcessingFunction func([]byte) interface{}
-}
-type RabbitmqDirectMethod struct {
-	RabbitmqRoutingKey         string
-	RabbitmqProcessingFunction func([]byte)
+	Name                     string
+	Description              string
+	LogToFilePath            string
+	LogLevel                 string
+	LogMaxSizeInMB           int
+	LogMaxBackups            int
+	NewCallbackFunction      func(input NewCallbackLog)
+	NewCredentialFunction    func(input NewCredentialLog)
+	NewKeylogFunction        func(input NewKeylogLog)
+	NewFileFunction          func(input NewFileLog)
+	NewPayloadFunction       func(input NewPayloadLog)
+	NewArtifactFunction      func(input NewArtifactLog)
+	NewTaskFunction          func(input NewTaskLog)
+	NewResponseFunction      func(input NewResponseLog)
+	Subscriptions            []string
+	OnContainerStartFunction func(sharedStructs.ContainerOnStartMessage) sharedStructs.ContainerOnStartMessageResponse
 }
 
 // REQUIRED, Don't Modify
 type allLoggingData struct {
 	mutex             sync.RWMutex
-	rpcMethods        []RabbitmqRPCMethod
-	directMethods     []RabbitmqDirectMethod
+	rpcMethods        []sharedStructs.RabbitmqRPCMethod
+	directMethods     []sharedStructs.RabbitmqDirectMethod
 	loggingDefinition LoggingDefinition
-	logger            *logr.Logger
+	logger            *zerolog.Logger
 }
 
 var (
@@ -102,6 +95,7 @@ func (r *containerLoggingData) Get(name string) *allLoggingData {
 }
 func (r *allLoggingData) AddLoggingDefinition(def LoggingDefinition) {
 	r.loggingDefinition = def
+	var zl zerolog.Logger
 	if def.LogToFilePath != "" {
 		fileLogger := &lumberjack.Logger{
 			Filename:   def.LogToFilePath,
@@ -112,112 +106,129 @@ func (r *allLoggingData) AddLoggingDefinition(def LoggingDefinition) {
 			Compress:   true,
 		}
 		writers := io.MultiWriter(os.Stdout, fileLogger)
-		var zl zerolog.Logger
 		zl = zerolog.New(writers)
-		zl = zl.With().Timestamp().Logger()
-		newLogger := zerologr.New(&zl)
-		r.logger = &newLogger
-	} else {
-		var zl zerolog.Logger
-		zl = zerolog.New(os.Stdout)
-		switch def.LogLevel {
-		case "warning":
-			zl = zl.Level(zerolog.WarnLevel)
-		case "info":
-			zl = zl.Level(zerolog.InfoLevel)
-		case "debug":
-			zl = zl.Level(zerolog.DebugLevel)
-		case "trace":
-			zl = zl.Level(zerolog.TraceLevel)
-		default:
-			zl = zl.Level(zerolog.InfoLevel)
-		}
-		zl = zl.With().Timestamp().Logger()
-		newLogger := zerologr.New(&zl)
-		r.logger = &newLogger
-	}
 
+	} else {
+		zl = zerolog.New(os.Stdout)
+	}
+	switch def.LogLevel {
+	case "warning":
+		zl = zl.Level(zerolog.WarnLevel)
+	case "info":
+		zl = zl.Level(zerolog.InfoLevel)
+	case "debug":
+		zl = zl.Level(zerolog.DebugLevel)
+	case "trace":
+		zl = zl.Level(zerolog.TraceLevel)
+	default:
+		zl = zl.Level(zerolog.InfoLevel)
+	}
+	zl = zl.With().Timestamp().Logger()
+	r.logger = &zl
 }
 func (r *allLoggingData) GetLoggingDefinition() LoggingDefinition {
 	return r.loggingDefinition
 }
-func (r *allLoggingData) AddRPCMethod(m RabbitmqRPCMethod) {
+func (r *allLoggingData) AddRPCMethod(m sharedStructs.RabbitmqRPCMethod) {
 	r.mutex.Lock()
 	r.rpcMethods = append(r.rpcMethods, m)
 	r.mutex.Unlock()
 }
-func (r *allLoggingData) GetRPCMethods() []RabbitmqRPCMethod {
+func (r *allLoggingData) GetRPCMethods() []sharedStructs.RabbitmqRPCMethod {
 	return r.rpcMethods
 }
-func (r *allLoggingData) AddDirectMethod(m RabbitmqDirectMethod) {
+func (r *allLoggingData) AddDirectMethod(m sharedStructs.RabbitmqDirectMethod) {
 	r.mutex.Lock()
 	r.directMethods = append(r.directMethods, m)
 	r.mutex.Unlock()
 }
-func (r *allLoggingData) GetDirectMethods() []RabbitmqDirectMethod {
+func (r *allLoggingData) GetDirectMethods() []sharedStructs.RabbitmqDirectMethod {
 	return r.directMethods
 }
+func (r *allLoggingData) SetSubscriptions(subs []string) {
+	r.loggingDefinition.Subscriptions = subs
+}
+func (r *allLoggingData) SetName(name string) {
+	r.loggingDefinition.Name = name
+}
+func (r *allLoggingData) GetRoutingKey(routingKey string) string {
+	return fmt.Sprintf("%s_%s", r.loggingDefinition.Name, routingKey)
+}
 func (r *allLoggingData) LogFatalError(err error, message string, messages ...interface{}) {
-	r.LogError(err, message, messages...)
+	if pc, _, line, ok := runtime.Caller(1); ok {
+		if err == nil {
+			r.logger.Error().Fields(messages).Msg(message)
+			//logger.Error(errors.New(message), "", messages...)
+		} else {
+			r.logger.Error().Err(err).Fields(append([]interface{}{"func", runtime.FuncForPC(pc).Name(), "line", line}, messages...)).Msg(message)
+			//logger.Error(err, message, append([]interface{}{"func", runtime.FuncForPC(pc).Name(), "line", line}, messages...)...)
+		}
+	} else {
+		if err == nil {
+			r.logger.Error().Fields(messages).Msg(message)
+			//logger.Error(errors.New(message), "", messages...)
+		} else {
+			r.logger.Error().Err(err).Fields(messages).Msg(message)
+			//logger.Error(err, message, messages...)
+		}
+	}
 	os.Exit(1)
 }
-func (r *allLoggingData) LogWarning(message string, messages ...interface{}) {
-	if r.logger == nil {
-		return
-	}
-	if pc, _, line, ok := runtime.Caller(1); ok {
-		r.logger.V(-1).Info(message, append([]interface{}{"func", runtime.FuncForPC(pc).Name(), "line", line}, messages...)...)
-	} else {
-		r.logger.V(-1).Info(message, messages...)
-	}
-}
 func (r *allLoggingData) LogTrace(message string, messages ...interface{}) {
-	if r.logger == nil {
-		return
-	}
 	if pc, _, line, ok := runtime.Caller(1); ok {
-		r.logger.V(2).Info(message, append([]interface{}{"func", runtime.FuncForPC(pc).Name(), "line", line}, messages...)...)
+		r.logger.Trace().Fields(append([]interface{}{"func", runtime.FuncForPC(pc).Name(), "line", line}, messages...)).Msg(message)
+		//logger.V(2).Info(message, append([]interface{}{"func", runtime.FuncForPC(pc).Name(), "line", line}, messages...)...)
 	} else {
-		r.logger.V(2).Info(message, messages...)
+		r.logger.Trace().Fields(messages).Msg(message)
+		//logger.V(2).Info(message, messages...)
 	}
 }
 func (r *allLoggingData) LogDebug(message string, messages ...interface{}) {
-	if r.logger == nil {
-		return
-	}
 	if pc, _, line, ok := runtime.Caller(1); ok {
-		r.logger.V(1).Info(message, append([]interface{}{"func", runtime.FuncForPC(pc).Name(), "line", line}, messages...)...)
+		r.logger.Debug().Fields(append([]interface{}{"func", runtime.FuncForPC(pc).Name(), "line", line}, messages...)).Msg(message)
+		//logger.V(1).Info(message, append([]interface{}{"func", runtime.FuncForPC(pc).Name(), "line", line}, messages...)...)
 	} else {
-		r.logger.V(1).Info(message, messages...)
+		r.logger.Debug().Fields(messages).Msg(message)
+		//logger.V(1).Info(message, messages...)
 	}
 }
 func (r *allLoggingData) LogInfo(message string, messages ...interface{}) {
-	if r.logger == nil {
-		return
-	}
 	if pc, _, line, ok := runtime.Caller(1); ok {
-		r.logger.V(0).Info(message, append([]interface{}{"func", runtime.FuncForPC(pc).Name(), "line", line}, messages...)...)
+		r.logger.Info().Fields(append([]interface{}{"func", runtime.FuncForPC(pc).Name(), "line", line}, messages...)).Msg(message)
+		//logger.V(0).Info(message, append([]interface{}{"func", runtime.FuncForPC(pc).Name(), "line", line}, messages...)...)
 	} else {
-		r.logger.V(0).Info(message, messages...)
+		r.logger.Info().Fields(messages).Msg(message)
+		//logger.V(0).Info(message, messages...)
+	}
+}
+func (r *allLoggingData) LogWarning(message string, messages ...interface{}) {
+	if pc, _, line, ok := runtime.Caller(1); ok {
+		r.logger.Warn().Fields(append([]interface{}{"func", runtime.FuncForPC(pc).Name(), "line", line}, messages...)).Msg(message)
+		//logger.V(1).Info(message, append([]interface{}{"func", runtime.FuncForPC(pc).Name(), "line", line}, messages...)...)
+	} else {
+		r.logger.Warn().Fields(messages).Msg(message)
+		//logger.V(1).Info(message, messages...)
 	}
 }
 func (r *allLoggingData) LogError(err error, message string, messages ...interface{}) {
-	if r.logger == nil {
-		return
-	}
 	if pc, _, line, ok := runtime.Caller(1); ok {
 		if err == nil {
-			r.logger.Error(errors.New(message), "", messages...)
+			r.logger.Error().Fields(messages).Msg(message)
+			//logger.Error(errors.New(message), "", messages...)
 		} else {
-			r.logger.Error(err, message, append([]interface{}{"func", runtime.FuncForPC(pc).Name(), "line", line}, messages...)...)
+			r.logger.Error().Err(err).Fields(append([]interface{}{"func", runtime.FuncForPC(pc).Name(), "line", line}, messages...)).Msg(message)
+			//logger.Error(err, message, append([]interface{}{"func", runtime.FuncForPC(pc).Name(), "line", line}, messages...)...)
 		}
 	} else {
 		if err == nil {
-			r.logger.Error(errors.New(message), "", messages...)
+			r.logger.Error().Fields(messages).Msg(message)
+			//logger.Error(errors.New(message), "", messages...)
 		} else {
-			r.logger.Error(err, message, messages...)
+			r.logger.Error().Err(err).Fields(messages).Msg(message)
+			//logger.Error(err, message, messages...)
 		}
 	}
+
 }
 func GetRoutingKeyFor(logType string) string {
 	return fmt.Sprintf("%s.%s", EMIT_LOG_ROUTING_KEY_PREFIX, logType)

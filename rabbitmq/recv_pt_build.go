@@ -17,11 +17,23 @@ func WrapPayloadBuild(msg []byte) {
 		return
 	}
 	var payloadBuildResponse agentstructs.PayloadBuildResponse
-	if payloadBuildFunc := agentstructs.AllPayloadData.Get(payloadBuildMsg.PayloadType).GetBuildFunction(); payloadBuildFunc == nil {
+	payloadBuildFunc := agentstructs.AllPayloadData.Get(payloadBuildMsg.PayloadType).GetBuildFunction()
+	if payloadBuildFunc == nil {
 		logging.LogError(nil, "Failed to get payload build function. Do you have a function called 'build'?")
 		payloadBuildResponse.Success = false
 	} else {
-		payloadBuildResponse = payloadBuildFunc(payloadBuildMsg)
+		if payloadBuildMsg.WrappedPayloadUUID != nil && *payloadBuildMsg.WrappedPayloadUUID != "" {
+			fileContents, err := mythicutils.GetFileFromMythic(*payloadBuildMsg.WrappedPayloadUUID)
+			if err != nil {
+				payloadBuildResponse.Success = false
+				payloadBuildResponse.BuildStdErr = "Failed to get file contents of wrapped payload"
+			} else {
+				payloadBuildMsg.WrappedPayload = fileContents
+				payloadBuildResponse = payloadBuildFunc(payloadBuildMsg)
+			}
+		} else {
+			payloadBuildResponse = payloadBuildFunc(payloadBuildMsg)
+		}
 	}
 	// handle sending off the payload via a web request separately from the rest of the message
 	if payloadBuildResponse.Payload != nil {
@@ -31,13 +43,14 @@ func WrapPayloadBuild(msg []byte) {
 			payloadBuildResponse.Success = false
 		}
 	}
-	if err := RabbitMQConnection.SendStructMessage(
+	err = RabbitMQConnection.SendStructMessage(
 		MYTHIC_EXCHANGE,
 		PT_BUILD_RESPONSE_ROUTING_KEY,
 		"",
 		payloadBuildResponse,
 		false,
-	); err != nil {
+	)
+	if err != nil {
 		logging.LogError(err, "Failed to send payload response back to Mythic")
 	}
 	logging.LogDebug("Finished processing payload build message")

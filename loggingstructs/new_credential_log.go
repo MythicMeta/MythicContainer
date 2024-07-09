@@ -3,6 +3,7 @@ package loggingstructs
 import (
 	"encoding/json"
 	"github.com/MythicMeta/MythicContainer/logging"
+	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
 	"time"
 )
 
@@ -26,7 +27,7 @@ type NewCredentialLogData struct {
 }
 
 func init() {
-	AllLoggingData.Get("").AddDirectMethod(RabbitmqDirectMethod{
+	AllLoggingData.Get("").AddDirectMethod(sharedStructs.RabbitmqDirectMethod{
 		RabbitmqRoutingKey:         LOG_TYPE_CREDENTIAL,
 		RabbitmqProcessingFunction: processNewCredentialLog,
 	})

@@ -14,6 +14,8 @@ const (
 	MythicServiceWebhook              MythicServices = "webhook"
 	MythicServiceC2                   MythicServices = "c2"
 	MythicServiceTranslationContainer MythicServices = "translation"
+	MythicServiceEventing             MythicServices = "eventing"
+	MythicServiceAuth                 MythicServices = "auth"
 )
 
 func StartAndRunForever(services []MythicServices) {

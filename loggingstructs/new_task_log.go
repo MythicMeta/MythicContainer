@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	agentstructs "github.com/MythicMeta/MythicContainer/agent_structs"
 	"github.com/MythicMeta/MythicContainer/logging"
+	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
 )
 
 type NewTaskLog struct {
@@ -13,7 +14,7 @@ type NewTaskLog struct {
 type NewTaskLogData = agentstructs.PTTaskMessageTaskData
 
 func init() {
-	AllLoggingData.Get("").AddDirectMethod(RabbitmqDirectMethod{
+	AllLoggingData.Get("").AddDirectMethod(sharedStructs.RabbitmqDirectMethod{
 		RabbitmqRoutingKey:         LOG_TYPE_TASK,
 		RabbitmqProcessingFunction: processNewTaskLog,
 	})

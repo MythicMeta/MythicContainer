@@ -3,6 +3,7 @@ package webhookstructs
 import (
 	"encoding/json"
 	"github.com/MythicMeta/MythicContainer/logging"
+	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
 )
 
 type NewCustomWebhookMessage struct {
@@ -12,7 +13,7 @@ type NewCustomWebhookMessage struct {
 
 // Register this method with rabbitmq so it can be called
 func init() {
-	AllWebhookData.Get("").AddDirectMethod(RabbitmqDirectMethod{
+	AllWebhookData.Get("").AddDirectMethod(sharedStructs.RabbitmqDirectMethod{
 		RabbitmqRoutingKey:         WEBHOOK_TYPE_NEW_CUSTOM,
 		RabbitmqProcessingFunction: processNewCustomWebhook,
 	})

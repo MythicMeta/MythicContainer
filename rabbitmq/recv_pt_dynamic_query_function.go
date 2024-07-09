@@ -5,10 +5,11 @@ import (
 	"fmt"
 	agentstructs "github.com/MythicMeta/MythicContainer/agent_structs"
 	"github.com/MythicMeta/MythicContainer/logging"
+	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
 )
 
 func init() {
-	agentstructs.AllPayloadData.Get("").AddRPCMethod(agentstructs.RabbitmqRPCMethod{
+	agentstructs.AllPayloadData.Get("").AddRPCMethod(sharedStructs.RabbitmqRPCMethod{
 		RabbitmqRoutingKey:         PT_RPC_COMMAND_DYNAMIC_QUERY_FUNCTION,
 		RabbitmqProcessingFunction: processPtRPCDynamicQueryFunctionMessages,
 	})
@@ -24,7 +25,7 @@ func processPtRPCDynamicQueryFunctionMessages(msg []byte) interface{} {
 		response.Error = "Failed to unmarshal JSON message into structs"
 		return response
 	} else {
-		for _, command := range agentstructs.AllPayloadData.Get(incomingMessage.PayloadType).GetCommands() {
+		for _, command := range agentstructs.AllPayloadData.Get(incomingMessage.CommandPayloadType).GetCommands() {
 			if command.Name == incomingMessage.Command {
 				for _, param := range command.CommandParameters {
 					if incomingMessage.ParameterName == param.Name {

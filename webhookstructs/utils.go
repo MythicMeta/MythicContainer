@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
 	"io"
 	"net/http"
 	"sync"
@@ -28,22 +29,17 @@ const (
 )
 
 type WebhookDefinition struct {
-	WebhookURL          string
-	WebhookChannel      string
-	NewFeedbackFunction func(input NewFeedbackWebookMessage)
-	NewCallbackFunction func(input NewCallbackWebookMessage)
-	NewStartupFunction  func(input NewStartupWebhookMessage)
-	NewAlertFunction    func(input NewAlertWebhookMessage)
-	NewCustomFunction   func(input NewCustomWebhookMessage)
-}
-
-type RabbitmqRPCMethod struct {
-	RabbitmqRoutingKey         string
-	RabbitmqProcessingFunction func([]byte) interface{}
-}
-type RabbitmqDirectMethod struct {
-	RabbitmqRoutingKey         string
-	RabbitmqProcessingFunction func([]byte)
+	Name                     string
+	Description              string
+	WebhookURL               string
+	WebhookChannel           string
+	NewFeedbackFunction      func(input NewFeedbackWebookMessage)
+	NewCallbackFunction      func(input NewCallbackWebookMessage)
+	NewStartupFunction       func(input NewStartupWebhookMessage)
+	NewAlertFunction         func(input NewAlertWebhookMessage)
+	NewCustomFunction        func(input NewCustomWebhookMessage)
+	Subscriptions            []string
+	OnContainerStartFunction func(sharedStructs.ContainerOnStartMessage) sharedStructs.ContainerOnStartMessageResponse
 }
 
 var tr = &http.Transport{
@@ -60,8 +56,8 @@ var HTTPClient = &http.Client{
 // REQUIRED, Don't Modify
 type allWebhookData struct {
 	mutex             sync.RWMutex
-	rpcMethods        []RabbitmqRPCMethod
-	directMethods     []RabbitmqDirectMethod
+	rpcMethods        []sharedStructs.RabbitmqRPCMethod
+	directMethods     []sharedStructs.RabbitmqDirectMethod
 	webhookDefinition WebhookDefinition
 }
 
@@ -100,20 +96,29 @@ func (r *allWebhookData) AddWebhookDefinition(def WebhookDefinition) {
 func (r *allWebhookData) GetWebhookDefinition() WebhookDefinition {
 	return r.webhookDefinition
 }
-func (r *allWebhookData) AddRPCMethod(m RabbitmqRPCMethod) {
+func (r *allWebhookData) SetSubscriptions(subs []string) {
+	r.webhookDefinition.Subscriptions = subs
+}
+func (r *allWebhookData) SetName(name string) {
+	r.webhookDefinition.Name = name
+}
+func (r *allWebhookData) GetRoutingKey(routingKey string) string {
+	return fmt.Sprintf("%s_%s", r.webhookDefinition.Name, routingKey)
+}
+func (r *allWebhookData) AddRPCMethod(m sharedStructs.RabbitmqRPCMethod) {
 	r.mutex.Lock()
 	r.rpcMethods = append(r.rpcMethods, m)
 	r.mutex.Unlock()
 }
-func (r *allWebhookData) GetRPCMethods() []RabbitmqRPCMethod {
+func (r *allWebhookData) GetRPCMethods() []sharedStructs.RabbitmqRPCMethod {
 	return r.rpcMethods
 }
-func (r *allWebhookData) AddDirectMethod(m RabbitmqDirectMethod) {
+func (r *allWebhookData) AddDirectMethod(m sharedStructs.RabbitmqDirectMethod) {
 	r.mutex.Lock()
 	r.directMethods = append(r.directMethods, m)
 	r.mutex.Unlock()
 }
-func (r *allWebhookData) GetDirectMethods() []RabbitmqDirectMethod {
+func (r *allWebhookData) GetDirectMethods() []sharedStructs.RabbitmqDirectMethod {
 	return r.directMethods
 }
 func (r *allWebhookData) AddWebhookURL(url string) {

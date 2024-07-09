@@ -3,13 +3,14 @@ package rabbitmq
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
 
 	agentstructs "github.com/MythicMeta/MythicContainer/agent_structs"
 	"github.com/MythicMeta/MythicContainer/logging"
 )
 
 func init() {
-	agentstructs.AllPayloadData.Get("").AddDirectMethod(agentstructs.RabbitmqDirectMethod{
+	agentstructs.AllPayloadData.Get("").AddDirectMethod(sharedStructs.RabbitmqDirectMethod{
 		RabbitmqRoutingKey:         PT_TASK_CREATE_TASKING,
 		RabbitmqProcessingFunction: processPtTaskCreateMessages,
 	})
@@ -32,7 +33,7 @@ func processPtTaskCreateMessages(msg []byte) {
 	} else {
 		response.Success = false
 		response.TaskID = incomingMessage.Task.ID
-		for _, command := range agentstructs.AllPayloadData.Get(incomingMessage.PayloadType).GetCommands() {
+		for _, command := range agentstructs.AllPayloadData.Get(incomingMessage.CommandPayloadType).GetCommands() {
 			if command.Name == incomingMessage.Task.CommandName {
 				if err := prepTaskArgs(command, &incomingMessage); err != nil {
 					response.Success = false

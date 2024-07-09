@@ -414,7 +414,6 @@ func (arg *PTTaskMessageArgsData) LoadArgsFromDictionary(dictionaryArgs map[stri
 	//logging.LogDebug("Calling LoadArgsFromDictionary", "dictionaryArgs", dictionaryArgs, "arg.args", arg.args)
 	for i := 0; i < len(arg.args); i++ {
 		for key, val := range dictionaryArgs {
-			logging.LogTrace("searching through dictionaryArgs for a match", "currentArg", key)
 			if arg.args[i].Name == key || arg.args[i].CLIName == key {
 				logging.LogTrace("Found a matching arg for LoadArgsFromDictionary", "arg", key)
 				arg.args[i].value = val

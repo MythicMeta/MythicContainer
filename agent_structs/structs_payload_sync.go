@@ -248,8 +248,10 @@ type CommandParameter struct {
 	TypedArrayParseFunction PTTaskingTypedArrayParseFunction `json:"typedarray_parse_function"`
 	// ParameterGroupInformation - Define 0+ different parameter groups that this parameter belongs to.
 	ParameterGroupInformation []ParameterGroupInfo `json:"parameter_group_info"`
-	value                     interface{}          // the current value for the parameter
-	userSupplied              bool                 // was this value supplied by the user or a default value
+	// LimitCredentialsByType - provide an option list of credential types to limit the UI dropdown options
+	LimitCredentialsByType []string    `json:"limit_credentials_by_type"`
+	value                  interface{} // the current value for the parameter
+	userSupplied           bool        // was this value supplied by the user or a default value
 }
 
 type PTTaskingDynamicQueryFunction func(PTRPCDynamicQueryFunctionMessage) []string

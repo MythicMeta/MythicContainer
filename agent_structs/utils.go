@@ -17,14 +17,13 @@ import (
 
 // REQUIRED, Don't Modify
 type allPayloadData struct {
-	allCommands           []Command
-	payloadDefinition     PayloadType
-	mutex                 sync.RWMutex
-	containerVersion      string
-	rpcMethods            []sharedStructs.RabbitmqRPCMethod
-	directMethods         []sharedStructs.RabbitmqDirectMethod
-	buildFunction         func(PayloadBuildMessage) PayloadBuildResponse
-	onNewCallbackFunction func(PTOnNewCallbackAllData) PTOnNewCallbackResponse
+	allCommands       []Command
+	payloadDefinition PayloadType
+	mutex             sync.RWMutex
+	containerVersion  string
+	rpcMethods        []sharedStructs.RabbitmqRPCMethod
+	directMethods     []sharedStructs.RabbitmqDirectMethod
+	buildFunction     func(PayloadBuildMessage) PayloadBuildResponse
 }
 
 var (
@@ -110,7 +109,7 @@ func (r *allPayloadData) AddBuildFunction(f func(PayloadBuildMessage) PayloadBui
 	r.buildFunction = f
 }
 func (r *allPayloadData) AddOnNewCallbackFunction(f func(PTOnNewCallbackAllData) PTOnNewCallbackResponse) {
-	r.onNewCallbackFunction = f
+	r.payloadDefinition.OnNewCallback = f
 }
 func (r *allPayloadData) AddCheckIfCallbacksAliveFunction(f func(PTCheckIfCallbacksAliveMessage) PTCheckIfCallbacksAliveMessageResponse) {
 	r.payloadDefinition.CheckIfCallbacksAliveFunction = f
@@ -177,7 +176,7 @@ func (r *allPayloadData) GetBuildFunction() func(PayloadBuildMessage) PayloadBui
 	return r.buildFunction
 }
 func (r *allPayloadData) GetOnNewCallbackFunction() func(PTOnNewCallbackAllData) PTOnNewCallbackResponse {
-	return r.onNewCallbackFunction
+	return r.payloadDefinition.OnNewCallback
 }
 func (r *allPayloadData) GetCheckIfCallbacksAliveFunction() func(PTCheckIfCallbacksAliveMessage) PTCheckIfCallbacksAliveMessageResponse {
 	return r.payloadDefinition.CheckIfCallbacksAliveFunction

@@ -14,7 +14,8 @@ const (
 
 type CallbackPortType = string
 
-const containerVersion = "v1.1.6"
+const containerVersion = "v1.3.2"
+const containerVersionMessage = "This version needs Mythic 3.3.0+"
 
 const (
 	CALLBACK_PORT_TYPE_SOCKS       CallbackPortType = "socks"

@@ -42,6 +42,7 @@ func C2RPCGetDebugOutput(input c2structs.C2GetDebugOutputMessage) c2structs.C2Ge
 			for {
 				select {
 				case <-tellGoroutineToFinish:
+					finishedReadingOutput <- true
 					return
 				case newOutput, ok := <-c2structs.AllC2Data.Get(input.Name).OutputChannel:
 					if !ok {

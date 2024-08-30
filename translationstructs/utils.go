@@ -3,24 +3,16 @@ package translationstructs
 import (
 	"fmt"
 	"github.com/MythicMeta/MythicContainer/utils/helpers"
+	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
 	"sync"
 )
-
-type RabbitmqRPCMethod struct {
-	RabbitmqRoutingKey         string
-	RabbitmqProcessingFunction func([]byte) interface{}
-}
-type RabbitmqDirectMethod struct {
-	RabbitmqRoutingKey         string
-	RabbitmqProcessingFunction func([]byte)
-}
 
 // REQUIRED, Don't Modify
 type allPayloadData struct {
 	mutex             sync.RWMutex
 	containerVersion  string
-	rpcMethods        []RabbitmqRPCMethod
-	directMethods     []RabbitmqDirectMethod
+	rpcMethods        []sharedStructs.RabbitmqRPCMethod
+	directMethods     []sharedStructs.RabbitmqDirectMethod
 	payloadDefinition TranslationContainer
 }
 
@@ -76,20 +68,20 @@ func (r *allPayloadData) GetDescription() string {
 func (r *allPayloadData) GetContainerVersion() string {
 	return r.containerVersion
 }
-func (r *allPayloadData) AddRPCMethod(m RabbitmqRPCMethod) {
+func (r *allPayloadData) AddRPCMethod(m sharedStructs.RabbitmqRPCMethod) {
 	r.mutex.Lock()
 	r.rpcMethods = append(r.rpcMethods, m)
 	r.mutex.Unlock()
 }
-func (r *allPayloadData) GetRPCMethods() []RabbitmqRPCMethod {
+func (r *allPayloadData) GetRPCMethods() []sharedStructs.RabbitmqRPCMethod {
 	return r.rpcMethods
 }
-func (r *allPayloadData) AddDirectMethod(m RabbitmqDirectMethod) {
+func (r *allPayloadData) AddDirectMethod(m sharedStructs.RabbitmqDirectMethod) {
 	r.mutex.Lock()
 	r.directMethods = append(r.directMethods, m)
 	r.mutex.Unlock()
 }
-func (r *allPayloadData) GetDirectMethods() []RabbitmqDirectMethod {
+func (r *allPayloadData) GetDirectMethods() []sharedStructs.RabbitmqDirectMethod {
 	return r.directMethods
 }
 func (r *allPayloadData) GetRoutingKey(baseRoutingKey string) string {

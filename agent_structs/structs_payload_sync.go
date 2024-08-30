@@ -2,6 +2,7 @@ package agentstructs
 
 import (
 	"encoding/json"
+	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
 )
 
 // PayloadTypeSyncMessageResponse - A message back from Mythic indicating if the Payload Sync was successful or not
@@ -19,16 +20,18 @@ type PayloadTypeSyncMessage struct {
 type BuildParameterType = string
 
 const (
-	BUILD_PARAMETER_TYPE_STRING          BuildParameterType = "String"
-	BUILD_PARAMETER_TYPE_BOOLEAN                            = "Boolean"
-	BUILD_PARAMETER_TYPE_CHOOSE_ONE                         = "ChooseOne"
-	BUILD_PARAMETER_TYPE_CHOOSE_MULTIPLE                    = "ChooseMultiple"
-	BUILD_PARAMETER_TYPE_DATE                               = "Date"
-	BUILD_PARAMETER_TYPE_DICTIONARY                         = "Dictionary"
-	BUILD_PARAMETER_TYPE_ARRAY                              = "Array"
-	BUILD_PARAMETER_TYPE_NUMBER                             = "Number"
-	BUILD_PARAMETER_TYPE_FILE                               = "File"
-	BUILD_PARAMETER_TYPE_TYPED_ARRAY                        = "TypedArray"
+	BUILD_PARAMETER_TYPE_STRING            BuildParameterType = "String"
+	BUILD_PARAMETER_TYPE_BOOLEAN                              = "Boolean"
+	BUILD_PARAMETER_TYPE_CHOOSE_ONE                           = "ChooseOne"
+	BUILD_PARAMETER_TYPE_CHOOSE_ONE_CUSTOM                    = "ChooseOneCustom"
+	BUILD_PARAMETER_TYPE_CHOOSE_MULTIPLE                      = "ChooseMultiple"
+	BUILD_PARAMETER_TYPE_DATE                                 = "Date"
+	BUILD_PARAMETER_TYPE_DICTIONARY                           = "Dictionary"
+	BUILD_PARAMETER_TYPE_ARRAY                                = "Array"
+	BUILD_PARAMETER_TYPE_NUMBER                               = "Number"
+	BUILD_PARAMETER_TYPE_FILE                                 = "File"
+	BUILD_PARAMETER_TYPE_FILE_MULTIPLE                        = "FileMultiple"
+	BUILD_PARAMETER_TYPE_TYPED_ARRAY                          = "TypedArray"
 )
 
 // BuildParameter - A structure defining the metadata about a build parameter for the user to select when building a payload.
@@ -89,6 +92,7 @@ type PTRPCOtherServiceRPCMessageResponse struct {
 	agentstructs.AllPayloadData.Get("agentname").AddPayloadDefinition(payloadDefinition)
 	agentstructs.AllPayloadData.Get("agentname").AddBuildFunction(build)
 */
+
 type PayloadType struct {
 	// Name - The name of the payload type that appears in the Mythic UI
 	Name string `json:"name"`
@@ -117,13 +121,26 @@ type PayloadType struct {
 	// BuildSteps - A list of steps that your build process goes through so that you can report back to the user about the state of the build while it's happening
 	BuildSteps []BuildStep `json:"build_steps"`
 	// AgentIcon - Don't set this directly, use the agentstructs.AllPayloadData.Get("agentName").AddIcon(filepath.Join(".", "path", "agentname.svg")) call to set this value
-	AgentIcon *[]byte `json:"agent_icon"` // automatically filled in based on Name
+	AgentIcon         *[]byte `json:"agent_icon"` // automatically filled in based on Name
+	DarkModeAgentIcon *[]byte `json:"dark_mode_agent_icon"`
 	// CustomRPCFunctions - The RPC functions you want to expose to other PayloadTypes or C2 Profiles
 	CustomRPCFunctions map[string]func(message PTRPCOtherServiceRPCMessage) PTRPCOtherServiceRPCMessageResponse `json:"-"`
 	// MessageFormat identifies if the agent uses json or xml messages with Mythic. If you're using a translation container for a custom format, you'd set this to whichever (json/xml) you're going to do your conversions to.
-	MessageFormat string `json:"message_format"`
-	// AgentType identifies if the payload type is a standard "agent" or if it is another use case like "service" for 3rd party service agents. Currently only "agent" and "service" is valid.
-	AgentType string `json:"agent_type"`
+	// This defaults to MessageFormatJSON
+	MessageFormat MessageFormat `json:"message_format"`
+	// UUIDLength specifies the length of the UUIDs that the payload type uses - either 16 Byte little endian or 36 Byte character string
+	MessageUUIDLength int `json:"message_uuid_length"`
+	// AgentType identifies if the payload type is a standard "agent" or if it is another use case.
+	//  `command_augment` means this container's defined commands will be automatically loaded into callbacks based on CommandAugmentSupportedAgents restrictions
+	AgentType AgentType `json:"agent_type"`
+	// OnContainerStartFunction is where you can execution a function when the container first starts with access to an operation-specific API token for a few minutes
+	// this helps with potential run-time configuration that's needed
+	OnContainerStartFunction func(sharedStructs.ContainerOnStartMessage) sharedStructs.ContainerOnStartMessageResponse `json:"-"`
+	// CheckIfCallbacksAliveFunction is given a list of callbacks and some configurations to determine if they are still alive or not
+	CheckIfCallbacksAliveFunction func(PTCheckIfCallbacksAliveMessage) PTCheckIfCallbacksAliveMessageResponse `json:"-"`
+	// CommandAugmentSupportedAgents allows you to limit these commands to only be added to callbacks based on the listed agents or if you leave this empty, it'll apply to all callbacks
+	// ex: setting this to []string{"apollo"} will only have these commands associated with new "apollo" callbacks
+	CommandAugmentSupportedAgents []string `json:"command_augment_supported_agents"`
 }
 
 // Command - The base definition of a command
@@ -182,18 +199,20 @@ type Command struct {
 type CommandParameterType = string
 
 const (
-	COMMAND_PARAMETER_TYPE_STRING          CommandParameterType = "String"
-	COMMAND_PARAMETER_TYPE_BOOLEAN                              = "Boolean"
-	COMMAND_PARAMETER_TYPE_CHOOSE_ONE                           = "ChooseOne"
-	COMMAND_PARAMETER_TYPE_CHOOSE_MULTIPLE                      = "ChooseMultiple"
-	COMMAND_PARAMETER_TYPE_FILE                                 = "File"
-	COMMAND_PARAMETER_TYPE_ARRAY                                = "Array"
-	COMMAND_PARAMETER_TYPE_CREDENTIAL                           = "CredentialJson"
-	COMMAND_PARAMETER_TYPE_NUMBER                               = "Number"
-	COMMAND_PARAMETER_TYPE_PAYLOAD_LIST                         = "PayloadList"
-	COMMAND_PARAMETER_TYPE_CONNECTION_INFO                      = "AgentConnect"
-	COMMAND_PARAMETER_TYPE_LINK_INFO                            = "LinkInfo"
-	COMMAND_PARAMETER_TYPE_TYPED_ARRAY                          = "TypedArray"
+	COMMAND_PARAMETER_TYPE_STRING            CommandParameterType = "String"
+	COMMAND_PARAMETER_TYPE_BOOLEAN                                = "Boolean"
+	COMMAND_PARAMETER_TYPE_CHOOSE_ONE                             = "ChooseOne"
+	COMMAND_PARAMETER_TYPE_CHOOSE_ONE_CUSTOM                      = "ChooseOneCustom"
+	COMMAND_PARAMETER_TYPE_CHOOSE_MULTIPLE                        = "ChooseMultiple"
+	COMMAND_PARAMETER_TYPE_FILE                                   = "File"
+	COMMAND_PARAMETER_TYPE_FILE_MULTIPLE                          = "FileMultiple"
+	COMMAND_PARAMETER_TYPE_ARRAY                                  = "Array"
+	COMMAND_PARAMETER_TYPE_CREDENTIAL                             = "CredentialJson"
+	COMMAND_PARAMETER_TYPE_NUMBER                                 = "Number"
+	COMMAND_PARAMETER_TYPE_PAYLOAD_LIST                           = "PayloadList"
+	COMMAND_PARAMETER_TYPE_CONNECTION_INFO                        = "AgentConnect"
+	COMMAND_PARAMETER_TYPE_LINK_INFO                              = "LinkInfo"
+	COMMAND_PARAMETER_TYPE_TYPED_ARRAY                            = "TypedArray"
 )
 
 // CommandParameter - The base definition for a parameter (i.e. argument) to your command
@@ -229,8 +248,10 @@ type CommandParameter struct {
 	TypedArrayParseFunction PTTaskingTypedArrayParseFunction `json:"typedarray_parse_function"`
 	// ParameterGroupInformation - Define 0+ different parameter groups that this parameter belongs to.
 	ParameterGroupInformation []ParameterGroupInfo `json:"parameter_group_info"`
-	value                     interface{}          // the current value for the parameter
-	userSupplied              bool                 // was this value supplied by the user or a default value
+	// LimitCredentialsByType - provide an option list of credential types to limit the UI dropdown options
+	LimitCredentialsByType []string    `json:"limit_credentials_by_type"`
+	value                  interface{} // the current value for the parameter
+	userSupplied           bool        // was this value supplied by the user or a default value
 }
 
 type PTTaskingDynamicQueryFunction func(PTRPCDynamicQueryFunctionMessage) []string

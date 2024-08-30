@@ -5,15 +5,16 @@ import (
 	agentstructs "github.com/MythicMeta/MythicContainer/agent_structs"
 	"github.com/MythicMeta/MythicContainer/c2_structs"
 	"github.com/MythicMeta/MythicContainer/logging"
+	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
 )
 
 // Register this RPC method with rabbitmq so it can be called
 func init() {
-	c2structs.AllC2Data.Get("").AddRPCMethod(c2structs.RabbitmqRPCMethod{
+	c2structs.AllC2Data.Get("").AddRPCMethod(sharedStructs.RabbitmqRPCMethod{
 		RabbitmqRoutingKey:         MYTHIC_RPC_OTHER_SERVICES_RPC,
 		RabbitmqProcessingFunction: processC2OtherServiceRPC,
 	})
-	agentstructs.AllPayloadData.Get("").AddRPCMethod(agentstructs.RabbitmqRPCMethod{
+	agentstructs.AllPayloadData.Get("").AddRPCMethod(sharedStructs.RabbitmqRPCMethod{
 		RabbitmqRoutingKey:         MYTHIC_RPC_OTHER_SERVICES_RPC,
 		RabbitmqProcessingFunction: processPTOtherServiceRPC,
 	})

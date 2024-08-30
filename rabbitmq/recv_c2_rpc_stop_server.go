@@ -3,6 +3,7 @@ package rabbitmq
 import (
 	"encoding/json"
 	"github.com/MythicMeta/MythicContainer/c2_structs"
+	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
 	"time"
 
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -10,7 +11,7 @@ import (
 
 // Register this RPC method with rabbitmq so it can be called
 func init() {
-	c2structs.AllC2Data.Get("").AddRPCMethod(c2structs.RabbitmqRPCMethod{
+	c2structs.AllC2Data.Get("").AddRPCMethod(sharedStructs.RabbitmqRPCMethod{
 		RabbitmqRoutingKey:         C2_RPC_STOP_SERVER_ROUTING_KEY,
 		RabbitmqProcessingFunction: processC2RPCStopServer,
 	})

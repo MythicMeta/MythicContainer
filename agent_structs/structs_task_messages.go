@@ -15,8 +15,10 @@ type PTTaskMessageAllData struct {
 	Payload PTTaskMessagePayloadData `json:"payload"`
 	// C2Profiles - Read-only data about the c2 profiles and their values for this callback
 	C2Profiles []PayloadConfigurationC2Profile `json:"c2info"`
-	// PayloadType - Read-only the name of the payload type associated with this task
+	// PayloadType - Read-only the name of the payload type associated with this callback
 	PayloadType string `json:"payload_type"`
+	// CommandPayloadType The name of the payload type associated with this task
+	CommandPayloadType string `json:"command_payload_type"`
 	// Secrets - Map of user supplied secrets to their values to help with tasking
 	Secrets map[string]interface{} `json:"secrets"`
 	// Args - Read-Write argument data for adding/removing/modifying args associated with this task instance.

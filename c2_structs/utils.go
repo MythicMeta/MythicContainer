@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/MythicMeta/MythicContainer/logging"
 	"github.com/MythicMeta/MythicContainer/utils/helpers"
+	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
 	"github.com/mitchellh/mapstructure"
 	"os"
 	"os/exec"
@@ -12,21 +13,13 @@ import (
 	"sync"
 )
 
-type RabbitmqRPCMethod struct {
-	RabbitmqRoutingKey         string
-	RabbitmqProcessingFunction func([]byte) interface{}
-}
-type RabbitmqDirectMethod struct {
-	RabbitmqRoutingKey         string
-	RabbitmqProcessingFunction func([]byte)
-}
 type allC2Data struct {
 	c2Definition         C2Profile
 	parameters           []C2Parameter
 	mutex                sync.RWMutex
 	containerVersion     string
-	rpcMethods           []RabbitmqRPCMethod
-	directMethods        []RabbitmqDirectMethod
+	rpcMethods           []sharedStructs.RabbitmqRPCMethod
+	directMethods        []sharedStructs.RabbitmqDirectMethod
 	RunningServerProcess *exec.Cmd
 	OutputChannel        chan string
 }
@@ -121,20 +114,20 @@ func (r *allC2Data) GetServerPath() string {
 	logging.LogInfo("getting server binary path", "path", r.c2Definition.ServerBinaryPath)
 	return r.c2Definition.ServerBinaryPath
 }
-func (r *allC2Data) AddRPCMethod(m RabbitmqRPCMethod) {
+func (r *allC2Data) AddRPCMethod(m sharedStructs.RabbitmqRPCMethod) {
 	r.mutex.Lock()
 	r.rpcMethods = append(r.rpcMethods, m)
 	r.mutex.Unlock()
 }
-func (r *allC2Data) GetRPCMethods() []RabbitmqRPCMethod {
+func (r *allC2Data) GetRPCMethods() []sharedStructs.RabbitmqRPCMethod {
 	return r.rpcMethods
 }
-func (r *allC2Data) AddDirectMethod(m RabbitmqDirectMethod) {
+func (r *allC2Data) AddDirectMethod(m sharedStructs.RabbitmqDirectMethod) {
 	r.mutex.Lock()
 	r.directMethods = append(r.directMethods, m)
 	r.mutex.Unlock()
 }
-func (r *allC2Data) GetDirectMethods() []RabbitmqDirectMethod {
+func (r *allC2Data) GetDirectMethods() []sharedStructs.RabbitmqDirectMethod {
 	return r.directMethods
 }
 func (r *allC2Data) GetRoutingKey(baseRoutingKey string) string {
@@ -221,6 +214,9 @@ func (arg *C2Parameters) GetDictionaryArg(name string) (map[string]string, error
 func (arg *C2Parameters) GetChooseOneArg(name string) (string, error) {
 	return arg.GetStringArg(name)
 }
+func (arg *C2Parameters) GetChooseOneCustomArg(name string) (string, error) {
+	return arg.GetStringArg(name)
+}
 func (arg *C2Parameters) GetArrayArg(name string) ([]string, error) {
 	if val, err := arg.GetArg(name); err != nil {
 		return []string{}, err
@@ -237,6 +233,9 @@ func (arg *C2Parameters) GetArrayArg(name string) ([]string, error) {
 	}
 }
 func (arg *C2Parameters) GetChooseMultipleArg(name string) ([]string, error) {
+	return arg.GetArrayArg(name)
+}
+func (arg *C2Parameters) GetFileMultipleArg(name string) ([]string, error) {
 	return arg.GetArrayArg(name)
 }
 func (arg *C2Parameters) GetDateArg(name string) (string, error) {

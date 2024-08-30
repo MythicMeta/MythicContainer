@@ -1,8 +1,12 @@
 package rabbitmq
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/MythicMeta/MythicContainer/authstructs"
 	"github.com/MythicMeta/MythicContainer/config"
+	"github.com/MythicMeta/MythicContainer/eventingstructs"
+	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
 	"log"
 	"os"
 	"sync"
@@ -91,100 +95,142 @@ func (r *rabbitMQConnection) startListeners(services []string) {
 	// handle starting any queues that are necessary for a logging container
 	if helpers.StringSliceContains(services, "logger") {
 		logging.LogInfo("Initializing RabbitMQ for SIEM Logging Services")
-		for _, directQueue := range loggingstructs.AllLoggingData.Get("").GetDirectMethods() {
-			listenerExists := false
-			for _, logger := range loggingstructs.AllLoggingData.GetAllNames() {
-				loggingDef := loggingstructs.AllLoggingData.Get(logger).GetLoggingDefinition()
+		for _, logger := range loggingstructs.AllLoggingData.GetAllNames() {
+			// get our resync routing and register it
+			loggingstructs.AllLoggingData.Get(logger).SetName(logger)
+			for _, rpcQueue := range loggingstructs.AllLoggingData.Get("").GetRPCMethods() {
+				go RabbitMQConnection.ReceiveFromRPCQueue(
+					MYTHIC_EXCHANGE,
+					loggingstructs.AllLoggingData.Get(logger).GetRoutingKey(rpcQueue.RabbitmqRoutingKey),
+					loggingstructs.AllLoggingData.Get(logger).GetRoutingKey(rpcQueue.RabbitmqRoutingKey),
+					rpcQueue.RabbitmqProcessingFunction,
+					exclusiveQueue,
+					nil,
+				)
+			}
+			loggingDef := loggingstructs.AllLoggingData.Get(logger).GetLoggingDefinition()
+			subscriptions := []string{}
+			for _, directQueue := range loggingstructs.AllLoggingData.Get("").GetDirectMethods() {
+				listenerExists := false
 				switch directQueue.RabbitmqRoutingKey {
 				case loggingstructs.LOG_TYPE_CALLBACK:
 					if loggingDef.NewCallbackFunction != nil {
 						listenerExists = true
+						subscriptions = append(subscriptions, loggingstructs.LOG_TYPE_CALLBACK)
 					}
 				case loggingstructs.LOG_TYPE_ARTIFACT:
 					if loggingDef.NewArtifactFunction != nil {
 						listenerExists = true
+						subscriptions = append(subscriptions, loggingstructs.LOG_TYPE_ARTIFACT)
 					}
 				case loggingstructs.LOG_TYPE_CREDENTIAL:
 					if loggingDef.NewCredentialFunction != nil {
 						listenerExists = true
+						subscriptions = append(subscriptions, loggingstructs.LOG_TYPE_CREDENTIAL)
 					}
 				case loggingstructs.LOG_TYPE_KEYLOG:
 					if loggingDef.NewKeylogFunction != nil {
 						listenerExists = true
+						subscriptions = append(subscriptions, loggingstructs.LOG_TYPE_KEYLOG)
 					}
 				case loggingstructs.LOG_TYPE_FILE:
 					if loggingDef.NewFileFunction != nil {
 						listenerExists = true
+						subscriptions = append(subscriptions, loggingstructs.LOG_TYPE_FILE)
 					}
 				case loggingstructs.LOG_TYPE_PAYLOAD:
 					if loggingDef.NewPayloadFunction != nil {
 						listenerExists = true
+						subscriptions = append(subscriptions, loggingstructs.LOG_TYPE_PAYLOAD)
 					}
 				case loggingstructs.LOG_TYPE_TASK:
 					if loggingDef.NewTaskFunction != nil {
 						listenerExists = true
+						subscriptions = append(subscriptions, loggingstructs.LOG_TYPE_TASK)
 					}
 				case loggingstructs.LOG_TYPE_RESPONSE:
 					if loggingDef.NewResponseFunction != nil {
 						listenerExists = true
+						subscriptions = append(subscriptions, loggingstructs.LOG_TYPE_RESPONSE)
 					}
 				default:
 				}
+				if listenerExists {
+					go RabbitMQConnection.ReceiveFromMythicDirectTopicExchange(
+						MYTHIC_TOPIC_EXCHANGE,
+						loggingstructs.GetRoutingKeyFor(directQueue.RabbitmqRoutingKey),
+						loggingstructs.GetRoutingKeyFor(directQueue.RabbitmqRoutingKey),
+						directQueue.RabbitmqProcessingFunction,
+						!exclusiveQueue,
+					)
+				}
 			}
-			if listenerExists {
-				go RabbitMQConnection.ReceiveFromMythicDirectTopicExchange(
-					MYTHIC_TOPIC_EXCHANGE,
-					loggingstructs.GetRoutingKeyFor(directQueue.RabbitmqRoutingKey),
-					loggingstructs.GetRoutingKeyFor(directQueue.RabbitmqRoutingKey),
-					directQueue.RabbitmqProcessingFunction,
-					!exclusiveQueue,
-				)
-			}
-
+			loggingstructs.AllLoggingData.Get(logger).SetSubscriptions(subscriptions)
+			SyncConsumingContainerData(logger, "logging")
 		}
 	}
 	// handle starting any queues that are necessary for a webhook container
 	if helpers.StringSliceContains(services, "webhook") {
 		logging.LogInfo("Initializing RabbitMQ for Webhook Services")
-		for _, directQueue := range webhookstructs.AllWebhookData.Get("").GetDirectMethods() {
-			listenerExists := false
-			// only start listening for messages on queues if we have functions to process the messages
-			for _, webhook := range webhookstructs.AllWebhookData.GetAllNames() {
-				webhookDef := webhookstructs.AllWebhookData.Get(webhook).GetWebhookDefinition()
+		for _, webhook := range webhookstructs.AllWebhookData.GetAllNames() {
+			webhookstructs.AllWebhookData.Get(webhook).SetName(webhook)
+			// get our resync routing and register it
+			for _, rpcQueue := range webhookstructs.AllWebhookData.Get("").GetRPCMethods() {
+				go RabbitMQConnection.ReceiveFromRPCQueue(
+					MYTHIC_EXCHANGE,
+					webhookstructs.AllWebhookData.Get(webhook).GetRoutingKey(rpcQueue.RabbitmqRoutingKey),
+					webhookstructs.AllWebhookData.Get(webhook).GetRoutingKey(rpcQueue.RabbitmqRoutingKey),
+					rpcQueue.RabbitmqProcessingFunction,
+					exclusiveQueue,
+					nil,
+				)
+			}
+			webhookDef := webhookstructs.AllWebhookData.Get(webhook).GetWebhookDefinition()
+			subscriptions := []string{}
+			for _, directQueue := range webhookstructs.AllWebhookData.Get("").GetDirectMethods() {
+				listenerExists := false
+				// only start listening for messages on queues if we have functions to process the messages
 				switch directQueue.RabbitmqRoutingKey {
 				case webhookstructs.WEBHOOK_TYPE_NEW_STARTUP:
 					if webhookDef.NewStartupFunction != nil {
 						listenerExists = true
+						subscriptions = append(subscriptions, webhookstructs.WEBHOOK_TYPE_NEW_STARTUP)
 					}
 				case webhookstructs.WEBHOOK_TYPE_NEW_CALLBACK:
 					if webhookDef.NewCallbackFunction != nil {
 						listenerExists = true
+						subscriptions = append(subscriptions, webhookstructs.WEBHOOK_TYPE_NEW_CALLBACK)
 					}
 				case webhookstructs.WEBHOOK_TYPE_NEW_FEEDBACK:
 					if webhookDef.NewFeedbackFunction != nil {
 						listenerExists = true
+						subscriptions = append(subscriptions, webhookstructs.WEBHOOK_TYPE_NEW_FEEDBACK)
 					}
 				case webhookstructs.WEBHOOK_TYPE_NEW_ALERT:
 					if webhookDef.NewAlertFunction != nil {
 						listenerExists = true
+						subscriptions = append(subscriptions, webhookstructs.WEBHOOK_TYPE_NEW_ALERT)
 					}
 				case webhookstructs.WEBHOOK_TYPE_NEW_CUSTOM:
 					if webhookDef.NewCustomFunction != nil {
 						listenerExists = true
+						subscriptions = append(subscriptions, webhookstructs.WEBHOOK_TYPE_NEW_CUSTOM)
 					}
 				default:
 					logging.LogError(nil, "Unknown webhook type in rabbitmq initialize", "webhook type", directQueue.RabbitmqRoutingKey)
 				}
+				if listenerExists {
+					go RabbitMQConnection.ReceiveFromMythicDirectTopicExchange(
+						MYTHIC_TOPIC_EXCHANGE,
+						webhookstructs.GetRoutingKeyFor(directQueue.RabbitmqRoutingKey),
+						webhookstructs.GetRoutingKeyFor(directQueue.RabbitmqRoutingKey),
+						directQueue.RabbitmqProcessingFunction,
+						!exclusiveQueue,
+					)
+				}
 			}
-			if listenerExists {
-				go RabbitMQConnection.ReceiveFromMythicDirectTopicExchange(
-					MYTHIC_TOPIC_EXCHANGE,
-					webhookstructs.GetRoutingKeyFor(directQueue.RabbitmqRoutingKey),
-					webhookstructs.GetRoutingKeyFor(directQueue.RabbitmqRoutingKey),
-					directQueue.RabbitmqProcessingFunction,
-					!exclusiveQueue,
-				)
-			}
+			webhookstructs.AllWebhookData.Get(webhook).SetSubscriptions(subscriptions)
+			SyncConsumingContainerData(webhook, "webhook")
 		}
 	}
 	// handle starting any queues that are necessary for the c2 profile
@@ -250,7 +296,7 @@ func (r *rabbitMQConnection) startListeners(services []string) {
 	}
 	// handle starting any queues that are necessary for the payload type
 	if helpers.StringSliceContains(services, "payload") {
-		agentstructs.AllPayloadData.Get("").AddDirectMethod(agentstructs.RabbitmqDirectMethod{
+		agentstructs.AllPayloadData.Get("").AddDirectMethod(sharedStructs.RabbitmqDirectMethod{
 			RabbitmqRoutingKey:         PAYLOAD_BUILD_ROUTING_KEY,
 			RabbitmqProcessingFunction: WrapPayloadBuild,
 		})
@@ -365,6 +411,130 @@ func (r *rabbitMQConnection) startListeners(services []string) {
 			}
 		}
 	}
+	// handle starting any queues that are necessary for eventing containers
+	if helpers.StringSliceContains(services, "eventing") {
+		logging.LogInfo("Initializing RabbitMQ for Eventing Services")
+		for _, eventer := range eventingstructs.AllEventingData.GetAllNames() {
+			// get our resync routing and register it
+			eventingstructs.AllEventingData.Get(eventer).SetName(eventer)
+			for _, rpcQueue := range eventingstructs.AllEventingData.Get("").GetRPCMethods() {
+				go RabbitMQConnection.ReceiveFromRPCQueue(
+					MYTHIC_EXCHANGE,
+					eventingstructs.AllEventingData.Get(eventer).GetRoutingKey(rpcQueue.RabbitmqRoutingKey),
+					eventingstructs.AllEventingData.Get(eventer).GetRoutingKey(rpcQueue.RabbitmqRoutingKey),
+					rpcQueue.RabbitmqProcessingFunction,
+					exclusiveQueue,
+					nil,
+				)
+			}
+			eventingDef := eventingstructs.AllEventingData.Get(eventer).GetEventingDefinition()
+			subscriptions := []string{}
+			for i, _ := range eventingDef.CustomFunctions {
+				subBytes, err := json.Marshal(eventingDef.CustomFunctions[i])
+				if err != nil {
+					logging.LogError(err, "Failed to marshal eventing function definition")
+				} else {
+					subscriptions = append(subscriptions, string(subBytes))
+				}
+			}
+			for i, _ := range eventingDef.ConditionalChecks {
+				subBytes, err := json.Marshal(eventingDef.ConditionalChecks[i])
+				if err != nil {
+					logging.LogError(err, "Failed to marshal eventing function definition")
+				} else {
+					subscriptions = append(subscriptions, string(subBytes))
+				}
+			}
+			if eventingDef.TaskInterceptFunction != nil {
+				subBytes, err := json.Marshal(map[string]string{
+					"name":        "task_intercept",
+					"description": "Intercept Task execution before it gets to an agent and potentially block it",
+				})
+				if err != nil {
+					logging.LogError(err, "Failed to marshal eventing function definition")
+				} else {
+					subscriptions = append(subscriptions, string(subBytes))
+				}
+			}
+			if eventingDef.ResponseInterceptFunction != nil {
+				subBytes, err := json.Marshal(map[string]string{
+					"name":        "response_intercept",
+					"description": "Intercept User Output Responses they get sent to the user",
+				})
+				if err != nil {
+					logging.LogError(err, "Failed to marshal eventing function definition")
+				} else {
+					subscriptions = append(subscriptions, string(subBytes))
+				}
+			}
+			for _, directQueue := range eventingstructs.AllEventingData.Get("").GetDirectMethods() {
+				go RabbitMQConnection.ReceiveFromMythicDirectExchange(
+					MYTHIC_EXCHANGE,
+					eventingstructs.AllEventingData.Get(eventer).GetRoutingKey(directQueue.RabbitmqRoutingKey),
+					eventingstructs.AllEventingData.Get(eventer).GetRoutingKey(directQueue.RabbitmqRoutingKey),
+					directQueue.RabbitmqProcessingFunction,
+					exclusiveQueue,
+					nil,
+				)
+			}
+			eventingstructs.AllEventingData.Get(eventer).SetSubscriptions(subscriptions)
+			SyncConsumingContainerData(eventer, "eventing")
+		}
+	}
+	// handle starting any queues that are necessary for auth containers
+	if helpers.StringSliceContains(services, "auth") {
+		logging.LogInfo("Initializing RabbitMQ for Auth Services")
+		for _, eventer := range authstructs.AllAuthData.GetAllNames() {
+			// get our resync routing and register it
+			authstructs.AllAuthData.Get(eventer).SetName(eventer)
+			for _, rpcQueue := range authstructs.AllAuthData.Get("").GetRPCMethods() {
+				go RabbitMQConnection.ReceiveFromRPCQueue(
+					MYTHIC_EXCHANGE,
+					authstructs.AllAuthData.Get(eventer).GetRoutingKey(rpcQueue.RabbitmqRoutingKey),
+					authstructs.AllAuthData.Get(eventer).GetRoutingKey(rpcQueue.RabbitmqRoutingKey),
+					rpcQueue.RabbitmqProcessingFunction,
+					exclusiveQueue,
+					nil,
+				)
+			}
+			for _, directQueue := range authstructs.AllAuthData.Get("").GetDirectMethods() {
+				go RabbitMQConnection.ReceiveFromMythicDirectExchange(
+					MYTHIC_EXCHANGE,
+					authstructs.AllAuthData.Get(eventer).GetRoutingKey(directQueue.RabbitmqRoutingKey),
+					authstructs.AllAuthData.Get(eventer).GetRoutingKey(directQueue.RabbitmqRoutingKey),
+					directQueue.RabbitmqProcessingFunction,
+					exclusiveQueue,
+					nil,
+				)
+			}
+			authDef := authstructs.AllAuthData.Get(eventer).GetAuthDefinition()
+			subscriptions := []string{}
+			for _, sub := range authDef.IDPServices {
+				subBytes, err := json.Marshal(map[string]string{
+					"name": sub,
+					"type": "idp",
+				})
+				if err != nil {
+					logging.LogError(err, "Failed to marshal auth IDP Service definition")
+				} else {
+					subscriptions = append(subscriptions, string(subBytes))
+				}
+			}
+			for _, sub := range authDef.NonIDPServices {
+				subBytes, err := json.Marshal(map[string]string{
+					"name": sub,
+					"type": "nonidp",
+				})
+				if err != nil {
+					logging.LogError(err, "Failed to marshal auth NonIDP Service definition")
+				} else {
+					subscriptions = append(subscriptions, string(subBytes))
+				}
+			}
+			authstructs.AllAuthData.Get(eventer).SetSubscriptions(subscriptions)
+			SyncConsumingContainerData(eventer, "auth")
+		}
+	}
 	logging.LogInfo("[+] All services initialized!")
 }
 
@@ -380,6 +550,8 @@ func Initialize() {
 func StartServices(services []string) {
 	// define the exchange, mythic's queue name, which direct messages to get, and a function to handle messages for that queue
 	// payload functionality
+	logging.LogInfo("Starting Services", "containerVersion", containerVersion)
+	logging.LogInfo(containerVersionMessage)
 	RabbitMQConnection.startListeners(services)
 	logging.LogInfo("Successfully Started", "containerVersion", containerVersion)
 }

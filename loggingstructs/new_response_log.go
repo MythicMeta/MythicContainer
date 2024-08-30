@@ -3,6 +3,7 @@ package loggingstructs
 import (
 	"encoding/json"
 	"github.com/MythicMeta/MythicContainer/logging"
+	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
 )
 
 type NewResponseLog struct {
@@ -19,7 +20,7 @@ type ResponseLogData struct {
 }
 
 func init() {
-	AllLoggingData.Get("").AddDirectMethod(RabbitmqDirectMethod{
+	AllLoggingData.Get("").AddDirectMethod(sharedStructs.RabbitmqDirectMethod{
 		RabbitmqRoutingKey:         LOG_TYPE_RESPONSE,
 		RabbitmqProcessingFunction: processResponseLog,
 	})

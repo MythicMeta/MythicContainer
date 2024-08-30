@@ -123,6 +123,9 @@ func (arg *PayloadBuildC2Profile) GetDictionaryArg(name string) (map[string]stri
 func (arg *PayloadBuildC2Profile) GetChooseOneArg(name string) (string, error) {
 	return arg.GetStringArg(name)
 }
+func (arg *PayloadBuildC2Profile) GetChooseOneCustomArg(name string) (string, error) {
+	return arg.GetStringArg(name)
+}
 func (arg *PayloadBuildC2Profile) GetArrayArg(name string) ([]string, error) {
 	if val, err := arg.GetArg(name); err != nil {
 		return []string{}, err
@@ -137,6 +140,9 @@ func (arg *PayloadBuildC2Profile) GetArrayArg(name string) ([]string, error) {
 		}
 		return stringArray, nil
 	}
+}
+func (arg *PayloadBuildC2Profile) GetFileMultipleArg(name string) ([]string, error) {
+	return arg.GetArrayArg(name)
 }
 func (arg *PayloadBuildC2Profile) GetChooseMultipleArg(name string) ([]string, error) {
 	return arg.GetArrayArg(name)
@@ -266,7 +272,13 @@ func (arg *BuildParameters) GetArrayArg(name string) ([]string, error) {
 		return stringArray, nil
 	}
 }
+func (arg *BuildParameters) GetChooseOneCustomArg(name string) (string, error) {
+	return arg.GetStringArg(name)
+}
 func (arg *BuildParameters) GetChooseMultipleArg(name string) ([]string, error) {
+	return arg.GetArrayArg(name)
+}
+func (arg *BuildParameters) GetFileMultipleArg(name string) ([]string, error) {
 	return arg.GetArrayArg(name)
 }
 func (arg *BuildParameters) GetDateArg(name string) (string, error) {
@@ -323,7 +335,7 @@ type PayloadBuildResponse struct {
 	// UpdatedFilename - Optionally updated filename based on build parameters to more closely match the return file type
 	UpdatedFilename *string `json:"updated_filename,omitempty"`
 	// Payload - the raw bytes of the payload that was compiled/created
-	Payload *[]byte `json:"payload,omitempty"`
+	Payload *[]byte `json:"-"`
 	// UpdatedCommandList - if you want to adjust the list of commands in this payload from what the user provided,
 	// provide the updated list of command names here
 	UpdatedCommandList *[]string `json:"updated_command_list,omitempty"`

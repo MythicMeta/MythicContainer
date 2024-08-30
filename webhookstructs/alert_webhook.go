@@ -3,6 +3,7 @@ package webhookstructs
 import (
 	"encoding/json"
 	"github.com/MythicMeta/MythicContainer/logging"
+	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
 )
 
 type NewAlertWebhookMessage struct {
@@ -19,7 +20,7 @@ type NewAlertWebhookData struct {
 
 // Register this method with rabbitmq so it can be called
 func init() {
-	AllWebhookData.Get("").AddDirectMethod(RabbitmqDirectMethod{
+	AllWebhookData.Get("").AddDirectMethod(sharedStructs.RabbitmqDirectMethod{
 		RabbitmqRoutingKey:         WEBHOOK_TYPE_NEW_ALERT,
 		RabbitmqProcessingFunction: processNewAlertWebhook,
 	})

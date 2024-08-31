@@ -139,7 +139,7 @@ type PayloadType struct {
 	// CheckIfCallbacksAliveFunction is given a list of callbacks and some configurations to determine if they are still alive or not
 	CheckIfCallbacksAliveFunction func(PTCheckIfCallbacksAliveMessage) PTCheckIfCallbacksAliveMessageResponse `json:"-"`
 	// OnNewCallback function is executed on new callbacks of this payload type to potentially do some extra setup
-	OnNewCallback func(PTOnNewCallbackAllData) PTOnNewCallbackResponse
+	OnNewCallback func(PTOnNewCallbackAllData) PTOnNewCallbackResponse `json:"-"`
 	// CommandAugmentSupportedAgents allows you to limit these commands to only be added to callbacks based on the listed agents or if you leave this empty, it'll apply to all callbacks
 	// ex: setting this to []string{"apollo"} will only have these commands associated with new "apollo" callbacks
 	CommandAugmentSupportedAgents []string `json:"command_augment_supported_agents"`

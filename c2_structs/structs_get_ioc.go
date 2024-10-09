@@ -17,7 +17,8 @@ type IOC struct {
 // C2GetIOCMessageResponse the resulting set of IOCs that a defender should look out for based on the
 // C2GetIOCMessage configuration
 type C2GetIOCMessageResponse struct {
-	Success bool   `json:"success"`
-	Error   string `json:"error"`
-	IOCs    []IOC  `json:"iocs"`
+	Success               bool   `json:"success"`
+	Error                 string `json:"error"`
+	IOCs                  []IOC  `json:"iocs"`
+	RestartInternalServer bool   `json:"restart_internal_server"`
 }

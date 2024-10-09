@@ -53,6 +53,7 @@ type rabbitMQConnection struct {
 }
 
 var RabbitMQConnection rabbitMQConnection
+var c2Mutex = sync.Mutex{}
 
 func (r *rabbitMQConnection) AddRPCQueue(input RPCQueueStruct) {
 	r.addListenerMutex.Lock()

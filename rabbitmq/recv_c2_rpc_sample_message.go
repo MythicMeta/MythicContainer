@@ -33,12 +33,17 @@ func processC2RPCSampleMessage(msg []byte) interface{} {
 }
 
 func C2RPCSampleMessage(input c2structs.C2SampleMessageMessage) c2structs.C2SampleMessageResponse {
-	response := c2structs.C2SampleMessageResponse{
+	responseMsg := c2structs.C2SampleMessageResponse{
 		Success: true,
 		Error:   "No Sample Message configured",
 	}
+	c2Mutex.Lock()
 	if c2structs.AllC2Data.Get(input.Name).GetC2Definition().SampleMessageFunction != nil {
-		response = c2structs.AllC2Data.Get(input.Name).GetC2Definition().SampleMessageFunction(input)
+		responseMsg = c2structs.AllC2Data.Get(input.Name).GetC2Definition().SampleMessageFunction(input)
 	}
-	return response
+	c2Mutex.Unlock()
+	if responseMsg.RestartInternalServer {
+		go restartC2Server(input.Name)
+	}
+	return responseMsg
 }

@@ -34,8 +34,13 @@ func C2RPCGetRedirectorRules(input c2structs.C2GetRedirectorRuleMessage) c2struc
 		Success: false,
 		Error:   "Not implemented, not getting redirector rules",
 	}
+	c2Mutex.Lock()
 	if c2structs.AllC2Data.Get(input.Name).GetC2Definition().GetRedirectorRulesFunction != nil {
 		responseMsg = c2structs.AllC2Data.Get(input.Name).GetC2Definition().GetRedirectorRulesFunction(input)
+	}
+	c2Mutex.Unlock()
+	if responseMsg.RestartInternalServer {
+		go restartC2Server(input.Name)
 	}
 	return responseMsg
 }

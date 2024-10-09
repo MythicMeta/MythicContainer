@@ -18,9 +18,10 @@ type ContainerOnStartMessage struct {
 }
 
 type ContainerOnStartMessageResponse struct {
-	ContainerName        string `json:"container_name"`
-	EventLogInfoMessage  string `json:"stdout"`
-	EventLogErrorMessage string `json:"stderr"`
+	ContainerName         string `json:"container_name"`
+	EventLogInfoMessage   string `json:"stdout"`
+	EventLogErrorMessage  string `json:"stderr"`
+	RestartInternalServer bool   `json:"restart_internal_server"`
 }
 
 type ContainerRPCGetFileMessage struct {

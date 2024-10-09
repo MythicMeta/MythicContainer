@@ -35,6 +35,8 @@ func C2RPCStopServer(input c2structs.C2RPCStopServerMessage) c2structs.C2RPCStop
 		Success: false,
 		Error:   "Not implemented, not stopping",
 	}
+	c2Mutex.Lock()
+	defer c2Mutex.Unlock()
 	if c2structs.AllC2Data.Get(input.Name).RunningServerProcess == nil {
 		responseMsg.Error = "Server not running"
 		responseMsg.InternalServerRunning = false

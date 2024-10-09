@@ -37,7 +37,7 @@ func processC2OtherServiceRPC(msg []byte) interface{} {
 }
 
 func C2OtherServiceRPC(input c2structs.C2RPCOtherServiceRPCMessage) c2structs.C2RPCOtherServiceRPCMessageResponse {
-	response := c2structs.C2RPCOtherServiceRPCMessageResponse{
+	responseMsg := c2structs.C2RPCOtherServiceRPCMessageResponse{
 		Success: false,
 		Error:   "Failed to find function",
 	}
@@ -48,7 +48,10 @@ func C2OtherServiceRPC(input c2structs.C2RPCOtherServiceRPCMessage) c2structs.C2
 			}
 		}
 	}
-	return response
+	if responseMsg.RestartInternalServer {
+		go restartC2Server(input.ServiceName)
+	}
+	return responseMsg
 }
 
 func processPTOtherServiceRPC(msg []byte) interface{} {

@@ -7,7 +7,8 @@ type C2OPSECMessage struct {
 }
 
 type C2OPSECMessageResponse struct {
-	Success bool   `json:"success"`
-	Error   string `json:"error"`
-	Message string `json:"message"`
+	Success               bool   `json:"success"`
+	Error                 string `json:"error"`
+	Message               string `json:"message"`
+	RestartInternalServer bool   `json:"restart_internal_server"`
 }

@@ -34,8 +34,13 @@ func C2RPCHostFile(input c2structs.C2HostFileMessage) c2structs.C2HostFileMessag
 		Success: false,
 		Error:   "Not implemented, not hosting a file",
 	}
+	c2Mutex.Lock()
 	if c2structs.AllC2Data.Get(input.Name).GetC2Definition().HostFileFunction != nil {
 		responseMsg = c2structs.AllC2Data.Get(input.Name).GetC2Definition().HostFileFunction(input)
+	}
+	c2Mutex.Unlock()
+	if responseMsg.RestartInternalServer {
+		go restartC2Server(input.Name)
 	}
 	return responseMsg
 }

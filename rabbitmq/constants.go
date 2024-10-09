@@ -14,7 +14,7 @@ const (
 
 type CallbackPortType = string
 
-const containerVersion = "v1.3.3"
+const containerVersion = "v1.3.4"
 
 const containerVersionMessage = "This version needs Mythic 3.3.0+"
 
@@ -245,6 +245,8 @@ const (
 	// MYTHIC_RPC_OTHER_SERVICES_RPC
 	MYTHIC_RPC_OTHER_SERVICES_RPC = "mythic_rpc_other_service_rpc"
 	MYTHIC_RPC_APITOKEN_CREATE    = "mythic_rpc_apitoken_create"
+	// C2
+	MYTHIC_RPC_C2_UPDATE_STATUS = "mythic_rpc_c2_update_status"
 	// blank
 	MYTHIC_RPC_BLANK = "mythic_rpc_blank"
 )

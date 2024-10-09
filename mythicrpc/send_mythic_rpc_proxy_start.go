@@ -23,6 +23,10 @@ type MythicRPCProxyStartMessage struct {
 	// CALLBACK_PORT_TYPE_RPORTFWD
 	// CALLBACK_PORT_TYPE_INTERACTIVE
 	PortType string `json:"port_type"`
+	// Username - This only can be set for socks - this allows auth for connecting to the port opened on the Mythic server
+	Username string `json:"username"`
+	// Password - This only can be set for socks - this allows auth for connecting to the port opened on the Mythic server
+	Password string `json:"password"`
 }
 type MythicRPCProxyStartMessageResponse struct {
 	Success   bool   `json:"success"`

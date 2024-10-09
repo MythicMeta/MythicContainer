@@ -117,16 +117,19 @@ func processOnEventingStart(input []byte) {
 }
 func processContainerOnStart(inputFunc func(sharedStructs.ContainerOnStartMessage) sharedStructs.ContainerOnStartMessageResponse,
 	incomingMessage sharedStructs.ContainerOnStartMessage) {
-	response := inputFunc(incomingMessage)
-	response.ContainerName = incomingMessage.ContainerName
+	responseMsg := inputFunc(incomingMessage)
+	responseMsg.ContainerName = incomingMessage.ContainerName
 	err := RabbitMQConnection.SendStructMessage(
 		MYTHIC_EXCHANGE,
 		CONTAINER_ON_START_RESPONSE,
 		"",
-		response,
+		responseMsg,
 		false,
 	)
 	if err != nil {
 		logging.LogError(err, "Failed to send response back to Mythic")
+	}
+	if responseMsg.RestartInternalServer {
+		go restartC2Server(responseMsg.ContainerName)
 	}
 }

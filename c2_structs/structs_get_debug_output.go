@@ -11,4 +11,5 @@ type C2GetDebugOutputMessageResponse struct {
 	Error                 string `json:"error"`
 	Message               string `json:"message"`
 	InternalServerRunning bool   `json:"server_running"`
+	RestartInternalServer bool   `json:"restart_internal_server"`
 }

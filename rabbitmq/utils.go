@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	c2structs "github.com/MythicMeta/MythicContainer/c2_structs"
 	"log"
 	"net"
 	"strings"
@@ -649,4 +650,26 @@ func prepTaskArgs(command agentstructs.Command, taskMessage *agentstructs.PTTask
 	}
 	return nil
 
+}
+
+func restartC2Server(name string) {
+	stopResponse := C2RPCStopServer(c2structs.C2RPCStopServerMessage{
+		Name: name,
+	})
+	if !stopResponse.Success {
+		_, _ = SendMythicRPCC2UpdateStatus(MythicRPCC2UpdateStatusMessage{
+			Error:                 stopResponse.Error,
+			InternalServerRunning: stopResponse.InternalServerRunning,
+			C2Profile:             name,
+		})
+		return
+	}
+	startResponse := C2RPCStartServer(c2structs.C2RPCStartServerMessage{
+		Name: name,
+	})
+	_, _ = SendMythicRPCC2UpdateStatus(MythicRPCC2UpdateStatusMessage{
+		Error:                 startResponse.Error,
+		InternalServerRunning: startResponse.InternalServerRunning,
+		C2Profile:             name,
+	})
 }

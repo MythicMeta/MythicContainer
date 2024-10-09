@@ -11,7 +11,8 @@ type C2SampleMessageMessage struct {
 // C2SampleMessageResponse - Provide a string representation of the C2 Traffic that the corresponding
 // C2SampleMessageMessage configuration would generate
 type C2SampleMessageResponse struct {
-	Success bool   `json:"success"`
-	Error   string `json:"error"`
-	Message string `json:"message"`
+	Success               bool   `json:"success"`
+	Error                 string `json:"error"`
+	Message               string `json:"message"`
+	RestartInternalServer bool   `json:"restart_internal_server"`
 }

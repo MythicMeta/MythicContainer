@@ -33,12 +33,17 @@ func processC2RPCGetIOC(msg []byte) interface{} {
 }
 
 func C2RPCGetIOC(input c2structs.C2GetIOCMessage) c2structs.C2GetIOCMessageResponse {
-	response := c2structs.C2GetIOCMessageResponse{
+	responseMsg := c2structs.C2GetIOCMessageResponse{
 		Success: true,
 		Error:   "No IOCs configured",
 	}
+	c2Mutex.Lock()
 	if c2structs.AllC2Data.Get(input.Name).GetC2Definition().GetIOCFunction != nil {
-		response = c2structs.AllC2Data.Get(input.Name).GetC2Definition().GetIOCFunction(input)
+		responseMsg = c2structs.AllC2Data.Get(input.Name).GetC2Definition().GetIOCFunction(input)
 	}
-	return response
+	c2Mutex.Unlock()
+	if responseMsg.RestartInternalServer {
+		go restartC2Server(input.Name)
+	}
+	return responseMsg
 }

@@ -35,8 +35,13 @@ func C2RPCOpsecCheck(input c2structs.C2OPSECMessage) c2structs.C2OPSECMessageRes
 		Success: true,
 		Error:   "No OPSEC Check performed - passing by default",
 	}
+	c2Mutex.Lock()
 	if c2structs.AllC2Data.Get(input.Name).GetC2Definition().OPSECCheckFunction != nil {
 		responseMsg = c2structs.AllC2Data.Get(input.Name).GetC2Definition().OPSECCheckFunction(input)
+	}
+	c2Mutex.Unlock()
+	if responseMsg.RestartInternalServer {
+		go restartC2Server(input.Name)
 	}
 	return responseMsg
 }

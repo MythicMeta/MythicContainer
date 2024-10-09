@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.4.6] - 2024
+
+### Changed
+
+- ContainerVersion v1.3.4
+- Added support for `remove` option in Hosting files via C2
+- Added a mutex around C2 functions
+- Added username/password options when starting socks proxy
+
 ## [v1.4.5] - 2024-09-04
 
 ### Changed

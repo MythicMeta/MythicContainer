@@ -33,12 +33,17 @@ func processC2RPCConfigCheck(msg []byte) interface{} {
 }
 
 func C2RPCConfigCheck(input c2structs.C2ConfigCheckMessage) c2structs.C2ConfigCheckMessageResponse {
-	response := c2structs.C2ConfigCheckMessageResponse{
+	responseMsg := c2structs.C2ConfigCheckMessageResponse{
 		Success: true,
 		Error:   "No Config Check performed - passing by default",
 	}
+	c2Mutex.Lock()
 	if c2structs.AllC2Data.Get(input.Name).GetC2Definition().ConfigCheckFunction != nil {
-		response = c2structs.AllC2Data.Get(input.Name).GetC2Definition().ConfigCheckFunction(input)
+		responseMsg = c2structs.AllC2Data.Get(input.Name).GetC2Definition().ConfigCheckFunction(input)
 	}
-	return response
+	c2Mutex.Unlock()
+	if responseMsg.RestartInternalServer {
+		go restartC2Server(input.Name)
+	}
+	return responseMsg
 }

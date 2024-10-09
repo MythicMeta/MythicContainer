@@ -34,6 +34,7 @@ func C2RPCGetDebugOutput(input c2structs.C2GetDebugOutputMessage) c2structs.C2Ge
 		Success: false,
 		Error:   "Not implemented, not getting debug output",
 	}
+	c2Mutex.Lock()
 	if c2structs.AllC2Data.Get(input.Name).RunningServerProcess != nil {
 		output := ""
 		finishedReadingOutput := make(chan bool, 1)
@@ -67,17 +68,25 @@ func C2RPCGetDebugOutput(input c2structs.C2GetDebugOutputMessage) c2structs.C2Ge
 				responseMsg.Message = "No Server Output\n"
 			}
 			responseMsg.Success = true
+			responseMsg.InternalServerRunning = true
 		} else {
 			err := c2structs.AllC2Data.Get(input.Name).RunningServerProcess.Wait()
 			if err != nil {
 				responseMsg.Message = "Process died with error: " + err.Error()
+				responseMsg.InternalServerRunning = false
 			} else {
 				responseMsg.Message = "Process exited without error"
+				responseMsg.InternalServerRunning = false
 			}
 
 		}
 	} else {
 		responseMsg.Message = "Server not running\n"
+		responseMsg.InternalServerRunning = false
+	}
+	c2Mutex.Unlock()
+	if responseMsg.RestartInternalServer {
+		go restartC2Server(input.Name)
 	}
 	return responseMsg
 }

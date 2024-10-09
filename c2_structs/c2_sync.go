@@ -21,9 +21,10 @@ type C2RPCOtherServiceRPCMessage struct {
 	ServiceRPCFunctionArguments map[string]interface{} `json:"service_arguments"`
 }
 type C2RPCOtherServiceRPCMessageResponse struct {
-	Success bool                   `json:"success"`
-	Error   string                 `json:"error"`
-	Result  map[string]interface{} `json:"result"`
+	Success               bool                   `json:"success"`
+	Error                 string                 `json:"error"`
+	Result                map[string]interface{} `json:"result"`
+	RestartInternalServer bool                   `json:"restart_internal_server"`
 }
 
 type C2Profile struct {

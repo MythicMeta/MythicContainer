@@ -11,6 +11,8 @@ type MythicRPCProxyStopMessage struct {
 	TaskID   int    `json:"task_id"`
 	Port     int    `json:"port"`
 	PortType string `json:"port_type"`
+	Username string `json:"username"`
+	Password string `json:"password"`
 }
 type MythicRPCProxyStopMessageResponse struct {
 	Success   bool   `json:"success"`

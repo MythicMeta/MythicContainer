@@ -143,6 +143,8 @@ type PayloadType struct {
 	// CommandAugmentSupportedAgents allows you to limit these commands to only be added to callbacks based on the listed agents or if you leave this empty, it'll apply to all callbacks
 	// ex: setting this to []string{"apollo"} will only have these commands associated with new "apollo" callbacks
 	CommandAugmentSupportedAgents []string `json:"command_augment_supported_agents"`
+	// UseDisplayParamsForCLIHistory allows you to leverage custom display parameters for the up/down arrow in history on the cli instead of the task's original_params which might be JSON
+	UseDisplayParamsForCLIHistory bool `json:"use_display_params_for_cli_history"`
 }
 
 // Command - The base definition of a command

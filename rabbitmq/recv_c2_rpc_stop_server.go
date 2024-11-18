@@ -38,7 +38,7 @@ func C2RPCStopServer(input c2structs.C2RPCStopServerMessage) c2structs.C2RPCStop
 	c2Mutex.Lock()
 	defer c2Mutex.Unlock()
 	if c2structs.AllC2Data.Get(input.Name).RunningServerProcess == nil {
-		responseMsg.Error = "Server not running"
+		responseMsg.Success = true
 		responseMsg.InternalServerRunning = false
 		return responseMsg
 	} else if err := c2structs.AllC2Data.Get(input.Name).RunningServerProcess.Process.Kill(); err != nil {
@@ -68,9 +68,7 @@ func C2RPCStopServer(input c2structs.C2RPCStopServerMessage) c2structs.C2RPCStop
 					finishedReadingOutput <- true
 					return
 				}
-
 			}
-			finishedReadingOutput <- true
 		}()
 		select {
 		case <-finishedReadingOutput:

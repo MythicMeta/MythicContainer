@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
  
+## [v1.4.9] - 2024-11-22
+
+### Changed
+
+- Updated MythicRPCCallbackAddCommand and MythicRPCCallbackRemoveCommands with additional options
+- Updated CreateTasking response with new field, ReprocessAtNewCommandPayloadType
+  - Setting that allows processing execution to transfer to the new payload type and new CommandName specified
+
 ## [v1.4.8] - 2024-11-18
 
 ### Changed

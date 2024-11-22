@@ -198,6 +198,8 @@ type PTTaskCreateTaskingMessageResponse struct {
 	// ParameterGroupName - Don't set this explicitly. If you want to set the name of the parameter group explicitly, use
 	// the taskData.Args.SetManualParameterGroup("name here") function.
 	ParameterGroupName string `json:"parameter_group_name"`
+	// ReprocessAtNewCommandPayloadType - the name of the current payload type or payload type associated with an updated CommandName field for execution to then go to for further processing
+	ReprocessAtNewCommandPayloadType string `json:"reprocess_at_new_command_payload_type"`
 }
 
 // Tasking step 3:

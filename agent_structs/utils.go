@@ -97,8 +97,12 @@ func (r *allPayloadData) AddCommand(cmd Command) {
 	}
 	for i := 0; i < len(r.allCommands); i++ {
 		if r.allCommands[i].Name == cmd.Name {
-			logging.LogError(errors.New("can't add command, duplicate name detected"),
+			logging.LogError(errors.New("can't add command, duplicate name detected, overwriting old one"),
 				"two commands with same name detected", "name", cmd.Name)
+			r.mutex.Lock()
+			r.allCommands[i] = cmd
+			r.mutex.Unlock()
+			return
 		}
 	}
 	r.mutex.Lock()

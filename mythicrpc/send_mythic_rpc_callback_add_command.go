@@ -8,8 +8,12 @@ import (
 )
 
 type MythicRPCCallbackAddCommandMessage struct {
-	// TaskID (Required) - What task is trying to add commands. This will add commands to the callback associated with this task.
+	// TaskID - What task is trying to add commands. This will add commands to the callback associated with this task.
 	TaskID int `json:"task_id"` // required
+	// AgentCallbackID - Agent Callback UUID of callback to add commands to if TaskID isn't specified
+	AgentCallbackID string `json:"agent_callback_id"`
+	// PayloadType - The payload type of the associated commands to load if they're for a payload type (or command augment) container other than the one for the callback
+	PayloadType string `json:"payload_type"`
 	// Commands (Required) - The names of the commands you want to add. If they're already added, then they are skipped.
 	Commands []string `json:"commands"` // required
 }

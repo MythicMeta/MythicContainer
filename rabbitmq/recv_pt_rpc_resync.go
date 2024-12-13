@@ -36,6 +36,6 @@ func PTRPCReSync(input agentstructs.PTRPCReSyncMessage) agentstructs.PTRPCReSync
 		Success: true,
 		Error:   "",
 	}
-	SyncPayloadData(&input.Name)
+	SyncPayloadData(&input.Name, true)
 	return response
 }

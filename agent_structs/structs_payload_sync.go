@@ -16,6 +16,7 @@ type PayloadTypeSyncMessage struct {
 	PayloadType      PayloadType `json:"payload_type"`
 	CommandList      []Command   `json:"commands"`
 	ContainerVersion string      `json:"container_version"`
+	ForcedResync     bool        `json:"forced_resync"`
 }
 type BuildParameterType = string
 

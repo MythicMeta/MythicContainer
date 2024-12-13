@@ -301,7 +301,7 @@ func (r *rabbitMQConnection) startListeners(services []string) {
 			RabbitmqRoutingKey:         PAYLOAD_BUILD_ROUTING_KEY,
 			RabbitmqProcessingFunction: WrapPayloadBuild,
 		})
-		SyncPayloadData(nil)
+		SyncPayloadData(nil, false)
 		for _, pt := range agentstructs.AllPayloadData.GetAllPayloadTypeNames() {
 
 			if agentstructs.AllPayloadData.Get(pt).GetPayloadName() != "" {

@@ -9,12 +9,14 @@ import (
 	"github.com/MythicMeta/MythicContainer/logging"
 )
 
-func SyncPayloadData(syncPayloadName *string) {
+func SyncPayloadData(syncPayloadName *string, forcedResync bool) {
 	// now make our payloadtype info that we're going to sync
 	for _, pt := range agentstructs.AllPayloadData.GetAllPayloadTypeNames() {
 		if syncPayloadName == nil || *syncPayloadName == pt {
 			logging.LogInfo("Syncing payload type", "name", pt)
-			syncMessage := agentstructs.PayloadTypeSyncMessage{}
+			syncMessage := agentstructs.PayloadTypeSyncMessage{
+				ForcedResync: forcedResync,
+			}
 			response := agentstructs.PayloadTypeSyncMessageResponse{}
 			//logging.LogInfo("about to sync over definition", "payload", agentstructs.AllPayloadData.GetPayloadDefinition(), "commands", agentstructs.AllPayloadData.GetCommands())
 			syncMessage.PayloadType = agentstructs.AllPayloadData.Get(pt).GetPayloadDefinition()

@@ -16,6 +16,8 @@ type MythicRPCCallbackAddCommandMessage struct {
 	PayloadType string `json:"payload_type"`
 	// Commands (Required) - The names of the commands you want to add. If they're already added, then they are skipped.
 	Commands []string `json:"commands"` // required
+	// CallbackIDs allows you to specify a list of CallbackID values to add commands to multiple callbacks at once
+	CallbackIDs []int `json:"callback_ids"`
 }
 type MythicRPCCallbackAddCommandMessageResponse struct {
 	Success bool   `json:"success"`

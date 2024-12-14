@@ -43,6 +43,8 @@ type MythicRPCCallbackSearchMessage struct {
 	SearchCallbackDomain       *string `json:"domain,omitempty"`
 	SearchCallbackArchitecture *string `json:"architecture,omitempty"`
 	SearchCallbackDescription  *string `json:"description,omitempty"`
+	// SearchCallbackPayloadTypes allows filtering callbacks down to which payload types they're based on
+	SearchCallbackPayloadTypes *[]string `json:"payload_types,omitempty"`
 }
 type MythicRPCCallbackSearchMessageResult struct {
 	ID                    int       `mapstructure:"id" json:"id"`

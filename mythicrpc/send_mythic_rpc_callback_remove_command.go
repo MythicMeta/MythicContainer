@@ -17,6 +17,8 @@ type MythicRPCCallbackRemoveCommandMessage struct {
 	// Commands (Required) - The list of command names to be removed from the callback. If the command isn't loaded
 	// within the callback, then it's skipped
 	Commands []string `json:"commands"` // required
+	// CallbackIDs allows you to specify a list of CallbackID values to remove commands from multiple callbacks at once
+	CallbackIDs []int `json:"callback_ids"`
 }
 type MythicRPCCallbackRemoveCommandMessageResponse struct {
 	Success bool   `json:"success"`

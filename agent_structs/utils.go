@@ -2,7 +2,6 @@ package agentstructs
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
 	"io"
@@ -83,8 +82,7 @@ func (r *allPayloadData) AddCommand(cmd Command) {
 		}
 		for j := 0; j < len(cmd.CommandParameters[i].ParameterGroupInformation); j++ {
 			if cmd.CommandParameters[i].DefaultValue == nil && !cmd.CommandParameters[i].ParameterGroupInformation[j].ParameterIsRequired {
-				logging.LogError(errors.New("command parameter has default value of nil"),
-					"default value should be set to blank value of appropriate type or a meaningful default value for this parameter",
+				logging.LogWarning("default value should be set to blank value of appropriate type or a meaningful default value for this parameter instead of nil",
 					"command", cmd.Name, "parameter", cmd.CommandParameters[i].Name)
 			}
 		}
@@ -97,8 +95,8 @@ func (r *allPayloadData) AddCommand(cmd Command) {
 	}
 	for i := 0; i < len(r.allCommands); i++ {
 		if r.allCommands[i].Name == cmd.Name {
-			logging.LogError(errors.New("can't add command, duplicate name detected, overwriting old one"),
-				"two commands with same name detected", "name", cmd.Name)
+			logging.LogDebug("can't add command, duplicate name detected, overwriting old one",
+				"two commands with same name detected", cmd.Name)
 			r.mutex.Lock()
 			r.allCommands[i] = cmd
 			r.mutex.Unlock()

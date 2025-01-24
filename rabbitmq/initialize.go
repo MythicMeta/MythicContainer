@@ -301,49 +301,53 @@ func (r *rabbitMQConnection) startListeners(services []string) {
 			RabbitmqRoutingKey:         PAYLOAD_BUILD_ROUTING_KEY,
 			RabbitmqProcessingFunction: WrapPayloadBuild,
 		})
-		SyncPayloadData(nil, false)
+		var PTwg sync.WaitGroup
 		for _, pt := range agentstructs.AllPayloadData.GetAllPayloadTypeNames() {
 
 			if agentstructs.AllPayloadData.Get(pt).GetPayloadName() != "" {
 				logging.LogInfo(fmt.Sprintf("Initializing RabbitMQ for Payload Service: %s\n", pt))
 				for _, rpcQueue := range agentstructs.AllPayloadData.Get(pt).GetRPCMethods() {
+					PTwg.Add(1)
 					go RabbitMQConnection.ReceiveFromRPCQueue(
 						MYTHIC_EXCHANGE,
 						agentstructs.AllPayloadData.Get(pt).GetRoutingKey(rpcQueue.RabbitmqRoutingKey),
 						agentstructs.AllPayloadData.Get(pt).GetRoutingKey(rpcQueue.RabbitmqRoutingKey),
 						rpcQueue.RabbitmqProcessingFunction,
 						!exclusiveQueue,
-						nil,
+						&PTwg,
 					)
 				}
 				for _, rpcQueue := range agentstructs.AllPayloadData.Get("").GetRPCMethods() {
+					PTwg.Add(1)
 					go RabbitMQConnection.ReceiveFromRPCQueue(
 						MYTHIC_EXCHANGE,
 						agentstructs.AllPayloadData.Get(pt).GetRoutingKey(rpcQueue.RabbitmqRoutingKey),
 						agentstructs.AllPayloadData.Get(pt).GetRoutingKey(rpcQueue.RabbitmqRoutingKey),
 						rpcQueue.RabbitmqProcessingFunction,
 						!exclusiveQueue,
-						nil,
+						&PTwg,
 					)
 				}
 				for _, directQueue := range agentstructs.AllPayloadData.Get(pt).GetDirectMethods() {
+					PTwg.Add(1)
 					go RabbitMQConnection.ReceiveFromMythicDirectExchange(
 						MYTHIC_EXCHANGE,
 						agentstructs.AllPayloadData.Get(pt).GetRoutingKey(directQueue.RabbitmqRoutingKey),
 						agentstructs.AllPayloadData.Get(pt).GetRoutingKey(directQueue.RabbitmqRoutingKey),
 						directQueue.RabbitmqProcessingFunction,
 						!exclusiveQueue,
-						nil,
+						&PTwg,
 					)
 				}
 				for _, directQueue := range agentstructs.AllPayloadData.Get("").GetDirectMethods() {
+					PTwg.Add(1)
 					go RabbitMQConnection.ReceiveFromMythicDirectExchange(
 						MYTHIC_EXCHANGE,
 						agentstructs.AllPayloadData.Get(pt).GetRoutingKey(directQueue.RabbitmqRoutingKey),
 						agentstructs.AllPayloadData.Get(pt).GetRoutingKey(directQueue.RabbitmqRoutingKey),
 						directQueue.RabbitmqProcessingFunction,
 						!exclusiveQueue,
-						nil,
+						&PTwg,
 					)
 				}
 			} else {
@@ -353,6 +357,8 @@ func (r *rabbitMQConnection) startListeners(services []string) {
 				os.Exit(1)
 			}
 		}
+		wg.Wait()
+		SyncPayloadData(nil, false)
 	}
 	// handle starting any queues that are necessary for the translation container
 	if helpers.StringSliceContains(services, "translation") {

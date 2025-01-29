@@ -107,6 +107,17 @@ func (r *allPayloadData) AddCommand(cmd Command) {
 	r.allCommands = append(r.allCommands, cmd)
 	r.mutex.Unlock()
 }
+func (r *allPayloadData) RemoveCommand(cmd Command) {
+	for i := 0; i < len(r.allCommands); i++ {
+		if r.allCommands[i].Name == cmd.Name {
+			r.mutex.Lock()
+			r.allCommands = append(r.allCommands[:i], r.allCommands[i+1:]...)
+			r.mutex.Unlock()
+			return
+		}
+	}
+	logging.LogWarning("failed to find command for removal", "command", cmd.Name)
+}
 func (r *allPayloadData) AddBuildFunction(f func(PayloadBuildMessage) PayloadBuildResponse) {
 	r.buildFunction = f
 }

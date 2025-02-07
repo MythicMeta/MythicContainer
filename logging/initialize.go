@@ -53,9 +53,9 @@ func UpdateLogToStdout(debugLevel string) {
 	var zl zerolog.Logger
 	switch debugLevel {
 	case "warning":
-		zl = zerolog.New(os.Stdout).Level(zerolog.WarnLevel)
+		zl = zerolog.New(zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC3339}).Level(zerolog.WarnLevel)
 	case "info":
-		zl = zerolog.New(os.Stdout).Level(zerolog.InfoLevel)
+		zl = zerolog.New(zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC3339}).Level(zerolog.InfoLevel)
 	case "debug":
 		zl = zerolog.New(zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC3339}).Level(zerolog.DebugLevel)
 	case "trace":

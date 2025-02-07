@@ -27,8 +27,6 @@ func processPtCheckIfCallbacksAliveMessages(msg []byte) interface{} {
 	response.Success = false
 	checkIfCallbacksAliveFunc := agentstructs.AllPayloadData.Get(incomingMessage.ContainerName).GetCheckIfCallbacksAliveFunction()
 	if checkIfCallbacksAliveFunc == nil {
-		logging.LogInfo("Failed to get checkIfCallbacksAliveFunc function. Do you have a function called 'CheckIfCallbacksAliveFunction'? This is an optional function for a payload type to determine if callbacks based on it are alive or not.",
-			"payload type", incomingMessage.ContainerName)
 		response.Success = true
 	} else {
 		response = checkIfCallbacksAliveFunc(incomingMessage)

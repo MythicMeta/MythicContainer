@@ -42,7 +42,6 @@ func (r *rabbitMQConnection) GetConnection() (*amqp.Connection, error) {
 					Dial: func(network, addr string) (net.Conn, error) {
 						return net.DialTimeout(network, addr, 10*time.Second)
 					},
-					Heartbeat: 10 * time.Second, // Add heartbeat
 				},
 			)
 			if err != nil {
@@ -132,16 +131,6 @@ func (r *rabbitMQConnection) SendRPCMessage(exchange string, queue string, body 
 	ch, err := conn.Channel()
 	if err != nil {
 		logging.LogError(err, "Failed to open rabbitmq channel")
-		return nil, err
-	}
-	err = ch.Qos(
-		1,     // prefetch count - one message at a time
-		0,     // prefetch size - no limit
-		false, // global - apply to channel only, not connection
-	)
-	if err != nil {
-		logging.LogError(err, "Failed to set QoS")
-		ch.Close()
 		return nil, err
 	}
 	err = ch.Confirm(false)
@@ -333,27 +322,13 @@ func (r *rabbitMQConnection) ReceiveFromRPCQueue(exchange string, queue string, 
 			time.Sleep(RETRY_CONNECT_DELAY)
 			continue
 		}
-		err = ch.Qos(
-			1,     // prefetch count
-			0,     // prefetch size
-			false, // global
-		)
-		if err != nil {
-			logging.LogError(err, "Failed to set QoS")
-			time.Sleep(RETRY_CONNECT_DELAY)
-			continue
-		}
 		q, err := ch.QueueDeclare(
 			queue,          // name, queue
 			true,           // durable
 			false,          // delete when unused
 			exclusiveQueue, // exclusive
 			false,          // no-wait
-			amqp.Table{
-				"x-message-ttl":             int32(30000), // 30 second message TTL
-				"x-dead-letter-exchange":    "dlx",        // Dead letter exchange
-				"x-dead-letter-routing-key": "dlq",        // Dead letter routing
-			}, // arguments
+			nil,            // arguments
 		)
 		if err != nil {
 			logging.LogError(err, "Failed to declare queue", "retry_wait_time", RETRY_CONNECT_DELAY)

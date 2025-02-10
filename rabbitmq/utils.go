@@ -324,8 +324,8 @@ func (r *rabbitMQConnection) ReceiveFromRPCQueue(exchange string, queue string, 
 		}
 		q, err := ch.QueueDeclare(
 			queue,          // name, queue
-			true,           // durable
-			false,          // delete when unused
+			false,          // durable
+			true,           // delete when unused
 			exclusiveQueue, // exclusive
 			false,          // no-wait
 			nil,            // arguments

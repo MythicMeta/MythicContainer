@@ -6,14 +6,14 @@ import (
 	"github.com/MythicMeta/MythicContainer/authstructs"
 	"github.com/MythicMeta/MythicContainer/config"
 	"github.com/MythicMeta/MythicContainer/eventingstructs"
+	"github.com/MythicMeta/MythicContainer/grpc"
+	"github.com/MythicMeta/MythicContainer/translationstructs"
 	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
 	"log"
 	"os"
 	"sync"
 
-	"github.com/MythicMeta/MythicContainer/grpc"
 	"github.com/MythicMeta/MythicContainer/loggingstructs"
-	"github.com/MythicMeta/MythicContainer/translationstructs"
 	"github.com/MythicMeta/MythicContainer/webhookstructs"
 
 	agentstructs "github.com/MythicMeta/MythicContainer/agent_structs"
@@ -295,71 +295,6 @@ func (r *rabbitMQConnection) startListeners(services []string) {
 			}
 		}
 	}
-	// handle starting any queues that are necessary for the payload type
-	if helpers.StringSliceContains(services, "payload") {
-		agentstructs.AllPayloadData.Get("").AddDirectMethod(sharedStructs.RabbitmqDirectMethod{
-			RabbitmqRoutingKey:         PAYLOAD_BUILD_ROUTING_KEY,
-			RabbitmqProcessingFunction: WrapPayloadBuild,
-		})
-		var PTwg sync.WaitGroup
-		for _, pt := range agentstructs.AllPayloadData.GetAllPayloadTypeNames() {
-
-			if agentstructs.AllPayloadData.Get(pt).GetPayloadName() != "" {
-				logging.LogInfo(fmt.Sprintf("Initializing RabbitMQ for Payload Service: %s\n", pt))
-				for _, rpcQueue := range agentstructs.AllPayloadData.Get(pt).GetRPCMethods() {
-					PTwg.Add(1)
-					go RabbitMQConnection.ReceiveFromRPCQueue(
-						MYTHIC_EXCHANGE,
-						agentstructs.AllPayloadData.Get(pt).GetRoutingKey(rpcQueue.RabbitmqRoutingKey),
-						agentstructs.AllPayloadData.Get(pt).GetRoutingKey(rpcQueue.RabbitmqRoutingKey),
-						rpcQueue.RabbitmqProcessingFunction,
-						!exclusiveQueue,
-						&PTwg,
-					)
-				}
-				for _, rpcQueue := range agentstructs.AllPayloadData.Get("").GetRPCMethods() {
-					PTwg.Add(1)
-					go RabbitMQConnection.ReceiveFromRPCQueue(
-						MYTHIC_EXCHANGE,
-						agentstructs.AllPayloadData.Get(pt).GetRoutingKey(rpcQueue.RabbitmqRoutingKey),
-						agentstructs.AllPayloadData.Get(pt).GetRoutingKey(rpcQueue.RabbitmqRoutingKey),
-						rpcQueue.RabbitmqProcessingFunction,
-						!exclusiveQueue,
-						&PTwg,
-					)
-				}
-				for _, directQueue := range agentstructs.AllPayloadData.Get(pt).GetDirectMethods() {
-					PTwg.Add(1)
-					go RabbitMQConnection.ReceiveFromMythicDirectExchange(
-						MYTHIC_EXCHANGE,
-						agentstructs.AllPayloadData.Get(pt).GetRoutingKey(directQueue.RabbitmqRoutingKey),
-						agentstructs.AllPayloadData.Get(pt).GetRoutingKey(directQueue.RabbitmqRoutingKey),
-						directQueue.RabbitmqProcessingFunction,
-						!exclusiveQueue,
-						&PTwg,
-					)
-				}
-				for _, directQueue := range agentstructs.AllPayloadData.Get("").GetDirectMethods() {
-					PTwg.Add(1)
-					go RabbitMQConnection.ReceiveFromMythicDirectExchange(
-						MYTHIC_EXCHANGE,
-						agentstructs.AllPayloadData.Get(pt).GetRoutingKey(directQueue.RabbitmqRoutingKey),
-						agentstructs.AllPayloadData.Get(pt).GetRoutingKey(directQueue.RabbitmqRoutingKey),
-						directQueue.RabbitmqProcessingFunction,
-						!exclusiveQueue,
-						&PTwg,
-					)
-				}
-			} else {
-				errorMessage := "Tasked Payload Container to start, but Payload agent name is empty.\n"
-				errorMessage += "Did you initialize your functions module?\n"
-				logging.LogError(nil, errorMessage)
-				os.Exit(1)
-			}
-		}
-		wg.Wait()
-		SyncPayloadData(nil, false)
-	}
 	// handle starting any queues that are necessary for the translation container
 	if helpers.StringSliceContains(services, "translation") {
 		logging.LogInfo("Initializing RabbitMQ for Translation Services")
@@ -542,6 +477,72 @@ func (r *rabbitMQConnection) startListeners(services []string) {
 			SyncConsumingContainerData(eventer, "auth")
 		}
 	}
+	// handle starting any queues that are necessary for the payload type
+	if helpers.StringSliceContains(services, "payload") {
+		agentstructs.AllPayloadData.Get("").AddDirectMethod(sharedStructs.RabbitmqDirectMethod{
+			RabbitmqRoutingKey:         PAYLOAD_BUILD_ROUTING_KEY,
+			RabbitmqProcessingFunction: WrapPayloadBuild,
+		})
+		var PTwg sync.WaitGroup
+		for _, pt := range agentstructs.AllPayloadData.GetAllPayloadTypeNames() {
+
+			if agentstructs.AllPayloadData.Get(pt).GetPayloadName() != "" {
+				logging.LogInfo(fmt.Sprintf("Initializing RabbitMQ for Payload Service: %s\n", pt))
+				for _, rpcQueue := range agentstructs.AllPayloadData.Get(pt).GetRPCMethods() {
+					PTwg.Add(1)
+					go RabbitMQConnection.ReceiveFromRPCQueue(
+						MYTHIC_EXCHANGE,
+						agentstructs.AllPayloadData.Get(pt).GetRoutingKey(rpcQueue.RabbitmqRoutingKey),
+						agentstructs.AllPayloadData.Get(pt).GetRoutingKey(rpcQueue.RabbitmqRoutingKey),
+						rpcQueue.RabbitmqProcessingFunction,
+						!exclusiveQueue,
+						&PTwg,
+					)
+				}
+				for _, rpcQueue := range agentstructs.AllPayloadData.Get("").GetRPCMethods() {
+					PTwg.Add(1)
+					go RabbitMQConnection.ReceiveFromRPCQueue(
+						MYTHIC_EXCHANGE,
+						agentstructs.AllPayloadData.Get(pt).GetRoutingKey(rpcQueue.RabbitmqRoutingKey),
+						agentstructs.AllPayloadData.Get(pt).GetRoutingKey(rpcQueue.RabbitmqRoutingKey),
+						rpcQueue.RabbitmqProcessingFunction,
+						!exclusiveQueue,
+						&PTwg,
+					)
+				}
+				for _, directQueue := range agentstructs.AllPayloadData.Get(pt).GetDirectMethods() {
+					PTwg.Add(1)
+					go RabbitMQConnection.ReceiveFromMythicDirectExchange(
+						MYTHIC_EXCHANGE,
+						agentstructs.AllPayloadData.Get(pt).GetRoutingKey(directQueue.RabbitmqRoutingKey),
+						agentstructs.AllPayloadData.Get(pt).GetRoutingKey(directQueue.RabbitmqRoutingKey),
+						directQueue.RabbitmqProcessingFunction,
+						!exclusiveQueue,
+						&PTwg,
+					)
+				}
+				for _, directQueue := range agentstructs.AllPayloadData.Get("").GetDirectMethods() {
+					PTwg.Add(1)
+					go RabbitMQConnection.ReceiveFromMythicDirectExchange(
+						MYTHIC_EXCHANGE,
+						agentstructs.AllPayloadData.Get(pt).GetRoutingKey(directQueue.RabbitmqRoutingKey),
+						agentstructs.AllPayloadData.Get(pt).GetRoutingKey(directQueue.RabbitmqRoutingKey),
+						directQueue.RabbitmqProcessingFunction,
+						!exclusiveQueue,
+						&PTwg,
+					)
+				}
+			} else {
+				errorMessage := "Tasked Payload Container to start, but Payload agent name is empty.\n"
+				errorMessage += "Did you initialize your functions module?\n"
+				logging.LogError(nil, errorMessage)
+				os.Exit(1)
+			}
+		}
+		wg.Wait()
+		SyncPayloadData(nil, false)
+	}
+
 	logging.LogInfo("[+] All services initialized!")
 }
 

@@ -64,13 +64,19 @@ func processPtTaskCompletionMessages(msg []byte) {
 }
 
 func sendTaskCompletionResponse(response agentstructs.PTTaskCompletionFunctionMessageResponse) {
-	if err := RabbitMQConnection.SendStructMessage(
-		MYTHIC_EXCHANGE,
-		PT_TASK_COMPLETION_FUNCTION_RESPONSE,
-		"",
-		response,
-		false,
-	); err != nil {
-		logging.LogError(err, "Failed to send payload response back to Mythic")
+	for {
+		err := RabbitMQConnection.SendStructMessage(
+			MYTHIC_EXCHANGE,
+			PT_TASK_COMPLETION_FUNCTION_RESPONSE,
+			"",
+			response,
+			false,
+		)
+		if err != nil {
+			logging.LogError(err, "Failed to send payload response back to Mythic")
+			continue
+		}
+		return
 	}
+
 }

@@ -29,34 +29,47 @@ func processResponseInterceptEventingFunction(input []byte) {
 					response := eventingstructs.AllEventingData.Get(eventing).GetEventingDefinition().ResponseInterceptFunction(incomingMessage)
 					response.EventStepInstanceID = incomingMessage.EventStepInstanceID
 					response.ResponseID = incomingMessage.ResponseID
-					err = RabbitMQConnection.SendStructMessage(
-						MYTHIC_EXCHANGE,
-						EVENTING_RESPONSE_INTERCEPT_RESPONSE,
-						"",
-						response,
-						false,
-					)
-					if err != nil {
-						logging.LogError(err, "Failed to send response intercept response back to Mythic")
+					for {
+						err = RabbitMQConnection.SendStructMessage(
+							MYTHIC_EXCHANGE,
+							EVENTING_RESPONSE_INTERCEPT_RESPONSE,
+							"",
+							response,
+							false,
+						)
+						if err != nil {
+							logging.LogError(err, "Failed to send response intercept response back to Mythic")
+							continue
+						}
+						break
 					}
+
 				}(inputStruct)
 				return
 			}
 			logging.LogError(nil, fmt.Sprintf("Found container name, %s, but missing response intercept function",
 				inputStruct.ContainerName))
-			err = RabbitMQConnection.SendStructMessage(
-				MYTHIC_EXCHANGE,
-				EVENTING_RESPONSE_INTERCEPT_RESPONSE,
-				"",
-				eventingstructs.ResponseInterceptMessageResponse{
-					Success:             false,
-					EventStepInstanceID: inputStruct.EventStepInstanceID,
-					ResponseID:          inputStruct.ResponseID,
-					StdErr: fmt.Sprintf("Found container name, %s, but missing task intercept function",
-						inputStruct.ContainerName),
-				},
-				false,
-			)
+			for {
+				err = RabbitMQConnection.SendStructMessage(
+					MYTHIC_EXCHANGE,
+					EVENTING_RESPONSE_INTERCEPT_RESPONSE,
+					"",
+					eventingstructs.ResponseInterceptMessageResponse{
+						Success:             false,
+						EventStepInstanceID: inputStruct.EventStepInstanceID,
+						ResponseID:          inputStruct.ResponseID,
+						StdErr: fmt.Sprintf("Found container name, %s, but missing task intercept function",
+							inputStruct.ContainerName),
+					},
+					false,
+				)
+				if err != nil {
+					logging.LogError(err, "Failed to send response intercept response back to Mythic")
+					continue
+				}
+				break
+			}
+
 		}
 	}
 }

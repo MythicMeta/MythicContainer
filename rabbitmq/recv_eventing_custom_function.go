@@ -29,34 +29,47 @@ func processNewCustomEventingFunction(input []byte) {
 					go func(incomingMessage eventingstructs.NewCustomEventingMessage) {
 						response := eventingstructs.AllEventingData.Get(eventing).GetEventingDefinition().CustomFunctions[i].Function(incomingMessage)
 						response.EventStepInstanceID = incomingMessage.EventStepInstanceID
-						err = RabbitMQConnection.SendStructMessage(
-							MYTHIC_EXCHANGE,
-							EVENTING_CUSTOM_FUNCTION_RESPONSE,
-							"",
-							response,
-							false,
-						)
-						if err != nil {
-							logging.LogError(err, "Failed to send payload response back to Mythic")
+						for {
+							err = RabbitMQConnection.SendStructMessage(
+								MYTHIC_EXCHANGE,
+								EVENTING_CUSTOM_FUNCTION_RESPONSE,
+								"",
+								response,
+								false,
+							)
+							if err != nil {
+								logging.LogError(err, "Failed to send custom eventing response back to Mythic")
+								continue
+							}
+							break
 						}
+
 					}(inputStruct)
 					return
 				}
 			}
 			logging.LogError(nil, fmt.Sprintf("Found container name, %s, but missing function, %s",
 				inputStruct.ContainerName, inputStruct.FunctionName))
-			err = RabbitMQConnection.SendStructMessage(
-				MYTHIC_EXCHANGE,
-				EVENTING_CUSTOM_FUNCTION_RESPONSE,
-				"",
-				eventingstructs.NewCustomEventingMessageResponse{
-					Success:             false,
-					EventStepInstanceID: inputStruct.EventStepInstanceID,
-					StdErr: fmt.Sprintf("Found container name, %s, but missing function, %s",
-						inputStruct.ContainerName, inputStruct.FunctionName),
-				},
-				false,
-			)
+			for {
+				err = RabbitMQConnection.SendStructMessage(
+					MYTHIC_EXCHANGE,
+					EVENTING_CUSTOM_FUNCTION_RESPONSE,
+					"",
+					eventingstructs.NewCustomEventingMessageResponse{
+						Success:             false,
+						EventStepInstanceID: inputStruct.EventStepInstanceID,
+						StdErr: fmt.Sprintf("Found container name, %s, but missing function, %s",
+							inputStruct.ContainerName, inputStruct.FunctionName),
+					},
+					false,
+				)
+				if err != nil {
+					logging.LogError(err, "failed to send custom eventing response back to Mythic")
+					continue
+				}
+				break
+			}
+
 		}
 	}
 }

@@ -74,20 +74,24 @@ func SyncConsumingContainerData(consumingContainerName string, consumingType str
 		if err != nil {
 			logging.LogError(err, "Failed to serialize consuming container message to json, %s", err.Error())
 			time.Sleep(RETRY_CONNECT_DELAY)
+			continue
 		}
 		resp, err := RabbitMQConnection.SendRPCMessage(MYTHIC_EXCHANGE, CONSUMING_CONTAINER_SYNC_ROUTING_KEY, syncMessageJson, true)
 		if err != nil {
 			logging.LogError(err, "Failed to send consuming container to Mythic")
 			time.Sleep(RETRY_CONNECT_DELAY)
+			continue
 		}
 		err = json.Unmarshal(resp, &response)
 		if err != nil {
 			logging.LogError(err, "Failed to marshal sync response back to struct")
 			time.Sleep(RETRY_CONNECT_DELAY)
+			continue
 		}
 		if !response.Success {
 			logging.LogError(errors.New(response.Error), "waiting and trying again...")
 			time.Sleep(RETRY_CONNECT_DELAY)
+			continue
 		}
 		logging.LogInfo("Successfully synced consuming container!", "name", consumingContainerName,
 			"type", consumingType)

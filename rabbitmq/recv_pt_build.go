@@ -43,16 +43,19 @@ func WrapPayloadBuild(msg []byte) {
 			payloadBuildResponse.Success = false
 		}
 	}
-	err = RabbitMQConnection.SendStructMessage(
-		MYTHIC_EXCHANGE,
-		PT_BUILD_RESPONSE_ROUTING_KEY,
-		"",
-		payloadBuildResponse,
-		false,
-	)
-	if err != nil {
-		logging.LogError(err, "Failed to send payload response back to Mythic")
+	for {
+		err = RabbitMQConnection.SendStructMessage(
+			MYTHIC_EXCHANGE,
+			PT_BUILD_RESPONSE_ROUTING_KEY,
+			"",
+			payloadBuildResponse,
+			false,
+		)
+		if err != nil {
+			logging.LogError(err, "Failed to send payload response back to Mythic")
+			continue
+		}
+		logging.LogDebug("Finished processing payload build message")
+		return
 	}
-	logging.LogDebug("Finished processing payload build message")
-
 }

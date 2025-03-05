@@ -18,17 +18,21 @@ type MythicRPCC2UpdateStatusMessageResponse struct {
 // SendMythicRPCCallbackCreate - Register a new callback within Mythic
 func SendMythicRPCC2UpdateStatus(input MythicRPCC2UpdateStatusMessage) (*MythicRPCC2UpdateStatusMessageResponse, error) {
 	response := MythicRPCC2UpdateStatusMessageResponse{}
-	if responseBytes, err := RabbitMQConnection.SendRPCStructMessage(
-		MYTHIC_EXCHANGE,
-		MYTHIC_RPC_C2_UPDATE_STATUS,
-		input,
-	); err != nil {
-		logging.LogError(err, "Failed to send RPC message")
-		return nil, err
-	} else if err := json.Unmarshal(responseBytes, &response); err != nil {
-		logging.LogError(err, "Failed to parse response back to struct", "response", response)
-		return nil, err
-	} else {
+	for {
+		responseBytes, err := RabbitMQConnection.SendRPCStructMessage(
+			MYTHIC_EXCHANGE,
+			MYTHIC_RPC_C2_UPDATE_STATUS,
+			input,
+		)
+		if err != nil {
+			logging.LogError(err, "Failed to send RPC message")
+			continue
+		}
+		err = json.Unmarshal(responseBytes, &response)
+		if err != nil {
+			logging.LogError(err, "Failed to parse response back to struct", "response", response)
+			return nil, err
+		}
 		return &response, nil
 	}
 }

@@ -29,34 +29,47 @@ func processConditionalCheckEventingFunction(input []byte) {
 					go func(incomingMessage eventingstructs.ConditionalCheckEventingMessage) {
 						response := eventingstructs.AllEventingData.Get(eventing).GetEventingDefinition().ConditionalChecks[i].Function(incomingMessage)
 						response.EventStepInstanceID = incomingMessage.EventStepInstanceID
-						err = RabbitMQConnection.SendStructMessage(
-							MYTHIC_EXCHANGE,
-							EVENTING_CONDITIONAL_CHECK_RESPONSE,
-							"",
-							response,
-							false,
-						)
-						if err != nil {
-							logging.LogError(err, "Failed to send payload response back to Mythic")
+						for {
+							err = RabbitMQConnection.SendStructMessage(
+								MYTHIC_EXCHANGE,
+								EVENTING_CONDITIONAL_CHECK_RESPONSE,
+								"",
+								response,
+								false,
+							)
+							if err != nil {
+								logging.LogError(err, "Failed to send payload response back to Mythic")
+								continue
+							}
+							break
 						}
+
 					}(inputStruct)
 					return
 				}
 			}
 			logging.LogError(nil, fmt.Sprintf("Found container name, %s, but missing conditional check, %s",
 				inputStruct.ContainerName, inputStruct.FunctionName))
-			err = RabbitMQConnection.SendStructMessage(
-				MYTHIC_EXCHANGE,
-				EVENTING_CONDITIONAL_CHECK_RESPONSE,
-				"",
-				eventingstructs.ConditionalCheckEventingMessageResponse{
-					Success:             false,
-					EventStepInstanceID: inputStruct.EventStepInstanceID,
-					StdErr: fmt.Sprintf("Found container name, %s, but missing conditional check, %s",
-						inputStruct.ContainerName, inputStruct.FunctionName),
-				},
-				false,
-			)
+			for {
+				err = RabbitMQConnection.SendStructMessage(
+					MYTHIC_EXCHANGE,
+					EVENTING_CONDITIONAL_CHECK_RESPONSE,
+					"",
+					eventingstructs.ConditionalCheckEventingMessageResponse{
+						Success:             false,
+						EventStepInstanceID: inputStruct.EventStepInstanceID,
+						StdErr: fmt.Sprintf("Found container name, %s, but missing conditional check, %s",
+							inputStruct.ContainerName, inputStruct.FunctionName),
+					},
+					false,
+				)
+				if err != nil {
+					logging.LogError(err, "failed to send conditional check response back to Mythic")
+					continue
+				}
+				break
+			}
+
 		}
 	}
 }

@@ -22,22 +22,31 @@ func SyncTranslationData(translationName *string) {
 			syncMessage.ContainerVersion = translationstructs.AllTranslationData.Get(pt).GetContainerVersion()
 			//logging.LogDebug("syncing over tr", "tr info", syncMessage)
 			for {
-				if syncMessageJson, err := json.Marshal(syncMessage); err != nil {
-					logging.LogError(err, "Failed to serialize tarnslation service sync message to json, %s", err.Error())
+				syncMessageJson, err := json.Marshal(syncMessage)
+				if err != nil {
+					logging.LogError(err, "Failed to serialize translation service sync message to json, %s", err.Error())
 					time.Sleep(RETRY_CONNECT_DELAY)
-				} else if resp, err := RabbitMQConnection.SendRPCMessage(MYTHIC_EXCHANGE, TR_SYNC_ROUTING_KEY, syncMessageJson, true); err != nil {
+					continue
+				}
+				resp, err := RabbitMQConnection.SendRPCMessage(MYTHIC_EXCHANGE, TR_SYNC_ROUTING_KEY, syncMessageJson, true)
+				if err != nil {
 					logging.LogError(err, "Failed to send translation service to Mythic")
 					time.Sleep(RETRY_CONNECT_DELAY)
-				} else if err := json.Unmarshal(resp, &response); err != nil {
+					continue
+				}
+				err = json.Unmarshal(resp, &response)
+				if err != nil {
 					logging.LogError(err, "Failed to marshal sync response back to struct")
 					time.Sleep(RETRY_CONNECT_DELAY)
-				} else if !response.Success {
+					continue
+				}
+				if !response.Success {
 					logging.LogError(nil, response.Error)
 					time.Sleep(RETRY_CONNECT_DELAY)
-				} else {
-					logging.LogInfo("Successfully synced translation service!", "name", pt)
-					break
+					continue
 				}
+				logging.LogInfo("Successfully synced translation service!", "name", pt)
+				break
 			}
 		}
 	}

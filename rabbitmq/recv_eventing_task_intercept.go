@@ -32,33 +32,45 @@ func processTaskInterceptEventingFunction(input []byte) {
 					if response.BlockTask && response.BypassRole == "" {
 						response.BypassRole = eventingstructs.OPSEC_ROLE_OPERATOR
 					}
-					err = RabbitMQConnection.SendStructMessage(
-						MYTHIC_EXCHANGE,
-						EVENTING_TASK_INTERCEPT_RESPONSE,
-						"",
-						response,
-						false,
-					)
-					if err != nil {
-						logging.LogError(err, "Failed to send payload response back to Mythic")
+					for {
+						err = RabbitMQConnection.SendStructMessage(
+							MYTHIC_EXCHANGE,
+							EVENTING_TASK_INTERCEPT_RESPONSE,
+							"",
+							response,
+							false,
+						)
+						if err != nil {
+							logging.LogError(err, "Failed to send payload response back to Mythic")
+							continue
+						}
+						break
 					}
+
 				}(inputStruct)
 				return
 			}
 			logging.LogError(nil, fmt.Sprintf("Found container name, %s, but missing task intercept function",
 				inputStruct.ContainerName))
-			err = RabbitMQConnection.SendStructMessage(
-				MYTHIC_EXCHANGE,
-				EVENTING_TASK_INTERCEPT_RESPONSE,
-				"",
-				eventingstructs.TaskInterceptMessageResponse{
-					Success:             false,
-					EventStepInstanceID: inputStruct.EventStepInstanceID,
-					StdErr: fmt.Sprintf("Found container name, %s, but missing task intercept function",
-						inputStruct.ContainerName),
-				},
-				false,
-			)
+			for {
+				err = RabbitMQConnection.SendStructMessage(
+					MYTHIC_EXCHANGE,
+					EVENTING_TASK_INTERCEPT_RESPONSE,
+					"",
+					eventingstructs.TaskInterceptMessageResponse{
+						Success:             false,
+						EventStepInstanceID: inputStruct.EventStepInstanceID,
+						StdErr: fmt.Sprintf("Found container name, %s, but missing task intercept function",
+							inputStruct.ContainerName),
+					},
+					false,
+				)
+				if err != nil {
+					logging.LogError(err, "failed to send tack intercept response back to mythic")
+					continue
+				}
+				break
+			}
 		}
 	}
 }

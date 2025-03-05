@@ -41,13 +41,18 @@ func processPtOnNewCallbackMessages(msg []byte) {
 }
 
 func sendOnNewCallbackResponse(response agentstructs.PTOnNewCallbackResponse) {
-	if err := RabbitMQConnection.SendStructMessage(
-		MYTHIC_EXCHANGE,
-		PT_ON_NEW_CALLBACK_RESPONSE_ROUTING_KEY,
-		"",
-		response,
-		false,
-	); err != nil {
-		logging.LogError(err, "Failed to send payload response back to Mythic")
+	for {
+		err := RabbitMQConnection.SendStructMessage(
+			MYTHIC_EXCHANGE,
+			PT_ON_NEW_CALLBACK_RESPONSE_ROUTING_KEY,
+			"",
+			response,
+			false,
+		)
+		if err != nil {
+			logging.LogError(err, "Failed to send payload response back to Mythic")
+			continue
+		}
+		return
 	}
 }

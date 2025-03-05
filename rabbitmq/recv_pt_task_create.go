@@ -89,13 +89,18 @@ func processPtTaskCreateMessages(msg []byte) {
 }
 
 func sendTaskCreateResponse(response ptTaskCreateTaskingMessageResponseWrapper) {
-	if err := RabbitMQConnection.SendStructMessage(
-		MYTHIC_EXCHANGE,
-		PT_TASK_CREATE_TASKING_RESPONSE,
-		"",
-		response,
-		false,
-	); err != nil {
-		logging.LogError(err, "Failed to send payload response back to Mythic")
+	for {
+		err := RabbitMQConnection.SendStructMessage(
+			MYTHIC_EXCHANGE,
+			PT_TASK_CREATE_TASKING_RESPONSE,
+			"",
+			response,
+			false,
+		)
+		if err != nil {
+			logging.LogError(err, "Failed to send payload response back to Mythic")
+			continue
+		}
+		return
 	}
 }

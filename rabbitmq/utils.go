@@ -78,83 +78,88 @@ func (r *rabbitMQConnection) SendMessage(exchange string, queue string, correlat
 	for {
 		conn, err := r.GetConnection()
 		if err != nil {
+			logging.LogError(err, "failed to get rabbitmq connection", "queue", queue)
+			time.Sleep(RPC_TIMEOUT)
 			continue
 		}
 		ch, err := conn.Channel()
 		if err != nil {
-			logging.LogError(err, "Failed to open rabbitmq channel")
+			logging.LogError(err, "Failed to open rabbitmq channel", "queue", queue)
+			time.Sleep(RPC_TIMEOUT)
 			continue
 		}
 		err = ch.Confirm(false)
 		if err != nil {
-			logging.LogError(err, "Channel could not be put into confirm mode")
+			logging.LogError(err, "Channel could not be put into confirm mode", "queue", queue)
 			ch.Close()
+			time.Sleep(RPC_TIMEOUT)
 			continue
 		}
 		confirmChannel := ch.NotifyPublish(make(chan amqp.Confirmation, 1))
 		notifyReturnChannel := ch.NotifyReturn(make(chan amqp.Return, 1))
-		for attempt := 0; attempt < 3; attempt++ {
-			msg := amqp.Publishing{
-				ContentType:   "application/json",
-				CorrelationId: correlationId,
-				Body:          body,
-			}
-			err = ch.Publish(
-				exchange, // exchange
-				queue,    // routing key
-				true,     // mandatory
-				false,    // immediate
-				msg,      // publishing
-			)
-			if err != nil {
-				logging.LogError(err, "there was an error publishing a message", "queue", queue)
+		msg := amqp.Publishing{
+			ContentType:   "application/json",
+			CorrelationId: correlationId,
+			Body:          body,
+		}
+		err = ch.Publish(
+			exchange, // exchange
+			queue,    // routing key
+			true,     // mandatory
+			false,    // immediate
+			msg,      // publishing
+		)
+		if err != nil {
+			logging.LogError(err, "there was an error publishing a message", "queue", queue)
+			ch.Close()
+			time.Sleep(RPC_TIMEOUT)
+			continue
+		}
+		select {
+		case ntf := <-confirmChannel:
+			ch.Close()
+			if !ntf.Ack {
+				err = errors.New("Failed to deliver message, not ACK-ed by receiver")
+				logging.LogError(err, "failed to deliver message to exchange/queue, notifyPublish")
 				time.Sleep(RPC_TIMEOUT)
 				continue
 			}
-			select {
-			case ntf := <-confirmChannel:
-				if !ntf.Ack {
-					err = errors.New("Failed to deliver message, not ACK-ed by receiver")
-					logging.LogError(err, "failed to deliver message to exchange/queue, notifyPublish")
-					time.Sleep(RPC_TIMEOUT)
-					continue
-				}
-			case ret := <-notifyReturnChannel:
-				err = errors.New(getMeaningfulRabbitmqError(ret))
-				if !ignoreErrormessage {
-					logging.LogError(err, "failed to deliver message to exchange/queue, NotifyReturn", "errorCode", ret.ReplyCode, "errorText", ret.ReplyText)
-				}
-				time.Sleep(RPC_TIMEOUT)
-				continue
-			case <-time.After(RPC_TIMEOUT):
-				err = errors.New("Message delivery confirmation timed out")
-				logging.LogError(err, "message delivery confirmation to exchange/queue timed out")
-				continue
+			return nil
+		case ret := <-notifyReturnChannel:
+			err = errors.New(getMeaningfulRabbitmqError(ret))
+			if !ignoreErrormessage {
+				logging.LogError(err, "failed to deliver message to exchange/queue, NotifyReturn", "errorCode", ret.ReplyCode, "errorText", ret.ReplyText)
 			}
 			ch.Close()
-			return nil
+			time.Sleep(RPC_TIMEOUT)
+			continue
+		case <-time.After(RPC_TIMEOUT):
+			err = errors.New("Message delivery confirmation timed out")
+			logging.LogError(err, "message delivery confirmation to exchange/queue timed out")
+			ch.Close()
+			continue
 		}
-		logging.LogError(err, "failed 3 times")
-		ch.Close()
-		continue
 	}
 }
 func (r *rabbitMQConnection) SendRPCMessage(exchange string, queue string, body []byte, exclusiveQueue bool) ([]byte, error) {
 	for {
 		conn, err := r.GetConnection()
 		if err != nil {
-			logging.LogError(err, "failed to get connection")
+			logging.LogError(err, "failed to get connection", "queue", queue)
+			time.Sleep(RPC_TIMEOUT)
 			continue
 		}
 		ch, err := conn.Channel()
 		if err != nil {
-			logging.LogError(err, "Failed to open rabbitmq channel")
+			logging.LogError(err, "Failed to open rabbitmq channel", "queue", queue)
+			time.Sleep(RPC_TIMEOUT)
 			continue
 		}
 		err = ch.Confirm(false)
 		if err != nil {
 			logging.LogError(err, "Channel could not be put into confirm mode")
 			ch.Close()
+			time.Sleep(RPC_TIMEOUT)
 			continue
 		}
 		err = ch.ExchangeDeclare(
@@ -168,6 +173,8 @@ func (r *rabbitMQConnection) SendRPCMessage(exchange string, queue string, body 
 		)
 		if err != nil {
 			logging.LogError(err, "Failed to declare exchange", "exchange", exchange, "exchange_type", "direct", "retry_wait_time", RETRY_CONNECT_DELAY)
+			ch.Close()
+			time.Sleep(RPC_TIMEOUT)
 			continue
 		}
 		msgs, err := ch.Consume(
@@ -180,64 +187,65 @@ func (r *rabbitMQConnection) SendRPCMessage(exchange string, queue string, body 
 			nil,                     // args
 		)
 		if err != nil {
-			logging.LogError(err, "Failed to start consuming for RPC replies")
+			logging.LogError(err, "Failed to start consuming for RPC replies", "queue", queue)
 			ch.Close()
+			time.Sleep(RPC_TIMEOUT)
 			continue
 		}
 		confirmChannel := ch.NotifyPublish(make(chan amqp.Confirmation, 1))
 		notifyReturnChannel := ch.NotifyReturn(make(chan amqp.Return, 1))
-		for attempt := 0; attempt < 3; attempt++ {
-			msg := amqp.Publishing{
-				ContentType:   "application/json",
-				CorrelationId: uuid.NewString(),
-				Body:          body,
-				ReplyTo:       "amq.rabbitmq.reply-to",
-			}
-			err = ch.Publish(
-				exchange, // exchange
-				queue,    // routing key
-				true,     // mandatory
-				false,    // immediate
-				msg,      // publishing
-			)
-			if err != nil {
-				logging.LogError(err, "there was an error publishing a message, trying again", "queue", queue)
-				time.Sleep(RPC_TIMEOUT)
-				continue
-			}
-			select {
-			case ntf := <-confirmChannel:
-				if !ntf.Ack {
-					err = errors.New("Failed to deliver message, not ACK-ed by receiver")
-					logging.LogError(err, "failed to deliver message to exchange/queue, notifyPublish, trying again", "queue", queue)
-					time.Sleep(RPC_TIMEOUT)
-					continue
-				}
-			case ret := <-notifyReturnChannel:
-				err = errors.New(getMeaningfulRabbitmqError(ret))
-				logging.LogError(err, "failed to get notify return, trying again")
-				time.Sleep(RPC_TIMEOUT)
-				continue
-			case <-time.After(RPC_TIMEOUT):
-				err = errors.New("message delivery confirmation timed out in SendRPCMessage")
-				logging.LogError(err, "message delivery confirmation to exchange/queue timed out, trying again", "queue", queue)
-				continue
-			}
-			select {
-			case m := <-msgs:
-				logging.LogDebug("Got RPC Reply", "queue", queue)
-				return m.Body, nil
-			case <-time.After(RPC_TIMEOUT):
-				logging.LogError(nil, "Timeout reached waiting for RPC reply, trying again", "queue", queue)
-				err = errors.New("Timeout reached waiting for RPC reply")
-				continue
-			}
+		msg := amqp.Publishing{
+			ContentType:   "application/json",
+			CorrelationId: uuid.NewString(),
+			Body:          body,
+			ReplyTo:       "amq.rabbitmq.reply-to",
 		}
-		logging.LogError(err, "failed 3 times")
-		ch.Close()
-		continue
+		err = ch.Publish(
+			exchange, // exchange
+			queue,    // routing key
+			true,     // mandatory
+			false,    // immediate
+			msg,      // publishing
+		)
+		if err != nil {
+			logging.LogError(err, "there was an error publishing a message, trying again", "queue", queue)
+			ch.Close()
+			time.Sleep(RPC_TIMEOUT)
+			continue
+		}
+		select {
+		case ntf := <-confirmChannel:
+			if !ntf.Ack {
+				err = errors.New("Failed to deliver message, not ACK-ed by receiver")
+				logging.LogError(err, "failed to deliver message to exchange/queue, notifyPublish, trying again", "queue", queue)
+				ch.Close()
+				time.Sleep(RPC_TIMEOUT)
+				continue
+			}
+		case ret := <-notifyReturnChannel:
+			err = errors.New(getMeaningfulRabbitmqError(ret))
+			logging.LogError(err, "failed to get notify return, trying again", "queue", queue)
+			ch.Close()
+			time.Sleep(RPC_TIMEOUT)
+			continue
+		case <-time.After(RPC_TIMEOUT):
+			err = errors.New("message delivery confirmation timed out in SendRPCMessage")
+			logging.LogError(err, "message delivery confirmation to exchange/queue timed out, trying again", "queue", queue)
+			ch.Close()
+			continue
+		}
+		select {
+		case m := <-msgs:
+			logging.LogDebug("Got RPC Reply", "queue", queue)
+			ch.Close()
+			return m.Body, nil
+		case <-time.After(RPC_TIMEOUT):
+			logging.LogError(nil, "Timeout reached waiting for RPC reply, trying again", "queue", queue)
+			err = errors.New("Timeout reached waiting for RPC reply")
+			ch.Close()
+			continue
+		}
 	}
-
 }
 func (r *rabbitMQConnection) ReceiveFromMythicDirectExchange(exchange string, queue string, routingKey string, handler QueueHandler, exclusiveQueue bool, wg *sync.WaitGroup) {
 	// exchange is a direct exchange
@@ -245,94 +253,16 @@ func (r *rabbitMQConnection) ReceiveFromMythicDirectExchange(exchange string, qu
 	// routingKey is the specific direct topic we're interested in for the exchange
 	// handler processes the messages we get on our queue
 	for {
-		if conn, err := r.GetConnection(); err != nil {
-			logging.LogError(err, "Failed to connect to rabbitmq", "retry_wait_time", RETRY_CONNECT_DELAY)
-			time.Sleep(RETRY_CONNECT_DELAY)
-			continue
-		} else if ch, err := conn.Channel(); err != nil {
-			logging.LogError(err, "Failed to open rabbitmq channel", "retry_wait_time", RETRY_CONNECT_DELAY)
-			time.Sleep(RETRY_CONNECT_DELAY)
-			continue
-		} else if err = ch.ExchangeDeclare(
-			exchange, // exchange name
-			"direct", // type of exchange, ex: topic, fanout, direct, etc
-			true,     // durable
-			true,     // auto-deleted
-			false,    // internal
-			false,    // no-wait
-			nil,      // arguments
-		); err != nil {
-			logging.LogError(err, "Failed to declare exchange", "exchange", exchange, "exchange_type", "direct", "retry_wait_time", RETRY_CONNECT_DELAY)
-			time.Sleep(RETRY_CONNECT_DELAY)
-			continue
-		} else if q, err := ch.QueueDeclare(
-			queue,          // name, queue
-			false,          // durable
-			true,           // delete when unused
-			exclusiveQueue, // exclusive
-			false,          // no-wait
-			nil,            // arguments
-		); err != nil {
-			logging.LogError(err, "Failed to declare queue", "retry_wait_time", RETRY_CONNECT_DELAY)
-			ch.Close()
-			time.Sleep(RETRY_CONNECT_DELAY)
-			continue
-		} else if err = ch.QueueBind(
-			q.Name,     // queue name
-			routingKey, // routing key
-			exchange,   // exchange name
-			false,      // nowait
-			nil,        // arguments
-		); err != nil {
-			logging.LogError(err, "Failed to bind to queue to receive messages", "retry_wait_time", RETRY_CONNECT_DELAY)
-			ch.Close()
-			time.Sleep(RETRY_CONNECT_DELAY)
-			continue
-		} else if msgs, err := ch.Consume(
-			q.Name, // queue name
-			"",     // consumer
-			true,   // auto-ack
-			false,  // exclusive
-			false,  // no local
-			false,  // no wait
-			nil,    // args
-		); err != nil {
-			logging.LogError(err, "Failed to start consuming on queue", "queue", q.Name)
-			ch.Close()
-		} else {
-			forever := make(chan bool)
-			go func() {
-				for d := range msgs {
-					go handler(d.Body)
-				}
-				forever <- true
-			}()
-			logging.LogInfo("Started listening for messages", "exchange", exchange, "queue", queue, "routingKey", routingKey)
-			if wg != nil {
-				wg.Done()
-				wg = nil
-			}
-			<-forever
-			ch.Close()
-			logging.LogError(nil, "Stopped listening for messages", "exchange", exchange, "queue", queue, "routingKey", routingKey)
-		}
-
-	}
-}
-func (r *rabbitMQConnection) ReceiveFromRPCQueue(exchange string, queue string, routingKey string, handler RPCQueueHandler, exclusiveQueue bool, wg *sync.WaitGroup) {
-	var resumeMessage amqp.Delivery
-	var resumeResponse []byte = nil
-	for {
 		conn, err := r.GetConnection()
 		if err != nil {
-			logging.LogError(err, "Failed to connect to rabbitmq", "retry_wait_time", RETRY_CONNECT_DELAY)
-			time.Sleep(RETRY_CONNECT_DELAY)
+			logging.LogError(err, "Failed to connect to rabbitmq", "retry_wait_time", RPC_TIMEOUT)
+			time.Sleep(RPC_TIMEOUT)
 			continue
 		}
 		ch, err := conn.Channel()
 		if err != nil {
-			logging.LogError(err, "Failed to open rabbitmq channel", "retry_wait_time", RETRY_CONNECT_DELAY)
-			time.Sleep(RETRY_CONNECT_DELAY)
+			logging.LogError(err, "Failed to open rabbitmq channel", "retry_wait_time", RPC_TIMEOUT)
+			time.Sleep(RPC_TIMEOUT)
 			continue
 		}
 		err = ch.ExchangeDeclare(
@@ -345,8 +275,9 @@ func (r *rabbitMQConnection) ReceiveFromRPCQueue(exchange string, queue string, 
 			nil,      // arguments
 		)
 		if err != nil {
-			logging.LogError(err, "Failed to declare exchange", "exchange", exchange, "exchange_type", "direct", "retry_wait_time", RETRY_CONNECT_DELAY)
-			time.Sleep(RETRY_CONNECT_DELAY)
+			logging.LogError(err, "Failed to declare exchange", "exchange", exchange, "exchange_type", "direct", "retry_wait_time", RPC_TIMEOUT)
+			ch.Close()
+			time.Sleep(RPC_TIMEOUT)
 			continue
 		}
 		q, err := ch.QueueDeclare(
@@ -358,9 +289,9 @@ func (r *rabbitMQConnection) ReceiveFromRPCQueue(exchange string, queue string, 
 			nil,            // arguments
 		)
 		if err != nil {
-			logging.LogError(err, "Failed to declare queue", "retry_wait_time", RETRY_CONNECT_DELAY)
+			logging.LogError(err, "Failed to declare queue", "retry_wait_time", RPC_TIMEOUT, "queue", queue)
 			ch.Close()
-			time.Sleep(RETRY_CONNECT_DELAY)
+			time.Sleep(RPC_TIMEOUT)
 			continue
 		}
 		err = ch.QueueBind(
@@ -371,9 +302,99 @@ func (r *rabbitMQConnection) ReceiveFromRPCQueue(exchange string, queue string, 
 			nil,        // arguments
 		)
 		if err != nil {
-			logging.LogError(err, "Failed to bind to queue to receive messages", "retry_wait_time", RETRY_CONNECT_DELAY)
-			time.Sleep(RETRY_CONNECT_DELAY)
+			logging.LogError(err, "Failed to bind to queue to receive messages", "retry_wait_time", RPC_TIMEOUT, "queue", queue)
 			ch.Close()
+			time.Sleep(RPC_TIMEOUT)
+			continue
+		}
+		msgs, err := ch.Consume(
+			q.Name, // queue name
+			"",     // consumer
+			true,   // auto-ack
+			false,  // exclusive
+			false,  // no local
+			false,  // no wait
+			nil,    // args
+		)
+		if err != nil {
+			logging.LogError(err, "Failed to start consuming on queue", "queue", q.Name)
+			ch.Close()
+			time.Sleep(RPC_TIMEOUT)
+			continue
+		}
+		forever := make(chan bool)
+		go func() {
+			for d := range msgs {
+				go handler(d.Body)
+			}
+			forever <- true
+		}()
+		logging.LogInfo("Started listening for messages", "exchange", exchange, "queue", queue, "routingKey", routingKey)
+		if wg != nil {
+			wg.Done()
+			wg = nil
+		}
+		<-forever
+		ch.Close()
+		logging.LogError(nil, "Stopped listening for messages", "exchange", exchange, "queue", queue, "routingKey", routingKey)
+	}
+}
+func (r *rabbitMQConnection) ReceiveFromRPCQueue(exchange string, queue string, routingKey string, handler RPCQueueHandler, exclusiveQueue bool, wg *sync.WaitGroup) {
+	var resumeMessage amqp.Delivery
+	var resumeResponse []byte = nil
+	for {
+		conn, err := r.GetConnection()
+		if err != nil {
+			logging.LogError(err, "Failed to connect to rabbitmq", "retry_wait_time", RPC_TIMEOUT, "queue", queue)
+			time.Sleep(RPC_TIMEOUT)
+			continue
+		}
+		ch, err := conn.Channel()
+		if err != nil {
+			logging.LogError(err, "Failed to open rabbitmq channel", "retry_wait_time", RPC_TIMEOUT, "queue", queue)
+			time.Sleep(RPC_TIMEOUT)
+			continue
+		}
+		err = ch.ExchangeDeclare(
+			exchange, // exchange name
+			"direct", // type of exchange, ex: topic, fanout, direct, etc
+			true,     // durable
+			true,     // auto-deleted
+			false,    // internal
+			false,    // no-wait
+			nil,      // arguments
+		)
+		if err != nil {
+			logging.LogError(err, "Failed to declare exchange", "exchange", exchange, "exchange_type", "direct", "retry_wait_time", RPC_TIMEOUT, "queue", queue)
+			ch.Close()
+			time.Sleep(RPC_TIMEOUT)
+			continue
+		}
+		q, err := ch.QueueDeclare(
+			queue,          // name, queue
+			true,           // durable
+			true,           // delete when unused
+			exclusiveQueue, // exclusive
+			false,          // no-wait
+			nil,            // arguments
+		)
+		if err != nil {
+			logging.LogError(err, "Failed to declare queue", "retry_wait_time", RPC_TIMEOUT, "queue", queue)
+			ch.Close()
+			time.Sleep(RPC_TIMEOUT)
+			continue
+		}
+		err = ch.QueueBind(
+			q.Name,     // queue name
+			routingKey, // routing key
+			exchange,   // exchange name
+			false,      // nowait
+			nil,        // arguments
+		)
+		if err != nil {
+			logging.LogError(err, "Failed to bind to queue to receive messages", "retry_wait_time", RPC_TIMEOUT, "queue", queue)
+			ch.Close()
+			time.Sleep(RPC_TIMEOUT)
 			continue
 		}
 		msgs, err := ch.Consume(

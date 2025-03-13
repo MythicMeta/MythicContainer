@@ -10,7 +10,7 @@ type ConditionalCheckEventingMessage struct {
 }
 type ConditionalCheckEventingMessageResponse struct {
 	EventStepInstanceID int                    `json:"eventstepinstance_id" mapstructure:"eventstepinstance_id"`
-	Success             bool                   `json:"action_success" mapstructure:"action_success"`
+	Success             bool                   `json:"success" mapstructure:"success"`
 	StdOut              string                 `json:"stdout" mapstructure:"stdout"`
 	StdErr              string                 `json:"stderr" mapstructure:"stderr"`
 	Outputs             map[string]interface{} `json:"outputs" mapstructure:"outputs"`

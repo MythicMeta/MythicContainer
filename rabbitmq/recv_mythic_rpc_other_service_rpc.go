@@ -44,7 +44,7 @@ func C2OtherServiceRPC(input c2structs.C2RPCOtherServiceRPCMessage) c2structs.C2
 	if c2structs.AllC2Data.Get(input.ServiceName).GetC2Definition().CustomRPCFunctions != nil {
 		for name, _ := range c2structs.AllC2Data.Get(input.ServiceName).GetC2Definition().CustomRPCFunctions {
 			if name == input.ServiceRPCFunction {
-				return c2structs.AllC2Data.Get(input.ServiceName).GetC2Definition().CustomRPCFunctions[input.ServiceRPCFunction](input)
+				responseMsg = c2structs.AllC2Data.Get(input.ServiceName).GetC2Definition().CustomRPCFunctions[input.ServiceRPCFunction](input)
 			}
 		}
 	}

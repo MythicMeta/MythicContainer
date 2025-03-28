@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
  
+## [v1.4.21] - 2025-03-28
+
+### Changed
+
+- Updated the C2RPCOtherServiceRPCMessageResponse to support indicating a RestartInternalService field
+  - this allows c2 services to indicate a restart is necessary of their internal services
+  - this function was returning without checking this response field first
+- Added SearchParentTaskID option for MythicRPCTaskSearch
+  - Needs Mythic 3.3.1-rc56
+- Updated DynamicQueryFunction definition
+  - You can now access OtherParameters which are the other parameters and their values
+  - Needs Mythic 3.3.1-rc56
+- New MythicRPC calls related to tags
+  - Needs Mythic 3.3.1-rc56
+- New ability to intercept interactive tasking follow-on messages in task
+  - Needs Mythic 3.3.1-rc56
+  
 ## [v1.4.20] - 2025-03-13
 
 ### Changed

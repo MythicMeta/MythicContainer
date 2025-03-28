@@ -47,7 +47,9 @@ func processPtTaskCreateMessages(msg []byte) {
 					"",
 				}
 				if finalResponse.Success {
-					if requiredArgsHaveValues, err := incomingMessage.Args.VerifyRequiredArgsHaveValues(); err != nil {
+					if incomingMessage.Task.IsInteractiveTask {
+						finalResponse.Params = incomingMessage.Args.GetFinalInteractiveTaskingArgs()
+					} else if requiredArgsHaveValues, err := incomingMessage.Args.VerifyRequiredArgsHaveValues(); err != nil {
 						logging.LogError(err, "Failed to verify if all required args have values")
 						finalResponse.Success = false
 						finalResponse.Error = fmt.Sprintf("Failed to verify if all required args have values:\n%s", err.Error())

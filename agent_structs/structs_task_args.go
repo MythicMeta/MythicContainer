@@ -475,6 +475,12 @@ func (arg *PTTaskMessageArgsData) GetFinalArgs() (string, error) {
 		}
 	}
 }
+func (arg *PTTaskMessageArgsData) GetFinalInteractiveTaskingArgs() string {
+	if arg.manualArgs != nil {
+		return *arg.manualArgs
+	}
+	return arg.GetCommandLine()
+}
 func (arg *PTTaskMessageArgsData) GetUnusedArgs() string {
 	if arg.manualArgs != nil {
 		return "Manual args explicitly set, all args unused\n"

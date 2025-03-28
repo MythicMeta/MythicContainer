@@ -17,6 +17,7 @@ type MythicRPCTaskSearchMessage struct {
 	SearchCompleted     *bool     `json:"completed,omitempty"`
 	SearchCommandNames  *[]string `json:"command_names,omitempty"`
 	SearchParams        *string   `json:"params,omitempty"`
+	SearchParentTaskID  *int      `json:"parent_task_id,omitempty"`
 }
 
 // Every mythicRPC function call must return a response that includes the following two values

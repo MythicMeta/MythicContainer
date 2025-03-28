@@ -21,8 +21,13 @@ type PTRPCDynamicQueryFunctionMessage struct {
 	AgentCallbackID string `json:"agent_callback_id"`
 	// Secrets - User supplied secrets
 	Secrets map[string]interface{} `json:"secrets"`
+	// OtherParameters - other user supplied parameters
+	OtherParameters map[string]interface{} `json:"other_parameters"`
 }
-
+type PTRPCDynamicQueryFunctionMessageComplexChoice struct {
+	DisplayValue string `json:"display_value"`
+	Value        string `json:"value"`
+}
 type PTRPCDynamicQueryFunctionMessageResponse struct {
 	// Success - indicating if the query function succeeded or not
 	Success bool `json:"success"`
@@ -30,4 +35,6 @@ type PTRPCDynamicQueryFunctionMessageResponse struct {
 	Error string `json:"error"`
 	// Choices - the resulting choices for the user based on the dynamic query function
 	Choices []string `json:"choices"`
+	// ComplexChoices - the ability to specify a value and display value for more complex usability
+	//ComplexChoices []PTRPCDynamicQueryFunctionMessageComplexChoice `json:"complex_choices"`
 }

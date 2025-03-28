@@ -245,6 +245,11 @@ const (
 	// MYTHIC_RPC_OTHER_SERVICES_RPC
 	MYTHIC_RPC_OTHER_SERVICES_RPC = "mythic_rpc_other_service_rpc"
 	MYTHIC_RPC_APITOKEN_CREATE    = "mythic_rpc_apitoken_create"
+	// MYTHIC_RPC_TAG
+	MYTHIC_RPC_TAG_SEARCH = "mythic_rpc_tag_search"
+	MYTHIC_RPC_TAG_CREATE = "mythic_rpc_tag_create"
+	// MYTHIC_RPC_TAGTYPE
+	MYTHIC_RPC_TAGTYPE_GET_OR_CREATE = "mythic_rpc_tag_type_get_or_create"
 	// C2
 	MYTHIC_RPC_C2_UPDATE_STATUS = "mythic_rpc_c2_update_status"
 	// blank

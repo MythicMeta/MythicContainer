@@ -667,6 +667,10 @@ func prepTaskArgs(command agentstructs.Command, taskMessage *agentstructs.PTTask
 		return errors.New(fmt.Sprintf("Failed to generate args data:\n%s", err.Error()))
 	}
 	taskMessage.Args = args
+	if taskMessage.Task.IsInteractiveTask {
+		// don't bother trying to parse arguments for interactive follow-ons, it doesn't make sense
+		return nil
+	}
 	switch taskMessage.Args.GetTaskingLocation() {
 	case "command_line":
 		if command.TaskFunctionParseArgString != nil {

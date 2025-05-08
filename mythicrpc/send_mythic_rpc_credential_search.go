@@ -23,6 +23,7 @@ type MythicRPCCredentialSearchCredentialData struct {
 	Credential *string `json:"credential"` // optional
 	Comment    *string `json:"comment"`    // optional
 	Metadata   *string `json:"metadata"`   // optional
+	Task_ID    int     `json:"task_id"`    // optional
 }
 
 func SendMythicRPCCredentialSearch(input MythicRPCCredentialSearchMessage) (*MythicRPCCredentialSearchMessageResponse, error) {

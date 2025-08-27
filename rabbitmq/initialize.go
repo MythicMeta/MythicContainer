@@ -155,6 +155,9 @@ func (r *rabbitMQConnection) startListeners(services []string) {
 						subscriptions = append(subscriptions, loggingstructs.LOG_TYPE_RESPONSE)
 					}
 				case "container_on_start":
+					if loggingDef.OnContainerStartFunction != nil {
+						listenerExists = true
+					}
 				default:
 				}
 				if listenerExists {
@@ -219,6 +222,9 @@ func (r *rabbitMQConnection) startListeners(services []string) {
 						subscriptions = append(subscriptions, webhookstructs.WEBHOOK_TYPE_NEW_CUSTOM)
 					}
 				case "container_on_start":
+					if webhookDef.OnContainerStartFunction != nil {
+						listenerExists = true
+					}
 				default:
 					logging.LogError(nil, "Unknown webhook type in rabbitmq initialize", "webhook type", directQueue.RabbitmqRoutingKey)
 				}
@@ -314,6 +320,16 @@ func (r *rabbitMQConnection) startListeners(services []string) {
 						translationstructs.AllTranslationData.Get(pt).GetRoutingKey(rpcQueue.RabbitmqRoutingKey),
 						rpcQueue.RabbitmqProcessingFunction,
 						!exclusiveQueue,
+						nil,
+					)
+				}
+				for _, directQueue := range c2structs.AllC2Data.Get("").GetDirectMethods() {
+					go RabbitMQConnection.ReceiveFromMythicDirectExchange(
+						MYTHIC_EXCHANGE,
+						translationstructs.AllTranslationData.Get(pt).GetRoutingKey(directQueue.RabbitmqRoutingKey),
+						translationstructs.AllTranslationData.Get(pt).GetRoutingKey(directQueue.RabbitmqRoutingKey),
+						directQueue.RabbitmqProcessingFunction,
+						exclusiveQueue,
 						nil,
 					)
 				}

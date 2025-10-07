@@ -7,7 +7,6 @@ import (
 	"github.com/MythicMeta/MythicContainer/logging"
 	"github.com/MythicMeta/MythicContainer/utils/helpers"
 	"github.com/mitchellh/mapstructure"
-	"reflect"
 )
 
 // Args helper functions
@@ -221,7 +220,7 @@ func getTypedValue[T any](value interface{}) (T, error) {
 		return v, nil
 	default:
 		var emptyResult T
-		logging.LogInfo("bad type", "value", value, "type", reflect.TypeOf(value))
+		//logging.LogInfo("bad type", "value", value, "type", reflect.TypeOf(value))
 		return emptyResult, errors.New("bad type for value")
 	}
 }

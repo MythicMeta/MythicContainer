@@ -8,8 +8,10 @@ import (
 )
 
 type AuthDefinition struct {
-	Name                  string   `json:"name"`
-	Description           string   `json:"description"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	// SemVer is a specific semantic version tracker you can use for your payload type
+	SemVer                string   `json:"semver"`
 	IDPServices           []string `json:"idp_services"`
 	NonIDPServices        []string `json:"non_idp_services"`
 	GetIDPMetadata        func(GetIDPMetadataMessage) GetIDPMetadataMessageResponse

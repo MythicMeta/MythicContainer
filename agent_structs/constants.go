@@ -38,3 +38,12 @@ const (
 	MessageFormatJSON MessageFormat = "json"
 	MessageFormatXML                = "xml"
 )
+
+type HideConditionOperand string
+
+const (
+	HideConditionOperandEQ    HideConditionOperand = "eq"
+	HideConditionOperandNotEQ                      = "neq"
+	HideConditionOperandIN                         = "in"
+	HideConditionOperandNotIN                      = "nin"
+)

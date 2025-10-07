@@ -8,9 +8,11 @@ import (
 )
 
 type CustomFunctionDefinition struct {
-	Name        string                                                                `json:"name"`
-	Description string                                                                `json:"description"`
-	Function    func(input NewCustomEventingMessage) NewCustomEventingMessageResponse `json:"-"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	// SemVer is a specific semantic version tracker you can use for your payload type
+	SemVer   string                                                                `json:"semver"`
+	Function func(input NewCustomEventingMessage) NewCustomEventingMessageResponse `json:"-"`
 }
 type ConditionalCheckDefinition struct {
 	Name        string                                                                              `json:"name"`

@@ -10,8 +10,11 @@ import (
 type MESSAGE_LEVEL = string
 
 const (
-	MESSAGE_LEVEL_INFO    MESSAGE_LEVEL = "info"
-	MESSAGE_LEVEL_WARNING               = "warning"
+	MESSAGE_LEVEL_INFO          MESSAGE_LEVEL = "info"
+	MESSAGE_LEVEL_DEBUG         MESSAGE_LEVEL = "debug"
+	MESSAGE_LEVEL_AUTH          MESSAGE_LEVEL = "auth"
+	MESSAGE_LEVEL_AGENT_MESSAGE MESSAGE_LEVEL = "agent_message"
+	MESSAGE_LEVEL_API           MESSAGE_LEVEL = "api"
 )
 
 type MythicRPCOperationEventLogCreateMessage struct {
@@ -22,6 +25,7 @@ type MythicRPCOperationEventLogCreateMessage struct {
 	OperationId     *int    `json:"operation_id"`
 	// the data to store
 	Message      string        `json:"message"`
+	Warning      bool          `json:"warning"`
 	MessageLevel MESSAGE_LEVEL `json:"level"` //info or warning
 }
 type MythicRPCOperationEventLogCreateMessageResponse struct {

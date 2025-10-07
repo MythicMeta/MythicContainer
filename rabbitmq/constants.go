@@ -14,7 +14,7 @@ const (
 
 type CallbackPortType = string
 
-const containerVersion = "v1.3.10"
+const containerVersion = "v1.3.11"
 
 const containerVersionMessage = "This version needs Mythic 3.3.0+"
 
@@ -52,6 +52,7 @@ const (
 	//	Result of handling a task's completion function
 	//		send PTTaskCompletionHandlerMessageResponse to this route
 	PT_TASK_COMPLETION_FUNCTION_RESPONSE = "pt_task_completion_function_response"
+	PT_RPC_COMMAND_HELP_FUNCTION         = "pt_command_help_function"
 	// c2 routes
 	//		send C2SyncMessages to this route
 	C2_SYNC_ROUTING_KEY       = "c2_sync"

@@ -3,8 +3,10 @@ package translationstructs
 import "github.com/MythicMeta/MythicContainer/utils/sharedStructs"
 
 type TranslationContainer struct {
-	Name                          string                                                                                    `json:"name"`
-	Description                   string                                                                                    `json:"description"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	// SemVer is a specific semantic version tracker you can use for your payload type
+	SemVer                        string                                                                                    `json:"semver"`
 	Author                        string                                                                                    `json:"author"`
 	TranslateCustomToMythicFormat TranslateCustomToMythicFormatFunction                                                     `json:"-"`
 	TranslateMythicToCustomFormat TranslateMythicToCustomFormatFunction                                                     `json:"-"`

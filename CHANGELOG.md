@@ -3,7 +3,21 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
- 
+
+## [v1.5.0] - 2025-10-07
+
+### Changed
+
+- Added `semver` fields to all service definitions
+- C2 Profiles can now report back agent_icon and dark_mode_agent_icon just like payload types
+- Payload type build parameters now have a supported_os, group_name, and hide_conditions fields
+  - hide conditions allow you to specify when a specific build parameter should be hidden from user view
+  - group_name allows you to group like-parameters together in the UI
+  - supported_os allows you to limit build parameters to certain OS selections
+- Payload type how has a c2 deviations parameter that allows you to modify fields of supported C2 profiles
+  - for example - alter the defaults, change dropdown options, hide parameters completely
+- Payload type now has option to specify custom `help` function
+
 ## [v1.4.22] - 2025-08-27
 
 ### Changed

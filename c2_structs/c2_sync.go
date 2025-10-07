@@ -35,6 +35,9 @@ type C2Profile struct {
 	IsServerRouted             bool                                                                                      `json:"is_server_routed"`
 	ServerBinaryPath           string                                                                                    `json:"-"`
 	ServerFolderPath           string                                                                                    `json:"-"`
+	SemVer                     string                                                                                    `json:"semver"`
+	AgentIcon                  *[]byte                                                                                   `json:"agent_icon"`
+	DarkModeAgentIcon          *[]byte                                                                                   `json:"dark_mode_agent_icon"`
 	ConfigCheckFunction        func(message C2ConfigCheckMessage) C2ConfigCheckMessageResponse                           `json:"-"`
 	GetRedirectorRulesFunction func(message C2GetRedirectorRuleMessage) C2GetRedirectorRuleMessageResponse               `json:"-"`
 	OPSECCheckFunction         func(message C2OPSECMessage) C2OPSECMessageResponse                                       `json:"-"`

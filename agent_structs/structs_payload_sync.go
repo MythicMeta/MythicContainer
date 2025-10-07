@@ -35,6 +35,13 @@ const (
 	BUILD_PARAMETER_TYPE_TYPED_ARRAY                          = "TypedArray"
 )
 
+type BuildParameterHideCondition struct {
+	Name    string               `json:"name"`
+	Operand HideConditionOperand `json:"operand"`
+	Value   string               `json:"value"`
+	Choices []string             `json:"choices"`
+}
+
 // BuildParameter - A structure defining the metadata about a build parameter for the user to select when building a payload.
 type BuildParameter struct {
 	// Name - the name of the build parameter for use during the Payload Type's build function
@@ -58,7 +65,10 @@ type BuildParameter struct {
 	// Choices - If the ParameterType is ChooseOne or ChooseMultiple, then the options presented to the user are here.
 	Choices []string `json:"choices"`
 	// DictionaryChoices - if the ParameterType is Dictionary, then the dictionary choices/preconfigured data is set here
-	DictionaryChoices []BuildParameterDictionary `json:"dictionary_choices"`
+	DictionaryChoices []BuildParameterDictionary    `json:"dictionary_choices"`
+	GroupName         string                        `json:"group_name"`
+	SupportedOS       []string                      `json:"supported_os"`
+	HideConditions    []BuildParameterHideCondition `json:"hide_conditions"`
 }
 
 // BuildStep - Identification of a step in the build process that's shown to the user to eventually collect start/end time as well as stdout/stderr per step
@@ -93,7 +103,12 @@ type PTRPCOtherServiceRPCMessageResponse struct {
 	agentstructs.AllPayloadData.Get("agentname").AddPayloadDefinition(payloadDefinition)
 	agentstructs.AllPayloadData.Get("agentname").AddBuildFunction(build)
 */
-
+type C2ParameterDeviation struct {
+	Supported         bool                       `json:"supported"`
+	Choices           []string                   `json:"choices"`
+	DictionaryChoices []BuildParameterDictionary `json:"dictionary_choices"`
+	DefaultValue      interface{}                `json:"default_value"`
+}
 type PayloadType struct {
 	// Name - The name of the payload type that appears in the Mythic UI
 	Name string `json:"name"`
@@ -146,6 +161,16 @@ type PayloadType struct {
 	CommandAugmentSupportedAgents []string `json:"command_augment_supported_agents"`
 	// UseDisplayParamsForCLIHistory allows you to leverage custom display parameters for the up/down arrow in history on the cli instead of the task's original_params which might be JSON
 	UseDisplayParamsForCLIHistory bool `json:"use_display_params_for_cli_history"`
+	// SupportsMultipleC2InBuild indicates if you can include multiple c2 in a single build
+	SupportsMultipleC2InBuild bool `json:"supports_multiple_c2_in_build"`
+	// SupportsMultipleC2InstancesInBuild indicates if you can include multiple of a single c2 in a build
+	SupportsMultipleC2InstancesInBuild bool `json:"supports_multiple_c2_instances_in_build"`
+	// SemVer is a specific semantic version tracker you can use for your payload type
+	SemVer string `json:"semver"`
+	// C2ParameterDeviations is a map of c2 profile name -> c2 parameter name -> deviation
+	C2ParameterDeviations map[string]map[string]C2ParameterDeviation `json:"c2_parameter_deviations"`
+	// CommandHelpFunction allows you to provide your own help functions for your agent
+	CommandHelpFunction func(message PTRPCCommandHelpFunctionMessage) PTRPCCommandHelpFunctionMessageResponse `json:"-"`
 }
 
 // Command - The base definition of a command

@@ -29,8 +29,10 @@ const (
 )
 
 type WebhookDefinition struct {
-	Name                     string
-	Description              string
+	Name        string
+	Description string
+	// SemVer is a specific semantic version tracker you can use for your payload type
+	SemVer                   string `json:"semver"`
 	WebhookURL               string
 	WebhookChannel           string
 	NewFeedbackFunction      func(input NewFeedbackWebookMessage)

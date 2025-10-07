@@ -7,6 +7,7 @@ import (
 	"github.com/MythicMeta/MythicContainer/utils/helpers"
 	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
 	"github.com/mitchellh/mapstructure"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -113,6 +114,42 @@ func (r *allC2Data) GetContainerVersion() string {
 func (r *allC2Data) GetServerPath() string {
 	logging.LogInfo("getting server binary path", "path", r.c2Definition.ServerBinaryPath)
 	return r.c2Definition.ServerBinaryPath
+}
+func (r *allC2Data) AddIcon(filePath string) {
+	if r.c2Definition.AgentIcon == nil {
+		if _, err := os.Stat(filePath); err != nil {
+			logging.LogError(err, "Failed to find agent icon")
+			r.c2Definition.AgentIcon = nil
+		} else if file, err := os.Open(filePath); err != nil {
+			r.c2Definition.AgentIcon = nil
+			logging.LogError(err, "Failed to open file path for agent icon")
+			os.Exit(1)
+		} else if agentIcon, err := io.ReadAll(file); err != nil {
+			r.c2Definition.AgentIcon = nil
+			logging.LogError(err, "Failed to read agent icon")
+			os.Exit(1)
+		} else {
+			r.c2Definition.AgentIcon = &agentIcon
+		}
+	}
+}
+func (r *allC2Data) AddDarkModeIcon(filePath string) {
+	if r.c2Definition.DarkModeAgentIcon == nil {
+		if _, err := os.Stat(filePath); err != nil {
+			logging.LogError(err, "Failed to find agent icon")
+			r.c2Definition.DarkModeAgentIcon = nil
+		} else if file, err := os.Open(filePath); err != nil {
+			r.c2Definition.DarkModeAgentIcon = nil
+			logging.LogError(err, "Failed to open file path for agent icon")
+			os.Exit(1)
+		} else if agentIcon, err := io.ReadAll(file); err != nil {
+			r.c2Definition.DarkModeAgentIcon = nil
+			logging.LogError(err, "Failed to read agent icon")
+			os.Exit(1)
+		} else {
+			r.c2Definition.DarkModeAgentIcon = &agentIcon
+		}
+	}
 }
 func (r *allC2Data) AddRPCMethod(m sharedStructs.RabbitmqRPCMethod) {
 	r.mutex.Lock()

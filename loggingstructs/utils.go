@@ -37,8 +37,10 @@ type loggingMessageBase struct {
 }
 
 type LoggingDefinition struct {
-	Name                     string
-	Description              string
+	Name        string
+	Description string
+	// SemVer is a specific semantic version tracker you can use for your payload type
+	SemVer                   string `json:"semver"`
 	LogToFilePath            string
 	LogLevel                 string
 	LogMaxSizeInMB           int

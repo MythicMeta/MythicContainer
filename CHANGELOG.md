@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.5.2] - 2025-10-28
+
+### Changed
+
+- Added UiPosition options for Payload Type Build Parameters and C2 Profile Parameters
+- Added DynamicQueryFunction option for Payload Type Build Parameters
+- Updated the processing for CommandHelpFunction available to Payload Types
+
 ## [v1.5.1] - 2025-10-22
 
 ### Changed

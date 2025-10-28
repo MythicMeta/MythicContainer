@@ -75,6 +75,7 @@ type C2Parameter struct {
 	IsCryptoType      bool                    `json:"crypto_type"`
 	Choices           []string                `json:"choices"`
 	DictionaryChoices []C2ParameterDictionary `json:"dictionary_choices"`
+	UiPosition        int                     `json:"ui_position"`
 }
 
 type C2ParameterDictionary struct {

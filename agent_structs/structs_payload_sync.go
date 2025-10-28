@@ -2,6 +2,7 @@ package agentstructs
 
 import (
 	"encoding/json"
+
 	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
 )
 
@@ -65,10 +66,12 @@ type BuildParameter struct {
 	// Choices - If the ParameterType is ChooseOne or ChooseMultiple, then the options presented to the user are here.
 	Choices []string `json:"choices"`
 	// DictionaryChoices - if the ParameterType is Dictionary, then the dictionary choices/preconfigured data is set here
-	DictionaryChoices []BuildParameterDictionary    `json:"dictionary_choices"`
-	GroupName         string                        `json:"group_name"`
-	SupportedOS       []string                      `json:"supported_os"`
-	HideConditions    []BuildParameterHideCondition `json:"hide_conditions"`
+	DictionaryChoices    []BuildParameterDictionary              `json:"dictionary_choices"`
+	GroupName            string                                  `json:"group_name"`
+	SupportedOS          []string                                `json:"supported_os"`
+	HideConditions       []BuildParameterHideCondition           `json:"hide_conditions"`
+	UiPosition           int                                     `json:"ui_position"`
+	DynamicQueryFunction PTRPCBuildParameterDynamicQueryFunction `json:"dynamic_query_function"`
 }
 
 // BuildStep - Identification of a step in the build process that's shown to the user to eventually collect start/end time as well as stdout/stderr per step
@@ -170,7 +173,7 @@ type PayloadType struct {
 	// C2ParameterDeviations is a map of c2 profile name -> c2 parameter name -> deviation
 	C2ParameterDeviations map[string]map[string]C2ParameterDeviation `json:"c2_parameter_deviations"`
 	// CommandHelpFunction allows you to provide your own help functions for your agent
-	CommandHelpFunction func(message PTRPCCommandHelpFunctionMessage) PTRPCCommandHelpFunctionMessageResponse `json:"-"`
+	CommandHelpFunction PTCommandHelpFunction `json:"command_help_function"`
 }
 
 // Command - The base definition of a command
@@ -286,6 +289,8 @@ type CommandParameter struct {
 
 type PTTaskingDynamicQueryFunction func(PTRPCDynamicQueryFunctionMessage) []string
 type PTTaskingTypedArrayParseFunction func(message PTRPCTypedArrayParseFunctionMessage) [][]string
+type PTRPCBuildParameterDynamicQueryFunction func(message PTRPCDynamicQueryBuildParameterFunctionMessage) PTRPCDynamicQueryBuildParameterFunctionMessageResponse
+type PTCommandHelpFunction func(message PTRPCCommandHelpFunctionMessage) PTRPCCommandHelpFunctionMessageResponse
 
 func (f PTTaskingDynamicQueryFunction) MarshalJSON() ([]byte, error) {
 	if f != nil {
@@ -295,6 +300,20 @@ func (f PTTaskingDynamicQueryFunction) MarshalJSON() ([]byte, error) {
 	}
 }
 func (f PTTaskingTypedArrayParseFunction) MarshalJSON() ([]byte, error) {
+	if f != nil {
+		return json.Marshal("function defined")
+	} else {
+		return json.Marshal("")
+	}
+}
+func (f PTRPCBuildParameterDynamicQueryFunction) MarshalJSON() ([]byte, error) {
+	if f != nil {
+		return json.Marshal("function defined")
+	} else {
+		return json.Marshal("")
+	}
+}
+func (f PTCommandHelpFunction) MarshalJSON() ([]byte, error) {
 	if f != nil {
 		return json.Marshal("function defined")
 	} else {

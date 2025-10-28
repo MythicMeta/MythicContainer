@@ -3,12 +3,13 @@ package agentstructs
 import (
 	"bytes"
 	"fmt"
-	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
 	"io"
 	"os"
 	"os/exec"
 	"strings"
 	"sync"
+
+	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
 
 	"github.com/MythicMeta/MythicContainer/logging"
 	"github.com/MythicMeta/MythicContainer/utils/helpers"
@@ -184,6 +185,9 @@ func (r *allPayloadData) GetCommands() []Command {
 		}
 	}
 	return r.allCommands
+}
+func (r *allPayloadData) GetBuildParameters() []BuildParameter {
+	return r.payloadDefinition.BuildParameters
 }
 func (r *allPayloadData) GetBuildFunction() func(PayloadBuildMessage) PayloadBuildResponse {
 	return r.buildFunction

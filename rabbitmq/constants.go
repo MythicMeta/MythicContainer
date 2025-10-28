@@ -14,7 +14,7 @@ const (
 
 type CallbackPortType = string
 
-const containerVersion = "v1.3.11"
+const containerVersion = "v1.3.12"
 
 const containerVersionMessage = "This version needs Mythic 3.3.0+"
 
@@ -114,6 +114,8 @@ const (
 	PT_TASK_OPSEC_POST_CHECK = "pt_task_opsec_post_check"
 	//
 	PT_RPC_COMMAND_DYNAMIC_QUERY_FUNCTION = "pt_command_dynamic_query_function"
+	//
+	PT_RPC_DYNAMIC_QUERY_BUILD_PARAMETER_FUNCTION = "pt_build_parameter_dynamic_query_function"
 	//
 	PT_RPC_COMMAND_TYPEDARRAY_PARSE = "pt_command_typedarray_parse"
 	//

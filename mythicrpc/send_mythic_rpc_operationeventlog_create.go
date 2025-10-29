@@ -13,16 +13,16 @@ const (
 	MESSAGE_LEVEL_INFO          MESSAGE_LEVEL = "info"
 	MESSAGE_LEVEL_DEBUG         MESSAGE_LEVEL = "debug"
 	MESSAGE_LEVEL_AUTH          MESSAGE_LEVEL = "auth"
-	MESSAGE_LEVEL_AGENT_MESSAGE MESSAGE_LEVEL = "agent_message"
+	MESSAGE_LEVEL_AGENT_MESSAGE MESSAGE_LEVEL = "agent"
 	MESSAGE_LEVEL_API           MESSAGE_LEVEL = "api"
 )
 
 type MythicRPCOperationEventLogCreateMessage struct {
 	// three optional ways to specify the operation
-	TaskId          *int    `json:"task_id"`
-	CallbackId      *int    `json:"callback_id"`
-	CallbackAgentId *string `json:"callback_agent_id"`
-	OperationId     *int    `json:"operation_id"`
+	TaskID          *int    `json:"task_id"`
+	CallbackID      *int    `json:"callback_id"`
+	AgentCallbackID *string `json:"callback_agent_id"`
+	OperationID     *int    `json:"operation_id"`
 	// the data to store
 	Message      string        `json:"message"`
 	Warning      bool          `json:"warning"`

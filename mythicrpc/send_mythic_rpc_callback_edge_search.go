@@ -9,8 +9,8 @@ import (
 )
 
 type MythicRPCCallbackEdgeSearchMessage struct {
-	AgentCallbackUUID     string  `json:"agent_callback_id"`
-	AgentCallbackID       int     `json:"callback_id"`
+	AgentCallbackID       string  `json:"agent_callback_id"`
+	CallbackID            int     `json:"callback_id"`
 	SearchC2ProfileName   *string `json:"search_c2_profile_name"`
 	SearchActiveEdgesOnly *bool   `json:"search_active_edges_only"`
 }

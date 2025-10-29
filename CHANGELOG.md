@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.6.0] - 2025-10-29
+
+### Changed
+
+- Added a new RPC for SendMythicRPCCallbackEdgeRemove
+- Added a new RPC for SendMythicRPCHandleAgentMessageJson
+- Updated the following MythicRPC calls to be consistent about CallbackID, AgentCallbackID, and the use of ID in general:
+  - CallbackID is always an Int, AgentCallbackID is the UUID string, and all ID variables should have capital ID not Id
+  - SendMythicRPCCallbackDecryptBytes: AgentCallbackUUID -> AgentCallbackID
+  - SendMythicRPCCallbackEdgeSearch: AgentCallbackUUID -> AgentCallbackID, AgentCallbackID -> CallbackID
+  - SendMythicRPCCallbackEncryptBytes: AgentCallbackUUID -> AgentCallbackID
+  - SendMythicRPCCallbackSearch: AgentCallbackUUID -> AgentCallbackID, AgentCallbackID -> CallbackID, SearchCallbackUUID -> SearchAgentCallbackID
+  - SendMythicRPCCallbackUpdate: AgentCallbackUUID -> AgentCallbackID
+  - SendMythicRPCCallbackTokenCreate: TokenId -> TokenID
+  - SendMythicRPCFileCreate: AgentFileId -> AgentFileID
+  - SendMythicRPCFileSearch: AgentFileId -> AgentFileID
+  - SendMythicRPCOperationEventLogCreate: TaskId -> TaskID, CallbackId -> CallbackID, AgentCallbackId -> AgentCallbackID, OperationId -> OperationID
+  - SendMythicRPCPayloadOnHostCreate: PayloadId -> PayloadID
+  - Because all of these are technically breaking changes, I bumped the tagged version to 1.6 and the container version to 1.4
+
 ## [v1.5.2] - 2025-10-28
 
 ### Changed

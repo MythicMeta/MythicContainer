@@ -17,7 +17,7 @@ type MythicRPCPayloadOnHostCreateMessageResponse struct {
 }
 type MythicRPCPayloadOnHostCreateData struct {
 	Host        string  `json:"host"`
-	PayloadId   *int    `json:"payload_id"`
+	PayloadID   *int    `json:"payload_id"`
 	PayloadUUID *string `json:"payload_uuid"`
 }
 

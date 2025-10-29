@@ -21,7 +21,7 @@ type MythicRPCFileSearchMessage struct {
 	IsScreenshot        bool   `json:"is_screenshot"`
 }
 type FileData struct {
-	AgentFileId         string    `json:"agent_file_id"`
+	AgentFileID         string    `json:"agent_file_id"`
 	Filename            string    `json:"filename"`
 	Comment             string    `json:"comment"`
 	Complete            bool      `json:"complete"`

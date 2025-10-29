@@ -9,17 +9,17 @@ import (
 )
 
 type MythicRPCCallbackSearchMessage struct {
-	// AgentCallbackUUID (Required) - this is the UUID of the callback associated with this search.If this isn't supplied, AgentCallbackID must be supplied.
+	// AgentCallbackID (Required) - this is the UUID of the callback associated with this search.If this isn't supplied, AgentCallbackID must be supplied.
 	// This provides the necessary context to scope the search to the right operation.
-	AgentCallbackUUID string `json:"agent_callback_id"`
-	// AgentCallbackID (required) - this is the ID of the callback associated with this search. If this isn't supplied, AgentCallbackUUID must be supplied.
-	AgentCallbackID int `json:"callback_id"`
+	AgentCallbackID string `json:"agent_callback_id"`
+	// CallbackID (required) - this is the ID of the callback associated with this search. If this isn't supplied, AgentCallbackUUID must be supplied.
+	CallbackID int `json:"callback_id"`
 	// SearchCallbackID (Optional) - if you know the real callback ID, you can search via that here.
 	SearchCallbackID *int `json:"search_callback_id"`
 	// SearchCallbackDisplayID (Optional) - if you know the display id for the callback (the one that shows up in the UI), then you can search via that here.
 	SearchCallbackDisplayID *int `json:"search_callback_display_id"`
-	// SearchCallbackUUID (Optional) - if you know the agent callback uuid for the callback, you can search for that here.
-	SearchCallbackUUID *string `json:"search_callback_uuid"`
+	// SearchAgentCallbackID (Optional) - if you know the agent callback uuid for the callback, you can search for that here.
+	SearchAgentCallbackID *string `json:"search_callback_uuid"`
 	// SearchCallbackUser (Optional) - if you know the user associated with the callback you want, supply that here.
 	SearchCallbackUser *string `json:"user,omitempty"`
 	// SearchCallbackHost (Optional) - if you know the hostname of the callback you want, supply that here.

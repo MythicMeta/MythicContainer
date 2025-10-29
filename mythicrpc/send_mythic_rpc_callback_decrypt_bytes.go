@@ -8,8 +8,8 @@ import (
 )
 
 type MythicRPCCallbackDecryptBytesMessage struct {
-	// AgentCallbackUUID (Required) - The UUID for the callback that will decrypt the message. Can also be a PayloadUUID or StagingUUID, but requires the C2Profile field as well
-	AgentCallbackUUID string `json:"agent_callback_id"`
+	// AgentCallbackID (Required) - The UUID for the callback that will decrypt the message. Can also be a PayloadUUID or StagingUUID, but requires the C2Profile field as well
+	AgentCallbackID string `json:"agent_callback_id"`
 	// Message (Required) - The actual encrypted message you want to decrypt
 	Message []byte `json:"message"`
 	// IncludesUUID (Optional) - Does the Message include the UUID or not?

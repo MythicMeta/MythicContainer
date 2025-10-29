@@ -37,7 +37,7 @@ type agentMessagePostResponseToken struct {
 type agentMessagePostResponseCallbackTokens struct {
 	Action  string  `mapstructure:"action"`
 	Host    *string `mapstructure:"host,omitempty"`
-	TokenId uint64  `mapstructure:"token_id"`
+	TokenID uint64  `mapstructure:"token_id"`
 	// optionally also provide all the token information
 	TokenInfo *agentMessagePostResponseToken `mapstructure:"token"`
 }

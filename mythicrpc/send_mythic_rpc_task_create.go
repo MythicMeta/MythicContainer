@@ -8,7 +8,8 @@ import (
 )
 
 type MythicRPCTaskCreateMessage struct {
-	AgentCallbackID    string  `json:"agent_callback_id"`
+	AgentCallbackID    *string `json:"agent_callback_id"`
+	CallbackID         *int    `json:"callback_id"`
 	CommandName        string  `json:"command_name"`
 	Params             string  `json:"params"`
 	ParameterGroupName *string `json:"parameter_group_name,omitempty"`

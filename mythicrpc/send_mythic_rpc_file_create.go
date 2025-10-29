@@ -25,7 +25,7 @@ type MythicRPCFileCreateMessage struct {
 type MythicRPCFileCreateMessageResponse struct {
 	Success     bool   `json:"success"`
 	Error       string `json:"error"`
-	AgentFileId string `json:"agent_file_id"`
+	AgentFileID string `json:"agent_file_id"`
 }
 
 func SendMythicRPCFileCreate(input MythicRPCFileCreateMessage) (*MythicRPCFileCreateMessageResponse, error) {
@@ -41,7 +41,7 @@ func SendMythicRPCFileCreate(input MythicRPCFileCreateMessage) (*MythicRPCFileCr
 		logging.LogError(err, "Failed to parse response back to struct", "response", response)
 		return nil, err
 	} else if response.Success {
-		if err := mythicutils.SendFileToMythic(&input.FileContents, response.AgentFileId); err != nil {
+		if err := mythicutils.SendFileToMythic(&input.FileContents, response.AgentFileID); err != nil {
 			logging.LogError(err, "Failed to send file contents to Mythic")
 			return nil, err
 		} else {

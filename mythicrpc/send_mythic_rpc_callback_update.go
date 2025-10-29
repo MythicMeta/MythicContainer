@@ -8,7 +8,7 @@ import (
 )
 
 type MythicRPCCallbackUpdateMessage struct {
-	AgentCallbackUUID                 *string   `json:"agent_callback_id"` // required
+	AgentCallbackID                   *string   `json:"agent_callback_id"` // required
 	CallbackID                        *int      `json:"callback_id"`
 	TaskID                            *int      `json:"task_id"`
 	EncryptionKey                     *[]byte   `json:"encryption_key,omitempty"`

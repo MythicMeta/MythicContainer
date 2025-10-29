@@ -1,6 +1,9 @@
 package rabbitmq
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 const (
 	MYTHIC_EXCHANGE                        = "mythic_exchange"
@@ -14,9 +17,10 @@ const (
 
 type CallbackPortType = string
 
-const containerVersion = "v1.3.12"
+const containerVersion = "v1.4.0"
 
-const containerVersionMessage = "This version needs Mythic 3.3.0+"
+var containerVersionMessage = fmt.Sprintf("This version needs Mythic 3.4.8+. This " +
+	"has MythicRPC breaking changes from v1.5.2 and below due to a change in some parameter name changes.")
 
 const (
 	CALLBACK_PORT_TYPE_SOCKS       CallbackPortType = "socks"
@@ -204,6 +208,7 @@ const (
 	MYTHIC_RPC_CALLBACK_CREATE                    = "mythic_rpc_callback_create"
 	MYTHIC_RPC_CALLBACK_SEARCH                    = "mythic_rpc_callback_search"
 	MYTHIC_RPC_CALLBACK_EDGE_SEARCH               = "mythic_rpc_callback_edge_search"
+	MYTHIC_RPC_CALLBACK_EDGE_REMOVE               = "mythic_rpc_callback_edge_remove"
 	MYTHIC_RPC_CALLBACK_DISPLAY_TO_REAL_ID_SEARCH = "mythic_rpc_callback_display_to_real_id_search"
 	MYTHIC_RPC_CALLBACK_NEXT_CHECKIN_RANGE        = "mythic_rpc_callback_next_checkin_range"
 	MYTHIC_RPC_CALLBACK_ADD_COMMAND               = "mythic_rpc_callback_add_command"
@@ -255,6 +260,8 @@ const (
 	MYTHIC_RPC_TAGTYPE_GET_OR_CREATE = "mythic_rpc_tag_type_get_or_create"
 	// C2
 	MYTHIC_RPC_C2_UPDATE_STATUS = "mythic_rpc_c2_update_status"
+	// AGENT MESSAGE
+	MYTHIC_RPC_HANDLE_AGENT_MESSAGE_JSON = "mythic_rpc_handle_agent_message_json"
 	// blank
 	MYTHIC_RPC_BLANK = "mythic_rpc_blank"
 )

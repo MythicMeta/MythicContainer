@@ -1,9 +1,10 @@
 package MythicContainer
 
 import (
+	"os"
+
 	"github.com/MythicMeta/MythicContainer/logging"
 	"github.com/MythicMeta/MythicContainer/rabbitmq"
-	"os"
 )
 
 type MythicServices = string
@@ -16,6 +17,7 @@ const (
 	MythicServiceTranslationContainer MythicServices = "translation"
 	MythicServiceEventing             MythicServices = "eventing"
 	MythicServiceAuth                 MythicServices = "auth"
+	MythicServiceCustomBrowser        MythicServices = "custombrowser"
 )
 
 func StartAndRunForever(services []MythicServices) {

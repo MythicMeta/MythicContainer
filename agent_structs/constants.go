@@ -42,8 +42,16 @@ const (
 type HideConditionOperand string
 
 const (
-	HideConditionOperandEQ    HideConditionOperand = "eq"
-	HideConditionOperandNotEQ                      = "neq"
-	HideConditionOperandIN                         = "in"
-	HideConditionOperandNotIN                      = "nin"
+	HideConditionOperandEQ                 HideConditionOperand = "eq"
+	HideConditionOperandNotEQ                                   = "neq"
+	HideConditionOperandIN                                      = "in"
+	HideConditionOperandNotIN                                   = "nin"
+	HideConditionOperandLessThan                                = "lt"
+	HideConditionOperandGreaterThan                             = "gt"
+	HideConditionOperandLessThanOrEqual                         = "lte"
+	HideConditionOperandGreaterThanOrEqual                      = "gte"
+	HideConditionOperationStartsWith                            = "sw"
+	HideConditionOperationEndsWith                              = "ew"
+	HideConditionOperationContains                              = "co"
+	HideConditionOperationNotContains                           = "nco"
 )

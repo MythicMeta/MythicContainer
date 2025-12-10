@@ -2,9 +2,11 @@ package rabbitmq
 
 import (
 	"encoding/json"
+
 	agentstructs "github.com/MythicMeta/MythicContainer/agent_structs"
 	"github.com/MythicMeta/MythicContainer/authstructs"
 	c2structs "github.com/MythicMeta/MythicContainer/c2_structs"
+	"github.com/MythicMeta/MythicContainer/custombrowserstructs"
 	"github.com/MythicMeta/MythicContainer/eventingstructs"
 	"github.com/MythicMeta/MythicContainer/logging"
 	"github.com/MythicMeta/MythicContainer/loggingstructs"
@@ -40,6 +42,10 @@ func init() {
 		RabbitmqProcessingFunction: processOnEventingStart,
 	})
 	authstructs.AllAuthData.Get("").AddDirectMethod(sharedStructs.RabbitmqDirectMethod{
+		RabbitmqRoutingKey:         CONTAINER_ON_START,
+		RabbitmqProcessingFunction: processOnEventingStart,
+	})
+	custombrowserstructs.AllCustomBrowserData.Get("").AddDirectMethod(sharedStructs.RabbitmqDirectMethod{
 		RabbitmqRoutingKey:         CONTAINER_ON_START,
 		RabbitmqProcessingFunction: processOnEventingStart,
 	})
@@ -109,6 +115,15 @@ func processOnEventingStart(input []byte) {
 		if authstructs.AllAuthData.Get(containerName).GetAuthDefinition().Name == inputStruct.ContainerName {
 			if authstructs.AllAuthData.Get(containerName).GetAuthDefinition().OnContainerStartFunction != nil {
 				go processContainerOnStart(authstructs.AllAuthData.Get(containerName).GetAuthDefinition().OnContainerStartFunction,
+					inputStruct)
+				return
+			}
+		}
+	}
+	for _, containerName := range custombrowserstructs.AllCustomBrowserData.GetAllNames() {
+		if custombrowserstructs.AllCustomBrowserData.Get(containerName).GetCustomBrowserDefinition().Name == inputStruct.ContainerName {
+			if custombrowserstructs.AllCustomBrowserData.Get(containerName).GetCustomBrowserDefinition().OnContainerStartFunction != nil {
+				go processContainerOnStart(custombrowserstructs.AllCustomBrowserData.Get(containerName).GetCustomBrowserDefinition().OnContainerStartFunction,
 					inputStruct)
 				return
 			}

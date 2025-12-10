@@ -17,7 +17,7 @@ const (
 
 type CallbackPortType = string
 
-const containerVersion = "v1.4.0"
+const containerVersion = "v1.4.1"
 
 var containerVersionMessage = fmt.Sprintf("This version needs Mythic 3.4.8+. This " +
 	"has MythicRPC breaking changes from v1.5.2 and below due to a change in some parameter name changes.")
@@ -63,6 +63,10 @@ const (
 	C2_RPC_RESYNC_ROUTING_KEY = "c2_rpc_resync"
 	TR_SYNC_ROUTING_KEY       = "tr_sync"
 	TR_RPC_RESYNC_ROUTING_KEY = "tr_rpc_resync"
+	// CUSTOM_BROWSER  routes
+	CUSTOMBROWSER_SYNC_ROUTING_KEY         = "custombrowser_sync"
+	CUSTOMBROWSER_EXPORT_FUNCTION          = "custombrowser_exportfunction"
+	CUSTOMBROWSER_EXPORT_FUNCTION_RESPONSE = "custombrowser_exportfunction_response"
 	// CONSUMING_SERVICES_ROUTING_KEY
 	CONSUMING_CONTAINER_SYNC_ROUTING_KEY   = "consuming_container_sync"
 	CONSUMING_CONTAINER_RESYNC_ROUTING_KEY = "consuming_container_rpc_resync"
@@ -244,6 +248,7 @@ const (
 	// MYTHIC_RPC_CALLBACKTOKEN_CREATE callback token operations
 	MYTHIC_RPC_CALLBACKTOKEN_CREATE = "mythic_rpc_callbacktoken_create"
 	MYTHIC_RPC_CALLBACKTOKEN_REMOVE = "mythic_rpc_callbacktoken_remove"
+	MYTHIC_RPC_CALLBACKTOKEN_SEARCH = "mythic_rpc_callbacktoken_search"
 	// MYTHIC_RPC_TOKEN_CREATE token operations
 	MYTHIC_RPC_TOKEN_CREATE = "mythic_rpc_token_create"
 	MYTHIC_RPC_TOKEN_REMOVE = "mythic_rpc_token_remove"
@@ -262,6 +267,8 @@ const (
 	MYTHIC_RPC_C2_UPDATE_STATUS = "mythic_rpc_c2_update_status"
 	// AGENT MESSAGE
 	MYTHIC_RPC_HANDLE_AGENT_MESSAGE_JSON = "mythic_rpc_handle_agent_message_json"
+	// Custom Browser
+	CUSTOMBROWSER_SEARCH = "mythic_rpc_custombrowser_search"
 	// blank
 	MYTHIC_RPC_BLANK = "mythic_rpc_blank"
 )

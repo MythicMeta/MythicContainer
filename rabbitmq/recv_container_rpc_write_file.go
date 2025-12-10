@@ -3,9 +3,13 @@ package rabbitmq
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
+
 	agentstructs "github.com/MythicMeta/MythicContainer/agent_structs"
 	"github.com/MythicMeta/MythicContainer/authstructs"
 	"github.com/MythicMeta/MythicContainer/c2_structs"
+	"github.com/MythicMeta/MythicContainer/custombrowserstructs"
 	"github.com/MythicMeta/MythicContainer/eventingstructs"
 	"github.com/MythicMeta/MythicContainer/logging"
 	"github.com/MythicMeta/MythicContainer/loggingstructs"
@@ -13,8 +17,6 @@ import (
 	"github.com/MythicMeta/MythicContainer/utils/helpers"
 	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
 	"github.com/MythicMeta/MythicContainer/webhookstructs"
-	"os"
-	"path/filepath"
 )
 
 // Register this RPC method with rabbitmq so it can be called
@@ -44,6 +46,10 @@ func init() {
 		RabbitmqProcessingFunction: processC2RPCWriteFile,
 	})
 	webhookstructs.AllWebhookData.Get("").AddRPCMethod(sharedStructs.RabbitmqRPCMethod{
+		RabbitmqRoutingKey:         CONTAINER_RPC_WRITE_FILE,
+		RabbitmqProcessingFunction: processC2RPCWriteFile,
+	})
+	custombrowserstructs.AllCustomBrowserData.Get("").AddRPCMethod(sharedStructs.RabbitmqRPCMethod{
 		RabbitmqRoutingKey:         CONTAINER_RPC_WRITE_FILE,
 		RabbitmqProcessingFunction: processC2RPCWriteFile,
 	})
@@ -114,6 +120,11 @@ func ContainerRPCWriteFile(inputStruct sharedStructs.ContainerRPCWriteFileMessag
 	}
 	for _, containerName := range authstructs.AllAuthData.GetAllNames() {
 		if authstructs.AllAuthData.Get(containerName).GetAuthDefinition().Name == inputStruct.ContainerName {
+			return genericContainerWriteFile(inputStruct)
+		}
+	}
+	for _, containerName := range custombrowserstructs.AllCustomBrowserData.GetAllNames() {
+		if custombrowserstructs.AllCustomBrowserData.Get(containerName).GetCustomBrowserDefinition().Name == inputStruct.ContainerName {
 			return genericContainerWriteFile(inputStruct)
 		}
 	}

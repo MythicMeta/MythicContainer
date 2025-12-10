@@ -30,6 +30,9 @@ type MythicRPCCallbackUpdateMessage struct {
 	ProcessName                       *string   `json:"process_name,omitempty"`
 	UpdateLastCheckinTime             *bool     `json:"update_last_checkin_time,omitempty"`
 	UpdateLastCheckinTimeViaC2Profile *string   `json:"update_last_checkin_time_via_c2_profile,omitempty"`
+	Cwd                               *string   `json:"cwd,omitempty"`
+	ImpersonationContext              *string   `json:"impersonation_context,omitempty"`
+	Dead                              *bool     `json:"dead,omitempty"`
 }
 type MythicRPCCallbackUpdateMessageResponse struct {
 	Success bool   `json:"success"`

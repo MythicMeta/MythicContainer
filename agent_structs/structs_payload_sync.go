@@ -282,9 +282,11 @@ type CommandParameter struct {
 	// ParameterGroupInformation - Define 0+ different parameter groups that this parameter belongs to.
 	ParameterGroupInformation []ParameterGroupInfo `json:"parameter_group_info"`
 	// LimitCredentialsByType - provide an option list of credential types to limit the UI dropdown options
-	LimitCredentialsByType []string    `json:"limit_credentials_by_type"`
-	value                  interface{} // the current value for the parameter
-	userSupplied           bool        // was this value supplied by the user or a default value
+	LimitCredentialsByType []string `json:"limit_credentials_by_type"`
+	// VerifierRegex - an optional regex used to verify the content of the parameter
+	VerifierRegex string      `json:"verifier_regex"`
+	value         interface{} // the current value for the parameter
+	userSupplied  bool        // was this value supplied by the user or a default value
 }
 
 type PTTaskingDynamicQueryFunction func(PTRPCDynamicQueryFunctionMessage) []string

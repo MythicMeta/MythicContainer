@@ -3,15 +3,17 @@ package rabbitmq
 import (
 	"encoding/json"
 	"fmt"
+	"log"
+	"os"
+	"sync"
+
 	"github.com/MythicMeta/MythicContainer/authstructs"
 	"github.com/MythicMeta/MythicContainer/config"
+	"github.com/MythicMeta/MythicContainer/custombrowserstructs"
 	"github.com/MythicMeta/MythicContainer/eventingstructs"
 	"github.com/MythicMeta/MythicContainer/grpc"
 	"github.com/MythicMeta/MythicContainer/translationstructs"
 	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
-	"log"
-	"os"
-	"sync"
 
 	"github.com/MythicMeta/MythicContainer/loggingstructs"
 	"github.com/MythicMeta/MythicContainer/webhookstructs"
@@ -154,17 +156,15 @@ func (r *rabbitMQConnection) startListeners(services []string) {
 						listenerExists = true
 						subscriptions = append(subscriptions, loggingstructs.LOG_TYPE_RESPONSE)
 					}
-				case "container_on_start":
-					if loggingDef.OnContainerStartFunction != nil {
-						go RabbitMQConnection.ReceiveFromMythicDirectExchange(
-							MYTHIC_EXCHANGE,
-							loggingstructs.AllLoggingData.Get(logger).GetRoutingKey(directQueue.RabbitmqRoutingKey),
-							loggingstructs.AllLoggingData.Get(logger).GetRoutingKey(directQueue.RabbitmqRoutingKey),
-							directQueue.RabbitmqProcessingFunction,
-							exclusiveQueue,
-							nil,
-						)
-					}
+				case CONTAINER_ON_START:
+					go RabbitMQConnection.ReceiveFromMythicDirectExchange(
+						MYTHIC_EXCHANGE,
+						loggingstructs.AllLoggingData.Get(logger).GetRoutingKey(directQueue.RabbitmqRoutingKey),
+						loggingstructs.AllLoggingData.Get(logger).GetRoutingKey(directQueue.RabbitmqRoutingKey),
+						directQueue.RabbitmqProcessingFunction,
+						exclusiveQueue,
+						nil,
+					)
 				default:
 				}
 				if listenerExists {
@@ -228,17 +228,15 @@ func (r *rabbitMQConnection) startListeners(services []string) {
 						listenerExists = true
 						subscriptions = append(subscriptions, webhookstructs.WEBHOOK_TYPE_NEW_CUSTOM)
 					}
-				case "container_on_start":
-					if webhookDef.OnContainerStartFunction != nil {
-						go RabbitMQConnection.ReceiveFromMythicDirectExchange(
-							MYTHIC_EXCHANGE,
-							webhookstructs.AllWebhookData.Get(webhook).GetRoutingKey(directQueue.RabbitmqRoutingKey),
-							webhookstructs.AllWebhookData.Get(webhook).GetRoutingKey(directQueue.RabbitmqRoutingKey),
-							directQueue.RabbitmqProcessingFunction,
-							exclusiveQueue,
-							nil,
-						)
-					}
+				case CONTAINER_ON_START:
+					go RabbitMQConnection.ReceiveFromMythicDirectExchange(
+						MYTHIC_EXCHANGE,
+						webhookstructs.AllWebhookData.Get(webhook).GetRoutingKey(directQueue.RabbitmqRoutingKey),
+						webhookstructs.AllWebhookData.Get(webhook).GetRoutingKey(directQueue.RabbitmqRoutingKey),
+						directQueue.RabbitmqProcessingFunction,
+						exclusiveQueue,
+						nil,
+					)
 				default:
 					logging.LogError(nil, "Unknown webhook type in rabbitmq initialize", "webhook type", directQueue.RabbitmqRoutingKey)
 				}
@@ -543,7 +541,59 @@ func (r *rabbitMQConnection) startListeners(services []string) {
 		PTwg.Wait()
 		SyncPayloadData(nil, false)
 	}
-
+	// handle starting any queues that are necessary for custom browsers
+	if helpers.StringSliceContains(services, "custombrowser") {
+		var PTwg sync.WaitGroup
+		for _, cb := range custombrowserstructs.AllCustomBrowserData.GetAllNames() {
+			logging.LogInfo(fmt.Sprintf("Initializing RabbitMQ for Custom Browser: %s\n", cb))
+			for _, rpcQueue := range custombrowserstructs.AllCustomBrowserData.Get(cb).GetRPCMethods() {
+				PTwg.Add(1)
+				go RabbitMQConnection.ReceiveFromRPCQueue(
+					MYTHIC_EXCHANGE,
+					custombrowserstructs.AllCustomBrowserData.Get(cb).GetRoutingKey(rpcQueue.RabbitmqRoutingKey),
+					custombrowserstructs.AllCustomBrowserData.Get(cb).GetRoutingKey(rpcQueue.RabbitmqRoutingKey),
+					rpcQueue.RabbitmqProcessingFunction,
+					!exclusiveQueue,
+					&PTwg,
+				)
+			}
+			for _, rpcQueue := range custombrowserstructs.AllCustomBrowserData.Get("").GetRPCMethods() {
+				PTwg.Add(1)
+				go RabbitMQConnection.ReceiveFromRPCQueue(
+					MYTHIC_EXCHANGE,
+					custombrowserstructs.AllCustomBrowserData.Get(cb).GetRoutingKey(rpcQueue.RabbitmqRoutingKey),
+					custombrowserstructs.AllCustomBrowserData.Get(cb).GetRoutingKey(rpcQueue.RabbitmqRoutingKey),
+					rpcQueue.RabbitmqProcessingFunction,
+					!exclusiveQueue,
+					&PTwg,
+				)
+			}
+			for _, directQueue := range custombrowserstructs.AllCustomBrowserData.Get(cb).GetDirectMethods() {
+				PTwg.Add(1)
+				go RabbitMQConnection.ReceiveFromMythicDirectExchange(
+					MYTHIC_EXCHANGE,
+					custombrowserstructs.AllCustomBrowserData.Get(cb).GetRoutingKey(directQueue.RabbitmqRoutingKey),
+					custombrowserstructs.AllCustomBrowserData.Get(cb).GetRoutingKey(directQueue.RabbitmqRoutingKey),
+					directQueue.RabbitmqProcessingFunction,
+					!exclusiveQueue,
+					&PTwg,
+				)
+			}
+			for _, directQueue := range custombrowserstructs.AllCustomBrowserData.Get("").GetDirectMethods() {
+				PTwg.Add(1)
+				go RabbitMQConnection.ReceiveFromMythicDirectExchange(
+					MYTHIC_EXCHANGE,
+					custombrowserstructs.AllCustomBrowserData.Get(cb).GetRoutingKey(directQueue.RabbitmqRoutingKey),
+					custombrowserstructs.AllCustomBrowserData.Get(cb).GetRoutingKey(directQueue.RabbitmqRoutingKey),
+					directQueue.RabbitmqProcessingFunction,
+					!exclusiveQueue,
+					&PTwg,
+				)
+			}
+			PTwg.Wait()
+			SyncCustomBrowserData(custombrowserstructs.AllCustomBrowserData.Get(cb).GetCustomBrowserDefinition())
+		}
+	}
 	logging.LogInfo("[+] All services initialized!")
 }
 

@@ -52,6 +52,10 @@ type MythicRPCCallbackCreateMessage struct {
 	Description string `json:"description"`
 	// ProcessName (Optional) - The name of process associated with the new callback.
 	ProcessName string `json:"process_name" mapstructure:"process_name"`
+	// Cwd (Optional) - The current working directory associated with the new callback
+	Cwd string `json:"cwd"`
+	// ImpersonationContext - the username in which you're impersonating instead of your normal user
+	ImpersonationContext string `json:"impersonation_context"`
 }
 type MythicRPCCallbackCreateMessageResponse struct {
 	Success bool   `json:"success"`

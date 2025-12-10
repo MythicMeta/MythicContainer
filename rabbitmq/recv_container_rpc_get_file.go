@@ -3,17 +3,19 @@ package rabbitmq
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"os"
+	"path/filepath"
+
 	agentstructs "github.com/MythicMeta/MythicContainer/agent_structs"
 	"github.com/MythicMeta/MythicContainer/authstructs"
+	"github.com/MythicMeta/MythicContainer/custombrowserstructs"
 	"github.com/MythicMeta/MythicContainer/eventingstructs"
 	"github.com/MythicMeta/MythicContainer/loggingstructs"
 	"github.com/MythicMeta/MythicContainer/translationstructs"
 	"github.com/MythicMeta/MythicContainer/utils/helpers"
 	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
 	"github.com/MythicMeta/MythicContainer/webhookstructs"
-	"io"
-	"os"
-	"path/filepath"
 
 	c2structs "github.com/MythicMeta/MythicContainer/c2_structs"
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -46,6 +48,10 @@ func init() {
 		RabbitmqProcessingFunction: processContainerRPCGetFile,
 	})
 	webhookstructs.AllWebhookData.Get("").AddRPCMethod(sharedStructs.RabbitmqRPCMethod{
+		RabbitmqRoutingKey:         CONTAINER_RPC_GET_FILE,
+		RabbitmqProcessingFunction: processContainerRPCGetFile,
+	})
+	custombrowserstructs.AllCustomBrowserData.Get("").AddRPCMethod(sharedStructs.RabbitmqRPCMethod{
 		RabbitmqRoutingKey:         CONTAINER_RPC_GET_FILE,
 		RabbitmqProcessingFunction: processContainerRPCGetFile,
 	})
@@ -118,6 +124,11 @@ func ContainerRPCGetFile(inputStruct sharedStructs.ContainerRPCGetFileMessage) s
 	}
 	for _, containerName := range authstructs.AllAuthData.GetAllNames() {
 		if authstructs.AllAuthData.Get(containerName).GetAuthDefinition().Name == inputStruct.ContainerName {
+			return genericContainerGetFile(inputStruct)
+		}
+	}
+	for _, containerName := range custombrowserstructs.AllCustomBrowserData.GetAllNames() {
+		if custombrowserstructs.AllCustomBrowserData.Get(containerName).GetCustomBrowserDefinition().Name == inputStruct.ContainerName {
 			return genericContainerGetFile(inputStruct)
 		}
 	}

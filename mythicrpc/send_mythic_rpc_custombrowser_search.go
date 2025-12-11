@@ -26,6 +26,7 @@ type MythicRPCCustomBrowserSearchData struct {
 	FullPath      *string     `json:"full_path" mapstructure:"full_path"`
 	MetadataKey   *string     `json:"metadata_key" mapstructure:"metadata_key"`
 	MetadataValue interface{} `json:"metadata_value" mapstructure:"metadata_value"`
+	CallbackGroup *string     `json:"callback_group" mapstructure:"callback_group"`
 }
 type MythicRPCCustomBrowserSearchDataResponse struct {
 	TreeType   string                 `json:"tree_type" mapstructure:"tree_type"`

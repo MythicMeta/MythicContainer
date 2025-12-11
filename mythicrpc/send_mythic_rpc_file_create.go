@@ -13,6 +13,8 @@ type MythicRPCFileCreateMessage struct {
 	TaskID              int    `json:"task_id"`
 	PayloadUUID         string `json:"payload_uuid"`
 	AgentCallbackID     string `json:"agent_callback_id"`
+	OperationID         int    `json:"operation_id"`
+	OperatorID          int    `json:"operator_id"`
 	FileContents        []byte `json:"-"`
 	DeleteAfterFetch    bool   `json:"delete_after_fetch"`
 	Filename            string `json:"filename"`

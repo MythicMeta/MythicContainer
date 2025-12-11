@@ -51,11 +51,15 @@ func processCustomBrowserExportFunction(msg []byte) {
 
 func CustomBrowserExportFunction(input custombrowserstructs.ExportFunctionMessage) custombrowserstructs.ExportFunctionMessageResponse {
 	responseMsg := custombrowserstructs.ExportFunctionMessageResponse{
-		Success: false,
-		Error:   "No Export Function exists",
+		Success:     false,
+		Error:       "No Export Function exists",
+		OperationID: input.OperatorID,
+		TreeType:    input.TreeType,
 	}
 	if custombrowserstructs.AllCustomBrowserData.Get(input.ContainerName).GetCustomBrowserDefinition().ExportFunction != nil {
 		responseMsg = custombrowserstructs.AllCustomBrowserData.Get(input.ContainerName).GetCustomBrowserDefinition().ExportFunction(input)
+		responseMsg.OperationID = input.OperationID
+		responseMsg.TreeType = input.TreeType
 	}
 	return responseMsg
 }

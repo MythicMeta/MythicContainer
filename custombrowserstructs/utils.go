@@ -79,15 +79,21 @@ func (f CustomBrowserExportFunction) MarshalJSON() ([]byte, error) {
 }
 
 type ExportFunctionMessage struct {
-	TreeType      string `json:"tree_type"`
-	ContainerName string `json:"container_name"`
-	Host          string `json:"host"`
-	Path          string `json:"path"`
-	OperationID   int    `json:"operation_id"`
+	TreeType         string `json:"tree_type"`
+	ContainerName    string `json:"container_name"`
+	Host             string `json:"host"`
+	Path             string `json:"path"`
+	OperationID      int    `json:"operation_id"`
+	OperatorID       int    `json:"operator_id"`
+	OperatorUsername string `json:"operator_username"`
+	CallbackGroup    string `json:"callback_group"`
 }
 type ExportFunctionMessageResponse struct {
-	Success bool   `json:"success"`
-	Error   string `json:"error"`
+	Success           bool   `json:"success"`
+	Error             string `json:"error"`
+	CompletionMessage string `json:"completion_message"`
+	OperationID       int    `json:"operation_id"`
+	TreeType          string `json:"tree_type"`
 }
 
 // REQUIRED, Don't Modify

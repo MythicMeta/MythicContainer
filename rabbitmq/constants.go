@@ -17,7 +17,7 @@ const (
 
 type CallbackPortType = string
 
-const containerVersion = "v1.4.2"
+const containerVersion = "v1.4.3"
 
 var containerVersionMessage = fmt.Sprintf("This version needs Mythic 3.4.8+. This " +
 	"has MythicRPC breaking changes from v1.5.2 and below due to a change in some parameter name changes.")

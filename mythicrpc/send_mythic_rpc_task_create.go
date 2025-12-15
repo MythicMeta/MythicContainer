@@ -7,13 +7,17 @@ import (
 	"github.com/MythicMeta/MythicContainer/rabbitmq"
 )
 
+// MythicRPCTaskCreateMessage needs OperatorID, TaskID, or EventStepInstanceID to track task to appropriate user
 type MythicRPCTaskCreateMessage struct {
-	AgentCallbackID    *string `json:"agent_callback_id"`
-	CallbackID         *int    `json:"callback_id"`
-	CommandName        string  `json:"command_name"`
-	Params             string  `json:"params"`
-	ParameterGroupName *string `json:"parameter_group_name,omitempty"`
-	Token              *int    `json:"token,omitempty"`
+	AgentCallbackID     *string `json:"agent_callback_id"`
+	CallbackID          *int    `json:"callback_id"`
+	OperatorID          *int    `json:"operator_id"`
+	TaskID              *int    `json:"task_id"`
+	CommandName         string  `json:"command_name"`
+	Params              string  `json:"params"`
+	ParameterGroupName  *string `json:"parameter_group_name,omitempty"`
+	Token               *int    `json:"token,omitempty"`
+	EventStepInstanceID *int    `json:"eventstepinstance_id,omitempty"`
 }
 
 // Every mythicRPC function call must return a response that includes the following two values
@@ -24,6 +28,7 @@ type MythicRPCTaskCreateMessageResponse struct {
 	TaskDisplayID int    `json:"task_display_id"`
 }
 
+// SendMythicRPCTaskCreate needs OperatorID, TaskID, or EventStepInstanceID to track task to appropriate user
 func SendMythicRPCTaskCreate(input MythicRPCTaskCreateMessage) (*MythicRPCTaskCreateMessageResponse, error) {
 	response := MythicRPCTaskCreateMessageResponse{}
 	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(

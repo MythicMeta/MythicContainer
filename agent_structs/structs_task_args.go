@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+
 	"github.com/MythicMeta/MythicContainer/logging"
 	"github.com/MythicMeta/MythicContainer/utils/helpers"
 	"github.com/mitchellh/mapstructure"
@@ -421,6 +422,14 @@ func (arg *PTTaskMessageArgsData) LoadArgsFromDictionary(dictionaryArgs map[stri
 		}
 	}
 	return nil
+}
+func (arg *PTTaskMessageArgsData) IsArgUserSupplied(name string) bool {
+	for i := 0; i < len(arg.args); i++ {
+		if arg.args[i].Name == name || arg.args[i].CLIName == name {
+			return arg.args[i].userSupplied
+		}
+	}
+	return false
 }
 func (arg *PTTaskMessageArgsData) VerifyRequiredArgsHaveValues() (bool, error) {
 	if groupName, err := arg.GetParameterGroupName(); err != nil {

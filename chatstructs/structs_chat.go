@@ -27,6 +27,16 @@ type ChatRequestMessage struct {
 	Secrets           map[string]interface{} `json:"secrets"`
 }
 
+type ChatCancelMessage struct {
+	ContainerName     string `json:"container_name"`
+	OperationID       int    `json:"operation_id"`
+	ChannelID         int    `json:"channel_id"`
+	RequestID         int    `json:"request_id"`
+	ResponseMessageID int    `json:"response_message_id"`
+	Reason            string `json:"reason"`
+	CancelledBy       int    `json:"cancelled_by"`
+}
+
 type ChatResponseMessage struct {
 	OperationID       int                    `json:"operation_id"`
 	RequestID         int                    `json:"request_id"`

@@ -2,6 +2,7 @@ package chatstructs
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"sync"
 
@@ -9,18 +10,89 @@ import (
 	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
 )
 
+type ChatModelConfigurationOptionType string
+
+const (
+	CHAT_MODEL_CONFIGURATION_OPTION_TYPE_STRING ChatModelConfigurationOptionType = "string"
+	CHAT_MODEL_CONFIGURATION_OPTION_TYPE_NUMBER                                  = "number"
+	CHAT_MODEL_CONFIGURATION_OPTION_TYPE_CHOICE                                  = "choice"
+)
+
+type ChatModelConfigurationOptionChoice struct {
+	// Label - the human-readable option shown to operators in the Mythic UI.
+	Label string `json:"label"`
+	// Value - the value written into ChatRequestMessage.Config when the option is selected.
+	Value string `json:"value"`
+	// Description - optional helper text describing this choice.
+	Description string `json:"description,omitempty"`
+}
+
+type ChatModelConfigurationOption struct {
+	// Name - the config key sent to the chat container in ChatRequestMessage.Config.
+	Name string `json:"name"`
+	// DisplayName - the human-readable label shown for this option in the Mythic UI.
+	DisplayName string `json:"display_name"`
+	// Type - how the UI should render the option, such as string, number, or choice.
+	Type ChatModelConfigurationOptionType `json:"type"`
+	// Description - helper text that explains what the operator should supply.
+	Description string `json:"description"`
+	// Required - indicates whether operators must provide a value before using the model.
+	Required bool `json:"required"`
+	// DefaultValue - the value shown before operators configure this option. The type should match Type.
+	DefaultValue interface{} `json:"default_value"`
+	// Choices - selectable values when Type is choice.
+	Choices []ChatModelConfigurationOptionChoice `json:"choices,omitempty"`
+}
+
+type ChatModelMetadata struct {
+	// Provider - the backing service or model provider, such as litellm, openai, anthropic, or a local engine name.
+	Provider string `json:"provider,omitempty"`
+	// ConfigurationOptions - per-chat configuration fields Mythic can render for operators and send in ChatRequestMessage.Config.
+	ConfigurationOptions []ChatModelConfigurationOption `json:"configuration_options,omitempty"`
+	// RequiredUserSecrets - Mythic user secret names required before this model can be used.
+	RequiredUserSecrets []string `json:"required_user_secrets,omitempty"`
+	// OptionalUserSecrets - Mythic user secret names this model can use when present.
+	OptionalUserSecrets []string `json:"optional_user_secrets,omitempty"`
+	// RequiredChannelAPITokenScopes - API token scopes required on the AI chat channel for this model's tool access.
+	RequiredChannelAPITokenScopes []string `json:"required_channel_api_token_scopes,omitempty"`
+	// AdditionalItems - model-specific metadata not covered by the typed fields above. Prefer typed fields when one applies.
+	AdditionalItems map[string]interface{} `json:"-"`
+}
+
+func (c ChatModelMetadata) MarshalJSON() ([]byte, error) {
+	type Alias ChatModelMetadata
+	baseBytes, err := json.Marshal(Alias(c))
+	if err != nil {
+		return nil, err
+	}
+	baseMap := map[string]interface{}{}
+	if err = json.Unmarshal(baseBytes, &baseMap); err != nil {
+		return nil, err
+	}
+	for key, value := range c.AdditionalItems {
+		if _, exists := baseMap[key]; !exists {
+			baseMap[key] = value
+		}
+	}
+	return json.Marshal(baseMap)
+}
+
 type ChatModelDefinition struct {
-	Name        string                 `json:"name"`
-	Description string                 `json:"description"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	// Name - the model name operators select when sending a prompt to this chat container.
+	Name string `json:"name"`
+	// Description - human-readable summary of what this model does and when operators should use it.
+	Description string `json:"description"`
+	// Metadata - typed details about provider configuration, user secrets, UI config fields, defaults, and required scopes.
+	Metadata ChatModelMetadata `json:"metadata"`
 }
 
 type ChatDefinition struct {
-	Name                     string `json:"name"`
-	Description              string `json:"description"`
-	SemVer                   string `json:"semver"`
-	Models                   []ChatModelDefinition
-	Subscriptions            []string `json:"subscriptions"`
+	Name          string `json:"name"`
+	Description   string `json:"description"`
+	SemVer        string `json:"semver"`
+	Models        []ChatModelDefinition
+	Subscriptions []string `json:"subscriptions"`
+	// ChatFunction receives a context that is cancelled when Mythic sends a chat_cancel message for the request.
 	ChatFunction             func(context.Context, ChatRequestMessage)
 	OnContainerStartFunction func(context.Context, sharedStructs.ContainerOnStartMessage) sharedStructs.ContainerOnStartMessageResponse `json:"-"`
 }

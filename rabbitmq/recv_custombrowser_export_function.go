@@ -1,6 +1,7 @@
 package rabbitmq
 
 import (
+	"context"
 	"encoding/json"
 	"time"
 
@@ -20,7 +21,7 @@ func init() {
 
 // All rabbitmq methods must take byte inputs and return an interface.
 // However, we can cast these to the input and return types defined in this file
-func processCustomBrowserExportFunction(msg []byte) {
+func processCustomBrowserExportFunction(ctx context.Context, msg []byte) {
 	input := custombrowserstructs.ExportFunctionMessage{}
 	responseMsg := custombrowserstructs.ExportFunctionMessageResponse{}
 	if err := json.Unmarshal(msg, &input); err != nil {
@@ -29,10 +30,10 @@ func processCustomBrowserExportFunction(msg []byte) {
 		responseMsg.Error = "Failed to unmarshal JSON message into structs"
 	} else {
 		// actually do config checks on configCheck
-		responseMsg = CustomBrowserExportFunction(input)
+		responseMsg = CustomBrowserExportFunction(ctx, input)
 	}
 	for {
-		err := RabbitMQConnection.SendStructMessage(
+		err := RabbitMQConnection.SendStructMessageWithContext(ctx,
 			MYTHIC_EXCHANGE,
 			CUSTOMBROWSER_EXPORT_FUNCTION_RESPONSE,
 			"",
@@ -49,7 +50,7 @@ func processCustomBrowserExportFunction(msg []byte) {
 	}
 }
 
-func CustomBrowserExportFunction(input custombrowserstructs.ExportFunctionMessage) custombrowserstructs.ExportFunctionMessageResponse {
+func CustomBrowserExportFunction(ctx context.Context, input custombrowserstructs.ExportFunctionMessage) custombrowserstructs.ExportFunctionMessageResponse {
 	responseMsg := custombrowserstructs.ExportFunctionMessageResponse{
 		Success:     false,
 		Error:       "No Export Function exists",
@@ -57,7 +58,7 @@ func CustomBrowserExportFunction(input custombrowserstructs.ExportFunctionMessag
 		TreeType:    input.TreeType,
 	}
 	if custombrowserstructs.AllCustomBrowserData.Get(input.ContainerName).GetCustomBrowserDefinition().ExportFunction != nil {
-		responseMsg = custombrowserstructs.AllCustomBrowserData.Get(input.ContainerName).GetCustomBrowserDefinition().ExportFunction(input)
+		responseMsg = custombrowserstructs.AllCustomBrowserData.Get(input.ContainerName).GetCustomBrowserDefinition().ExportFunction(ctx, input)
 		responseMsg.OperationID = input.OperationID
 		responseMsg.TreeType = input.TreeType
 	}

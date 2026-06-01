@@ -1,6 +1,7 @@
 package mythicrpc
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -17,9 +18,10 @@ type MythicRPCCallbackEdgeRemoveMessageResponse struct {
 	Error   string `json:"error"`
 }
 
-func SendMythicRPCCallbackEdgeRemove(input MythicRPCCallbackEdgeRemoveMessage) (*MythicRPCCallbackEdgeRemoveMessageResponse, error) {
+func SendMythicRPCCallbackEdgeRemove(ctx context.Context, input MythicRPCCallbackEdgeRemoveMessage) (*MythicRPCCallbackEdgeRemoveMessageResponse, error) {
 	response := MythicRPCCallbackEdgeRemoveMessageResponse{}
-	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(
+	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessageWithContext(
+		ctx,
 		rabbitmq.MYTHIC_EXCHANGE,
 		rabbitmq.MYTHIC_RPC_CALLBACK_EDGE_REMOVE,
 		input,

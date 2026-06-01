@@ -1,6 +1,7 @@
 package rabbitmq
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -9,6 +10,7 @@ import (
 	agentstructs "github.com/MythicMeta/MythicContainer/agent_structs"
 	"github.com/MythicMeta/MythicContainer/authstructs"
 	"github.com/MythicMeta/MythicContainer/c2_structs"
+	"github.com/MythicMeta/MythicContainer/chatstructs"
 	"github.com/MythicMeta/MythicContainer/custombrowserstructs"
 	"github.com/MythicMeta/MythicContainer/eventingstructs"
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -26,6 +28,10 @@ func init() {
 		RabbitmqProcessingFunction: processC2RPCWriteFile,
 	})
 	authstructs.AllAuthData.Get("").AddRPCMethod(sharedStructs.RabbitmqRPCMethod{
+		RabbitmqRoutingKey:         CONTAINER_RPC_WRITE_FILE,
+		RabbitmqProcessingFunction: processC2RPCWriteFile,
+	})
+	chatstructs.AllChatData.Get("").AddRPCMethod(sharedStructs.RabbitmqRPCMethod{
 		RabbitmqRoutingKey:         CONTAINER_RPC_WRITE_FILE,
 		RabbitmqProcessingFunction: processC2RPCWriteFile,
 	})
@@ -55,7 +61,7 @@ func init() {
 	})
 }
 
-func processC2RPCWriteFile(msg []byte) interface{} {
+func processC2RPCWriteFile(ctx context.Context, msg []byte) interface{} {
 	input := sharedStructs.ContainerRPCWriteFileMessage{}
 	responseMsg := sharedStructs.ContainerRPCWriteFileMessageResponse{
 		Success: false,
@@ -120,6 +126,11 @@ func ContainerRPCWriteFile(inputStruct sharedStructs.ContainerRPCWriteFileMessag
 	}
 	for _, containerName := range authstructs.AllAuthData.GetAllNames() {
 		if authstructs.AllAuthData.Get(containerName).GetAuthDefinition().Name == inputStruct.ContainerName {
+			return genericContainerWriteFile(inputStruct)
+		}
+	}
+	for _, containerName := range chatstructs.AllChatData.GetAllNames() {
+		if chatstructs.AllChatData.Get(containerName).GetChatDefinition().Name == inputStruct.ContainerName {
 			return genericContainerWriteFile(inputStruct)
 		}
 	}

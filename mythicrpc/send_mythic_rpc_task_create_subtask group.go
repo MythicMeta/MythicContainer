@@ -1,6 +1,7 @@
 package mythicrpc
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -30,9 +31,10 @@ type MythicRPCTaskCreateSubtaskGroupMessageResponse struct {
 	TaskIDs []int  `json:"task_ids"`
 }
 
-func SendMythicRPCTaskCreateSubtaskGroup(input MythicRPCTaskCreateSubtaskGroupMessage) (*MythicRPCTaskCreateSubtaskGroupMessageResponse, error) {
+func SendMythicRPCTaskCreateSubtaskGroup(ctx context.Context, input MythicRPCTaskCreateSubtaskGroupMessage) (*MythicRPCTaskCreateSubtaskGroupMessageResponse, error) {
 	response := MythicRPCTaskCreateSubtaskGroupMessageResponse{}
-	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(
+	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessageWithContext(
+		ctx,
 		rabbitmq.MYTHIC_EXCHANGE,
 		rabbitmq.MYTHIC_RPC_TASK_CREATE_SUBTASK_GROUP,
 		input,

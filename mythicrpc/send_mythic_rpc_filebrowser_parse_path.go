@@ -1,6 +1,7 @@
 package mythicrpc
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -21,9 +22,10 @@ type AnalyzedPath struct {
 	Host          string   `json:"host"`
 }
 
-func SendMythicRPCFileBrowserParsePath(input MythicRPCFileBrowserParsePathMessage) (*MythicRPCFileBrowserParsePathMessageResponse, error) {
+func SendMythicRPCFileBrowserParsePath(ctx context.Context, input MythicRPCFileBrowserParsePathMessage) (*MythicRPCFileBrowserParsePathMessageResponse, error) {
 	response := MythicRPCFileBrowserParsePathMessageResponse{}
-	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(
+	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessageWithContext(
+		ctx,
 		rabbitmq.MYTHIC_EXCHANGE,
 		rabbitmq.MYTHIC_RPC_FILEBROWSER_PARSE_PATH,
 		input,

@@ -5,22 +5,32 @@ import (
 	"time"
 )
 
+type RPCRetryPolicy int
+type CallbackPortType = string
+
 const (
 	MYTHIC_EXCHANGE                        = "mythic_exchange"
 	MYTHIC_TOPIC_EXCHANGE                  = "mythic_topic_exchange"
 	RETRY_CONNECT_DELAY                    = 5 * time.Second
 	TIME_FORMAT_STRING_YYYY_MM_DD          = "2006-01-02"
 	TIME_FORMAT_STRING_YYYY_MM_DD_HH_MM_SS = "2006-01-02 15:04:05 Z07"
-	RPC_TIMEOUT                            = 5 * time.Second
+	RPC_TIMEOUT                            = 10 * time.Second
 	TASK_STATUS_CONTAINER_DOWN             = "Error: Container Down"
 )
-
-type CallbackPortType = string
 
 const containerVersion = "v1.4.3"
 
 var containerVersionMessage = fmt.Sprintf("This version needs Mythic 3.4.8+. This " +
 	"has MythicRPC breaking changes from v1.5.2 and below due to a change in some parameter name changes.")
+
+const (
+	// Retry response timeouts with a new RPC request, preserving the historical 3-attempt behavior.
+	RPC_RETRY_POLICY_RETRY_ON_TIMEOUT RPCRetryPolicy = iota
+	// Retry publish failures only; once a request is delivered, do not send duplicate work after response timeout.
+	RPC_RETRY_POLICY_NO_RETRY_ON_TIMEOUT
+	// Use CUSTOM_RPC_TIMEOUT for slow valid calls and do not send duplicate work after response timeout.
+	RPC_RETRY_POLICY_CUSTOM_TIMEOUT
+)
 
 const (
 	CALLBACK_PORT_TYPE_SOCKS       CallbackPortType = "socks"
@@ -87,6 +97,8 @@ const (
 	AUTH_RPC_GET_NONIDP_REDIRECT     = "auth_rpc_get_nonidp_redirect"
 	AUTH_RPC_PROCESS_NONIDP_RESPONSE = "auth_rpc_process_nonidp_response"
 
+	CHAT_RESPONSE_ROUTING_KEY = "chat_response"
+
 	CONTAINER_ON_START          = "container_on_start"
 	CONTAINER_ON_START_RESPONSE = "container_on_start_response"
 )
@@ -131,6 +143,7 @@ const (
 	//
 	PT_TASK_PROCESS_RESPONSE          = "pt_task_process_response"
 	PT_TASK_PROCESS_RESPONSE_RESPONSE = "pt_task_process_response_response"
+	CHAT_REQUEST                      = "chat_request"
 )
 
 // Routes where container is consuming messages and responding back to Mythic
@@ -256,8 +269,9 @@ const (
 	MYTHIC_RPC_PROXY_START = "mythic_rpc_proxy_start"
 	MYTHIC_RPC_PROXY_STOP  = "mythic_rpc_proxy_stop"
 	// MYTHIC_RPC_OTHER_SERVICES_RPC
-	MYTHIC_RPC_OTHER_SERVICES_RPC = "mythic_rpc_other_service_rpc"
-	MYTHIC_RPC_APITOKEN_CREATE    = "mythic_rpc_apitoken_create"
+	MYTHIC_RPC_OTHER_SERVICES_RPC       = "mythic_rpc_other_service_rpc"
+	MYTHIC_RPC_APITOKEN_CREATE          = "mythic_rpc_apitoken_create"
+	MYTHIC_RPC_DIRECT_FILE_TOKEN_CREATE = "mythic_rpc_direct_file_token_create"
 	// MYTHIC_RPC_TAG
 	MYTHIC_RPC_TAG_SEARCH = "mythic_rpc_tag_search"
 	MYTHIC_RPC_TAG_CREATE = "mythic_rpc_tag_create"
@@ -266,6 +280,7 @@ const (
 	// C2
 	MYTHIC_RPC_C2_UPDATE_STATUS = "mythic_rpc_c2_update_status"
 	// AGENT MESSAGE
+	MYTHIC_RPC_HANDLE_AGENT_JSON         = "mythic_rpc_handle_agent_message_json"
 	MYTHIC_RPC_HANDLE_AGENT_MESSAGE_JSON = "mythic_rpc_handle_agent_message_json"
 	// Custom Browser
 	CUSTOMBROWSER_SEARCH = "mythic_rpc_custombrowser_search"

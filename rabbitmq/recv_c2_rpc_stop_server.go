@@ -1,6 +1,7 @@
 package rabbitmq
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/MythicMeta/MythicContainer/c2_structs"
 	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
@@ -17,7 +18,7 @@ func init() {
 	})
 }
 
-func processC2RPCStopServer(msg []byte) interface{} {
+func processC2RPCStopServer(ctx context.Context, msg []byte) interface{} {
 	input := c2structs.C2RPCStopServerMessage{}
 	responseMsg := c2structs.C2RPCStopServerMessageResponse{}
 	if err := json.Unmarshal(msg, &input); err != nil {
@@ -25,12 +26,12 @@ func processC2RPCStopServer(msg []byte) interface{} {
 		responseMsg.Success = false
 		responseMsg.Error = "Failed to unmarshal JSON message into structs"
 	} else {
-		return C2RPCStopServer(input)
+		return C2RPCStopServer(ctx, input)
 	}
 	return responseMsg
 }
 
-func C2RPCStopServer(input c2structs.C2RPCStopServerMessage) c2structs.C2RPCStopServerMessageResponse {
+func C2RPCStopServer(ctx context.Context, input c2structs.C2RPCStopServerMessage) c2structs.C2RPCStopServerMessageResponse {
 	responseMsg := c2structs.C2RPCStopServerMessageResponse{
 		Success: false,
 		Error:   "Not implemented, not stopping",

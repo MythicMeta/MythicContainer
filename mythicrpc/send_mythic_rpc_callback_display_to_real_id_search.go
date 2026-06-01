@@ -1,6 +1,7 @@
 package mythicrpc
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -27,9 +28,10 @@ type MythicRPCCallbackDisplayToRealIdSearchMessageResponse struct {
 }
 
 // SendMythicRPCCallbackDisplayToRealIdSearch - Convert a generic CallbackDisplayID to a unique CallbackID for use with other RPC calls.
-func SendMythicRPCCallbackDisplayToRealIdSearch(input MythicRPCCallbackDisplayToRealIdSearchMessage) (*MythicRPCCallbackDisplayToRealIdSearchMessageResponse, error) {
+func SendMythicRPCCallbackDisplayToRealIdSearch(ctx context.Context, input MythicRPCCallbackDisplayToRealIdSearchMessage) (*MythicRPCCallbackDisplayToRealIdSearchMessageResponse, error) {
 	response := MythicRPCCallbackDisplayToRealIdSearchMessageResponse{}
-	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(
+	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessageWithContext(
+		ctx,
 		rabbitmq.MYTHIC_EXCHANGE,
 		rabbitmq.MYTHIC_RPC_CALLBACK_DISPLAY_TO_REAL_ID_SEARCH,
 		input,

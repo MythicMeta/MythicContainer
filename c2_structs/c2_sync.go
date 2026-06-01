@@ -1,6 +1,10 @@
 package c2structs
 
-import "github.com/MythicMeta/MythicContainer/utils/sharedStructs"
+import (
+	"context"
+
+	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
+)
 
 // C2_SYNC STRUCTS
 type C2ParameterType = string
@@ -28,24 +32,24 @@ type C2RPCOtherServiceRPCMessageResponse struct {
 }
 
 type C2Profile struct {
-	Name                       string                                                                                    `json:"name"`
-	Description                string                                                                                    `json:"description"`
-	Author                     string                                                                                    `json:"author"`
-	IsP2p                      bool                                                                                      `json:"is_p2p"`
-	IsServerRouted             bool                                                                                      `json:"is_server_routed"`
-	ServerBinaryPath           string                                                                                    `json:"-"`
-	ServerFolderPath           string                                                                                    `json:"-"`
-	SemVer                     string                                                                                    `json:"semver"`
-	AgentIcon                  *[]byte                                                                                   `json:"agent_icon"`
-	DarkModeAgentIcon          *[]byte                                                                                   `json:"dark_mode_agent_icon"`
-	ConfigCheckFunction        func(message C2ConfigCheckMessage) C2ConfigCheckMessageResponse                           `json:"-"`
-	GetRedirectorRulesFunction func(message C2GetRedirectorRuleMessage) C2GetRedirectorRuleMessageResponse               `json:"-"`
-	OPSECCheckFunction         func(message C2OPSECMessage) C2OPSECMessageResponse                                       `json:"-"`
-	GetIOCFunction             func(message C2GetIOCMessage) C2GetIOCMessageResponse                                     `json:"-"`
-	SampleMessageFunction      func(message C2SampleMessageMessage) C2SampleMessageResponse                              `json:"-"`
-	HostFileFunction           func(message C2HostFileMessage) C2HostFileMessageResponse                                 `json:"-"`
-	CustomRPCFunctions         map[string]func(message C2RPCOtherServiceRPCMessage) C2RPCOtherServiceRPCMessageResponse  `json:"-"`
-	OnContainerStartFunction   func(sharedStructs.ContainerOnStartMessage) sharedStructs.ContainerOnStartMessageResponse `json:"-"`
+	Name                       string                                                                                                     `json:"name"`
+	Description                string                                                                                                     `json:"description"`
+	Author                     string                                                                                                     `json:"author"`
+	IsP2p                      bool                                                                                                       `json:"is_p2p"`
+	IsServerRouted             bool                                                                                                       `json:"is_server_routed"`
+	ServerBinaryPath           string                                                                                                     `json:"-"`
+	ServerFolderPath           string                                                                                                     `json:"-"`
+	SemVer                     string                                                                                                     `json:"semver"`
+	AgentIcon                  *[]byte                                                                                                    `json:"agent_icon"`
+	DarkModeAgentIcon          *[]byte                                                                                                    `json:"dark_mode_agent_icon"`
+	ConfigCheckFunction        func(context.Context, C2ConfigCheckMessage) C2ConfigCheckMessageResponse                                   `json:"-"`
+	GetRedirectorRulesFunction func(context.Context, C2GetRedirectorRuleMessage) C2GetRedirectorRuleMessageResponse                       `json:"-"`
+	OPSECCheckFunction         func(context.Context, C2OPSECMessage) C2OPSECMessageResponse                                               `json:"-"`
+	GetIOCFunction             func(context.Context, C2GetIOCMessage) C2GetIOCMessageResponse                                             `json:"-"`
+	SampleMessageFunction      func(context.Context, C2SampleMessageMessage) C2SampleMessageResponse                                      `json:"-"`
+	HostFileFunction           func(context.Context, C2HostFileMessage) C2HostFileMessageResponse                                         `json:"-"`
+	CustomRPCFunctions         map[string]func(context.Context, C2RPCOtherServiceRPCMessage) C2RPCOtherServiceRPCMessageResponse          `json:"-"`
+	OnContainerStartFunction   func(context.Context, sharedStructs.ContainerOnStartMessage) sharedStructs.ContainerOnStartMessageResponse `json:"-"`
 }
 
 const (

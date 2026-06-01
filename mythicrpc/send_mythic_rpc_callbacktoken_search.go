@@ -1,6 +1,7 @@
 package mythicrpc
 
 import (
+	"context"
 	"encoding/json"
 	"time"
 
@@ -54,9 +55,10 @@ type MythicRPCCallbackTokenSearchToken struct {
 	Capabilities       string `mapstructure:"capabilities" json:"capabilities"`
 }
 
-func SendMythicRPCCallbackTokenSearch(input MythicRPCCallbackTokenSearchMessage) (*MythicRPCCallbackTokenSearchMessageResponse, error) {
+func SendMythicRPCCallbackTokenSearch(ctx context.Context, input MythicRPCCallbackTokenSearchMessage) (*MythicRPCCallbackTokenSearchMessageResponse, error) {
 	response := MythicRPCCallbackTokenSearchMessageResponse{}
-	responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(
+	responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessageWithContext(
+		ctx,
 		rabbitmq.MYTHIC_EXCHANGE,
 		rabbitmq.MYTHIC_RPC_CALLBACKTOKEN_SEARCH,
 		input,

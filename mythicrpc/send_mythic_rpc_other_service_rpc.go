@@ -1,6 +1,7 @@
 package mythicrpc
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 
@@ -22,9 +23,10 @@ type MythicRPCOtherServiceRPCMessageResponse struct {
 func getMythicRPCOtherServiceRPCRoutingKey(service string) string {
 	return fmt.Sprintf("%s_%s", service, rabbitmq.MYTHIC_RPC_OTHER_SERVICES_RPC)
 }
-func SendMythicRPCOtherServiceRPC(input MythicRPCOtherServiceRPCMessage) (*MythicRPCOtherServiceRPCMessageResponse, error) {
+func SendMythicRPCOtherServiceRPC(ctx context.Context, input MythicRPCOtherServiceRPCMessage) (*MythicRPCOtherServiceRPCMessageResponse, error) {
 	response := MythicRPCOtherServiceRPCMessageResponse{}
-	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(
+	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessageWithContext(
+		ctx,
 		rabbitmq.MYTHIC_EXCHANGE,
 		getMythicRPCOtherServiceRPCRoutingKey(input.ServiceName),
 		input,

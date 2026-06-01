@@ -1,6 +1,7 @@
 package mythicrpc
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -17,9 +18,10 @@ type MythicRPCAgentstorageRemoveMessageResponse struct {
 }
 
 // SendMythicRPCAgentStorageRemove - Remove a specific entry from the agentstorage table within Mythic.
-func SendMythicRPCAgentStorageRemove(input MythicRPCAgentstorageRemoveMessage) (*MythicRPCAgentstorageRemoveMessageResponse, error) {
+func SendMythicRPCAgentStorageRemove(ctx context.Context, input MythicRPCAgentstorageRemoveMessage) (*MythicRPCAgentstorageRemoveMessageResponse, error) {
 	response := MythicRPCAgentstorageRemoveMessageResponse{}
-	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(
+	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessageWithContext(
+		ctx,
 		rabbitmq.MYTHIC_EXCHANGE,
 		rabbitmq.MYTHIC_RPC_AGENTSTORAGE_REMOVE,
 		input,

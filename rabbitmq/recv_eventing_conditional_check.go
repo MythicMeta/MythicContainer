@@ -1,6 +1,7 @@
 package rabbitmq
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/MythicMeta/MythicContainer/eventingstructs"
@@ -15,7 +16,7 @@ func init() {
 		RabbitmqProcessingFunction: processConditionalCheckEventingFunction,
 	})
 }
-func processConditionalCheckEventingFunction(input []byte) {
+func processConditionalCheckEventingFunction(ctx context.Context, input []byte) {
 	inputStruct := eventingstructs.ConditionalCheckEventingMessage{}
 	err := json.Unmarshal(input, &inputStruct)
 	if err != nil {
@@ -27,10 +28,10 @@ func processConditionalCheckEventingFunction(input []byte) {
 			for i, _ := range eventingstructs.AllEventingData.Get(eventing).GetEventingDefinition().ConditionalChecks {
 				if eventingstructs.AllEventingData.Get(eventing).GetEventingDefinition().ConditionalChecks[i].Name == inputStruct.FunctionName {
 					go func(incomingMessage eventingstructs.ConditionalCheckEventingMessage) {
-						response := eventingstructs.AllEventingData.Get(eventing).GetEventingDefinition().ConditionalChecks[i].Function(incomingMessage)
+						response := eventingstructs.AllEventingData.Get(eventing).GetEventingDefinition().ConditionalChecks[i].Function(ctx, incomingMessage)
 						response.EventStepInstanceID = incomingMessage.EventStepInstanceID
 						for {
-							err = RabbitMQConnection.SendStructMessage(
+							err = RabbitMQConnection.SendStructMessageWithContext(ctx,
 								MYTHIC_EXCHANGE,
 								EVENTING_CONDITIONAL_CHECK_RESPONSE,
 								"",
@@ -51,7 +52,7 @@ func processConditionalCheckEventingFunction(input []byte) {
 			logging.LogError(nil, fmt.Sprintf("Found container name, %s, but missing conditional check, %s",
 				inputStruct.ContainerName, inputStruct.FunctionName))
 			for {
-				err = RabbitMQConnection.SendStructMessage(
+				err = RabbitMQConnection.SendStructMessageWithContext(ctx,
 					MYTHIC_EXCHANGE,
 					EVENTING_CONDITIONAL_CHECK_RESPONSE,
 					"",

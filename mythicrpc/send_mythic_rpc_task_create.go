@@ -1,6 +1,7 @@
 package mythicrpc
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -29,9 +30,10 @@ type MythicRPCTaskCreateMessageResponse struct {
 }
 
 // SendMythicRPCTaskCreate needs OperatorID, TaskID, or EventStepInstanceID to track task to appropriate user
-func SendMythicRPCTaskCreate(input MythicRPCTaskCreateMessage) (*MythicRPCTaskCreateMessageResponse, error) {
+func SendMythicRPCTaskCreate(ctx context.Context, input MythicRPCTaskCreateMessage) (*MythicRPCTaskCreateMessageResponse, error) {
 	response := MythicRPCTaskCreateMessageResponse{}
-	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(
+	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessageWithContext(
+		ctx,
 		rabbitmq.MYTHIC_EXCHANGE,
 		rabbitmq.MYTHIC_RPC_TASK_CREATE,
 		input,

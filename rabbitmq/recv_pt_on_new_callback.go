@@ -1,6 +1,7 @@
 package rabbitmq
 
 import (
+	"context"
 	"encoding/json"
 	agentstructs "github.com/MythicMeta/MythicContainer/agent_structs"
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -14,7 +15,7 @@ func init() {
 	})
 }
 
-func processPtOnNewCallbackMessages(msg []byte) {
+func processPtOnNewCallbackMessages(ctx context.Context, msg []byte) {
 	incomingMessage := agentstructs.PTOnNewCallbackAllData{}
 	response := agentstructs.PTOnNewCallbackResponse{}
 	err := json.Unmarshal(msg, &incomingMessage)
@@ -22,7 +23,7 @@ func processPtOnNewCallbackMessages(msg []byte) {
 		logging.LogError(err, "Failed to unmarshal JSON into struct")
 		response.Success = false
 		response.Error = "Failed to unmarshal JSON message into structs"
-		sendOnNewCallbackResponse(response)
+		sendOnNewCallbackResponse(ctx, response)
 		return
 	}
 	response.Success = false
@@ -33,16 +34,16 @@ func processPtOnNewCallbackMessages(msg []byte) {
 		logging.LogInfo("Failed to get onNewCallbackFunc function. Do you have a function called 'onNewCallbackFunc'? This is an optional function for a payload type to automatically execute tasking and MythicRPC commands when a new callback happens.")
 		response.Success = true
 	} else {
-		response = onNewCallbackFunc(incomingMessage)
+		response = onNewCallbackFunc(ctx, incomingMessage)
 	}
-	sendOnNewCallbackResponse(response)
+	sendOnNewCallbackResponse(ctx, response)
 	return
 
 }
 
-func sendOnNewCallbackResponse(response agentstructs.PTOnNewCallbackResponse) {
+func sendOnNewCallbackResponse(ctx context.Context, response agentstructs.PTOnNewCallbackResponse) {
 	for {
-		err := RabbitMQConnection.SendStructMessage(
+		err := RabbitMQConnection.SendStructMessageWithContext(ctx,
 			MYTHIC_EXCHANGE,
 			PT_ON_NEW_CALLBACK_RESPONSE_ROUTING_KEY,
 			"",

@@ -1,6 +1,7 @@
 package rabbitmq
 
 import (
+	"context"
 	"encoding/json"
 
 	agentstructs "github.com/MythicMeta/MythicContainer/agent_structs"
@@ -8,7 +9,7 @@ import (
 	"github.com/MythicMeta/MythicContainer/utils/mythicutils"
 )
 
-func WrapPayloadBuild(msg []byte) {
+func WrapPayloadBuild(ctx context.Context, msg []byte) {
 	//payloadMsg := map[string]interface{}{}
 	payloadBuildMsg := agentstructs.PayloadBuildMessage{}
 	err := json.Unmarshal(msg, &payloadBuildMsg)
@@ -29,10 +30,10 @@ func WrapPayloadBuild(msg []byte) {
 				payloadBuildResponse.BuildStdErr = "Failed to get file contents of wrapped payload"
 			} else {
 				payloadBuildMsg.WrappedPayload = fileContents
-				payloadBuildResponse = payloadBuildFunc(payloadBuildMsg)
+				payloadBuildResponse = payloadBuildFunc(ctx, payloadBuildMsg)
 			}
 		} else {
-			payloadBuildResponse = payloadBuildFunc(payloadBuildMsg)
+			payloadBuildResponse = payloadBuildFunc(ctx, payloadBuildMsg)
 		}
 	}
 	// handle sending off the payload via a web request separately from the rest of the message
@@ -44,7 +45,7 @@ func WrapPayloadBuild(msg []byte) {
 		}
 	}
 	for {
-		err = RabbitMQConnection.SendStructMessage(
+		err = RabbitMQConnection.SendStructMessageWithContext(ctx,
 			MYTHIC_EXCHANGE,
 			PT_BUILD_RESPONSE_ROUTING_KEY,
 			"",

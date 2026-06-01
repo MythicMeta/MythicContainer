@@ -1,6 +1,7 @@
 package rabbitmq
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -8,6 +9,7 @@ import (
 	"sync"
 
 	"github.com/MythicMeta/MythicContainer/authstructs"
+	"github.com/MythicMeta/MythicContainer/chatstructs"
 	"github.com/MythicMeta/MythicContainer/config"
 	"github.com/MythicMeta/MythicContainer/custombrowserstructs"
 	"github.com/MythicMeta/MythicContainer/eventingstructs"
@@ -25,8 +27,8 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-type QueueHandler func([]byte)
-type RPCQueueHandler func([]byte) interface{}
+type QueueHandler func(context.Context, []byte)
+type RPCQueueHandler func(context.Context, []byte) interface{}
 type RoutingKeyFunction func(string) string
 type ContainerNameFunction func() string
 
@@ -49,6 +51,16 @@ type rabbitMQConnection struct {
 	conn             *amqp.Connection
 	mutex            sync.RWMutex
 	addListenerMutex sync.RWMutex
+	publisherMutex   sync.Mutex
+	publisherChannel *amqp.Channel
+	publisherConfirm chan amqp.Confirmation
+	publisherReturn  chan amqp.Return
+	rpcClientMutex   sync.Mutex
+	rpcChannel       *amqp.Channel
+	rpcConfirm       chan amqp.Confirmation
+	rpcReturn        chan amqp.Return
+	rpcPending       map[string]chan rpcResponse
+	rpcExchanges     map[string]bool
 	RPCQueues        []RPCQueueStruct
 	DirectQueues     []DirectQueueStruct
 	needToResync     bool
@@ -475,6 +487,45 @@ func (r *rabbitMQConnection) startListeners(services []string) {
 			}
 			authstructs.AllAuthData.Get(eventer).SetSubscriptions(subscriptions)
 			SyncConsumingContainerData(eventer, "auth")
+		}
+	}
+	// handle starting any queues that are necessary for chat containers
+	if helpers.StringSliceContains(services, "chat") {
+		logging.LogInfo("Initializing RabbitMQ for Chat Services")
+		for _, chat := range chatstructs.AllChatData.GetAllNames() {
+			chatstructs.AllChatData.Get(chat).SetName(chat)
+			for _, rpcQueue := range chatstructs.AllChatData.Get("").GetRPCMethods() {
+				go RabbitMQConnection.ReceiveFromRPCQueue(
+					MYTHIC_EXCHANGE,
+					chatstructs.AllChatData.Get(chat).GetRoutingKey(rpcQueue.RabbitmqRoutingKey),
+					chatstructs.AllChatData.Get(chat).GetRoutingKey(rpcQueue.RabbitmqRoutingKey),
+					rpcQueue.RabbitmqProcessingFunction,
+					exclusiveQueue,
+					nil,
+				)
+			}
+			for _, directQueue := range chatstructs.AllChatData.Get("").GetDirectMethods() {
+				go RabbitMQConnection.ReceiveFromMythicDirectExchange(
+					MYTHIC_EXCHANGE,
+					chatstructs.AllChatData.Get(chat).GetRoutingKey(directQueue.RabbitmqRoutingKey),
+					chatstructs.AllChatData.Get(chat).GetRoutingKey(directQueue.RabbitmqRoutingKey),
+					directQueue.RabbitmqProcessingFunction,
+					exclusiveQueue,
+					nil,
+				)
+			}
+			chatDef := chatstructs.AllChatData.Get(chat).GetChatDefinition()
+			subscriptions := []string{}
+			for _, model := range chatDef.Models {
+				subBytes, err := json.Marshal(model)
+				if err != nil {
+					logging.LogError(err, "Failed to marshal chat model definition")
+				} else {
+					subscriptions = append(subscriptions, string(subBytes))
+				}
+			}
+			chatstructs.AllChatData.Get(chat).SetSubscriptions(subscriptions)
+			SyncConsumingContainerData(chat, "chat")
 		}
 	}
 	// handle starting any queues that are necessary for the payload type

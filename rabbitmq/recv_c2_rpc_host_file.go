@@ -1,6 +1,7 @@
 package rabbitmq
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/MythicMeta/MythicContainer/c2_structs"
 	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
@@ -16,7 +17,7 @@ func init() {
 	})
 }
 
-func processC2RPCHostFile(msg []byte) interface{} {
+func processC2RPCHostFile(ctx context.Context, msg []byte) interface{} {
 	input := c2structs.C2HostFileMessage{}
 	responseMsg := c2structs.C2HostFileMessageResponse{}
 	if err := json.Unmarshal(msg, &input); err != nil {
@@ -24,19 +25,19 @@ func processC2RPCHostFile(msg []byte) interface{} {
 		responseMsg.Success = false
 		responseMsg.Error = "Failed to unmarshal JSON message into structs"
 	} else {
-		return C2RPCHostFile(input)
+		return C2RPCHostFile(ctx, input)
 	}
 	return responseMsg
 }
 
-func C2RPCHostFile(input c2structs.C2HostFileMessage) c2structs.C2HostFileMessageResponse {
+func C2RPCHostFile(ctx context.Context, input c2structs.C2HostFileMessage) c2structs.C2HostFileMessageResponse {
 	responseMsg := c2structs.C2HostFileMessageResponse{
 		Success: false,
 		Error:   "Not implemented, not hosting a file",
 	}
 	c2Mutex.Lock()
 	if c2structs.AllC2Data.Get(input.Name).GetC2Definition().HostFileFunction != nil {
-		responseMsg = c2structs.AllC2Data.Get(input.Name).GetC2Definition().HostFileFunction(input)
+		responseMsg = c2structs.AllC2Data.Get(input.Name).GetC2Definition().HostFileFunction(ctx, input)
 	}
 	c2Mutex.Unlock()
 	if responseMsg.RestartInternalServer {

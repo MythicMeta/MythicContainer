@@ -1,6 +1,7 @@
 package mythicrpc
 
 import (
+	"context"
 	"encoding/json"
 	"time"
 
@@ -45,9 +46,10 @@ type MythicRPCFileSearchMessageResponse struct {
 	Files   []FileData `json:"files"`
 }
 
-func SendMythicRPCFileSearch(input MythicRPCFileSearchMessage) (*MythicRPCFileSearchMessageResponse, error) {
+func SendMythicRPCFileSearch(ctx context.Context, input MythicRPCFileSearchMessage) (*MythicRPCFileSearchMessageResponse, error) {
 	response := MythicRPCFileSearchMessageResponse{}
-	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(
+	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessageWithContext(
+		ctx,
 		rabbitmq.MYTHIC_EXCHANGE,
 		rabbitmq.MYTHIC_RPC_FILE_SEARCH,
 		input,

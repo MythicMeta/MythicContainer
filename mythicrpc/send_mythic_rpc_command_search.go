@@ -1,6 +1,7 @@
 package mythicrpc
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -36,9 +37,10 @@ type MythicRPCCommandSearchCommandData struct {
 	ScriptOnly          bool                   `json:"script_only"`
 }
 
-func SendMythicRPCCommandSearch(input MythicRPCCommandSearchMessage) (*MythicRPCCommandSearchMessageResponse, error) {
+func SendMythicRPCCommandSearch(ctx context.Context, input MythicRPCCommandSearchMessage) (*MythicRPCCommandSearchMessageResponse, error) {
 	response := MythicRPCCommandSearchMessageResponse{}
-	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(
+	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessageWithContext(
+		ctx,
 		rabbitmq.MYTHIC_EXCHANGE,
 		rabbitmq.MYTHIC_RPC_COMMAND_SEARCH,
 		input,

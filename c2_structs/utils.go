@@ -1,6 +1,7 @@
 package c2structs
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -87,7 +88,7 @@ func (r *allC2Data) AddC2Definition(payloadDef C2Profile) {
 		os.Exit(1)
 	}
 	if payloadDef.CustomRPCFunctions == nil {
-		payloadDef.CustomRPCFunctions = make(map[string]func(message C2RPCOtherServiceRPCMessage) C2RPCOtherServiceRPCMessageResponse)
+		payloadDef.CustomRPCFunctions = make(map[string]func(context.Context, C2RPCOtherServiceRPCMessage) C2RPCOtherServiceRPCMessageResponse)
 	}
 	r.c2Definition = payloadDef
 }
@@ -189,8 +190,9 @@ type CryptoArg struct {
 }
 
 type C2Parameters struct {
-	Name       string                 `json:"c2_profile_name"`
-	Parameters map[string]interface{} `json:"parameters"`
+	Name        string                 `json:"c2_profile_name"`
+	Parameters  map[string]interface{} `json:"parameters"`
+	PayloadUUID string                 `json:"payload_uuid,omitempty"`
 }
 
 func (arg *C2Parameters) GetArg(name string) (interface{}, error) {

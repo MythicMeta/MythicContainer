@@ -1,6 +1,7 @@
 package mythicrpc
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -37,9 +38,10 @@ type MythicRPCCustomBrowserSearchDataResponse struct {
 	Metadata   map[string]interface{} `json:"metadata" mapstructure:"metadata"`
 }
 
-func SendMythicRPCCustomBrowserSearch(input MythicRPCCustomBrowserSearchMessage) (*MythicRPCCustomBrowserSearchMessageResponse, error) {
+func SendMythicRPCCustomBrowserSearch(ctx context.Context, input MythicRPCCustomBrowserSearchMessage) (*MythicRPCCustomBrowserSearchMessageResponse, error) {
 	response := MythicRPCCustomBrowserSearchMessageResponse{}
-	responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(
+	responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessageWithContext(
+		ctx,
 		rabbitmq.MYTHIC_EXCHANGE,
 		rabbitmq.CUSTOMBROWSER_SEARCH,
 		input,

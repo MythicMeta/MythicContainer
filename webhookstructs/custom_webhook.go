@@ -1,6 +1,7 @@
 package webhookstructs
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/MythicMeta/MythicContainer/logging"
 	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
@@ -18,7 +19,7 @@ func init() {
 		RabbitmqProcessingFunction: processNewCustomWebhook,
 	})
 }
-func processNewCustomWebhook(input []byte) {
+func processNewCustomWebhook(ctx context.Context, input []byte) {
 	inputStruct := NewCustomWebhookMessage{}
 	if err := json.Unmarshal(input, &inputStruct); err != nil {
 		logging.LogError(err, "Failed to process new callback webhook message")
@@ -26,7 +27,7 @@ func processNewCustomWebhook(input []byte) {
 		// success, so do RPC calls to Mythic to get more context or send off webhook now
 		for _, webhook := range AllWebhookData.GetAllNames() {
 			if AllWebhookData.Get(webhook).GetWebhookDefinition().NewCustomFunction != nil {
-				AllWebhookData.Get(webhook).GetWebhookDefinition().NewCustomFunction(inputStruct)
+				AllWebhookData.Get(webhook).GetWebhookDefinition().NewCustomFunction(ctx, inputStruct)
 			}
 		}
 	}

@@ -1,6 +1,7 @@
 package mythicrpc
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -17,12 +18,13 @@ type MythicRPCTokenCreateMessageResponse struct {
 }
 type MythicRPCTokenCreateTokenData = agentMessagePostResponseToken
 
-func SendMythicRPCTokenCreate(input MythicRPCTokenCreateMessage) (*MythicRPCTokenCreateMessageResponse, error) {
+func SendMythicRPCTokenCreate(ctx context.Context, input MythicRPCTokenCreateMessage) (*MythicRPCTokenCreateMessageResponse, error) {
 	response := MythicRPCTokenCreateMessageResponse{}
 	for i := 0; i < len(input.Tokens); i++ {
 		input.Tokens[i].Action = "add"
 	}
-	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(
+	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessageWithContext(
+		ctx,
 		rabbitmq.MYTHIC_EXCHANGE,
 		rabbitmq.MYTHIC_RPC_TOKEN_CREATE,
 		input,

@@ -1,6 +1,7 @@
 package rabbitmq
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/MythicMeta/MythicContainer/authstructs"
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -16,7 +17,7 @@ func init() {
 	})
 }
 
-func processAuthRPCProcessNonIDPResponse(msg []byte) interface{} {
+func processAuthRPCProcessNonIDPResponse(ctx context.Context, msg []byte) interface{} {
 	input := authstructs.ProcessNonIDPResponseMessage{}
 	responseMsg := authstructs.ProcessNonIDPResponseMessageResponse{
 		SuccessfulAuthentication: false,
@@ -27,12 +28,12 @@ func processAuthRPCProcessNonIDPResponse(msg []byte) interface{} {
 		responseMsg.SuccessfulAuthentication = false
 		responseMsg.Error = "Failed to unmarshal JSON message into structs"
 	} else {
-		return AuthRPCProcessNonIDPResponse(input)
+		return AuthRPCProcessNonIDPResponse(ctx, input)
 	}
 	return responseMsg
 }
 
-func AuthRPCProcessNonIDPResponse(input authstructs.ProcessNonIDPResponseMessage) authstructs.ProcessNonIDPResponseMessageResponse {
+func AuthRPCProcessNonIDPResponse(ctx context.Context, input authstructs.ProcessNonIDPResponseMessage) authstructs.ProcessNonIDPResponseMessageResponse {
 	responseMsg := authstructs.ProcessNonIDPResponseMessageResponse{
 		SuccessfulAuthentication: false,
 		Error:                    "Failed to find right container with a non-nil function",
@@ -41,7 +42,7 @@ func AuthRPCProcessNonIDPResponse(input authstructs.ProcessNonIDPResponseMessage
 		if authstructs.AllAuthData.Get(eventing).GetAuthDefinition().Name == input.ContainerName {
 			if slices.Contains(authstructs.AllAuthData.Get(eventing).GetAuthDefinition().NonIDPServices, input.NonIDPName) {
 				if authstructs.AllAuthData.Get(eventing).GetAuthDefinition().ProcessNonIDPResponse != nil {
-					return authstructs.AllAuthData.Get(eventing).GetAuthDefinition().ProcessNonIDPResponse(input)
+					return authstructs.AllAuthData.Get(eventing).GetAuthDefinition().ProcessNonIDPResponse(ctx, input)
 				}
 			}
 

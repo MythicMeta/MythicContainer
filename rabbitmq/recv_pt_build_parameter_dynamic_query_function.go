@@ -1,6 +1,7 @@
 package rabbitmq
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 
@@ -16,7 +17,7 @@ func init() {
 	})
 }
 
-func processPtRPCBuildParameterDynamicQueryFunctionMessages(msg []byte) interface{} {
+func processPtRPCBuildParameterDynamicQueryFunctionMessages(ctx context.Context, msg []byte) interface{} {
 	incomingMessage := agentstructs.PTRPCDynamicQueryBuildParameterFunctionMessage{}
 	response := agentstructs.PTRPCDynamicQueryBuildParameterFunctionMessageResponse{
 		Success: false,
@@ -29,7 +30,7 @@ func processPtRPCBuildParameterDynamicQueryFunctionMessages(msg []byte) interfac
 		for _, param := range agentstructs.AllPayloadData.Get(incomingMessage.PayloadType).GetBuildParameters() {
 			if param.Name == incomingMessage.ParameterName {
 				if param.DynamicQueryFunction != nil {
-					response = param.DynamicQueryFunction(incomingMessage)
+					response = param.DynamicQueryFunction(ctx, incomingMessage)
 					response.Success = true
 					return response
 				} else {

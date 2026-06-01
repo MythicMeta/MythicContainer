@@ -1,6 +1,7 @@
 package mythicrpc
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -18,9 +19,10 @@ type MythicRPCC2UpdateStatusMessageResponse struct {
 }
 
 // SendMythicRPCCallbackCreate - Register a new callback within Mythic
-func SendMythicRPCC2UpdateStatus(input MythicRPCC2UpdateStatusMessage) (*MythicRPCC2UpdateStatusMessageResponse, error) {
+func SendMythicRPCC2UpdateStatus(ctx context.Context, input MythicRPCC2UpdateStatusMessage) (*MythicRPCC2UpdateStatusMessageResponse, error) {
 	response := MythicRPCC2UpdateStatusMessageResponse{}
-	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(
+	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessageWithContext(
+		ctx,
 		rabbitmq.MYTHIC_EXCHANGE,
 		rabbitmq.MYTHIC_RPC_C2_UPDATE_STATUS,
 		input,

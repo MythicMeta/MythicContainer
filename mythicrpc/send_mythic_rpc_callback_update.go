@@ -1,6 +1,7 @@
 package mythicrpc
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -39,9 +40,10 @@ type MythicRPCCallbackUpdateMessageResponse struct {
 	Error   string `json:"error"`
 }
 
-func SendMythicRPCCallbackUpdate(input MythicRPCCallbackUpdateMessage) (*MythicRPCCallbackUpdateMessageResponse, error) {
+func SendMythicRPCCallbackUpdate(ctx context.Context, input MythicRPCCallbackUpdateMessage) (*MythicRPCCallbackUpdateMessageResponse, error) {
 	response := MythicRPCCallbackUpdateMessageResponse{}
-	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(
+	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessageWithContext(
+		ctx,
 		rabbitmq.MYTHIC_EXCHANGE,
 		rabbitmq.MYTHIC_RPC_CALLBACK_UPDATE,
 		input,

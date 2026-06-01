@@ -1,6 +1,7 @@
 package rabbitmq
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
@@ -16,7 +17,7 @@ func init() {
 	})
 }
 
-func processPtTaskOPSECPostMessages(msg []byte) {
+func processPtTaskOPSECPostMessages(ctx context.Context, msg []byte) {
 	incomingMessage := agentstructs.PTTaskMessageAllData{}
 	response := agentstructs.PTTaskOPSECPostTaskMessageResponse{
 		Success: false,
@@ -29,30 +30,30 @@ func processPtTaskOPSECPostMessages(msg []byte) {
 		for _, command := range agentstructs.AllPayloadData.Get(incomingMessage.CommandPayloadType).GetCommands() {
 			if command.Name == incomingMessage.Task.CommandName {
 				if command.TaskFunctionOPSECPost != nil {
-					if err := prepTaskArgs(command, &incomingMessage); err != nil {
+					if err := prepTaskArgs(ctx, command, &incomingMessage); err != nil {
 						response.Error = err.Error()
-						sendTaskOpsecPostResponse(response)
+						sendTaskOpsecPostResponse(ctx, response)
 						return
 					}
-					response = command.TaskFunctionOPSECPost(&incomingMessage)
+					response = command.TaskFunctionOPSECPost(ctx, &incomingMessage)
 				} else {
 					response.OpsecPostBlocked = false
 					response.OpsecPostMessage = "Not Implemented"
 					response.Success = true
 				}
-				sendTaskOpsecPostResponse(response)
+				sendTaskOpsecPostResponse(ctx, response)
 				return
 			}
 		}
 		response.Error = fmt.Sprintf("Failed to find command %s", incomingMessage.Task.CommandName)
-		sendTaskOpsecPostResponse(response)
+		sendTaskOpsecPostResponse(ctx, response)
 		return
 	}
 }
 
-func sendTaskOpsecPostResponse(response agentstructs.PTTaskOPSECPostTaskMessageResponse) {
+func sendTaskOpsecPostResponse(ctx context.Context, response agentstructs.PTTaskOPSECPostTaskMessageResponse) {
 	for {
-		err := RabbitMQConnection.SendStructMessage(
+		err := RabbitMQConnection.SendStructMessageWithContext(ctx,
 			MYTHIC_EXCHANGE,
 			PT_TASK_OPSEC_POST_CHECK_RESPONSE,
 			"",

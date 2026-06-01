@@ -1,6 +1,7 @@
 package rabbitmq
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	agentstructs "github.com/MythicMeta/MythicContainer/agent_structs"
@@ -15,7 +16,7 @@ func init() {
 	})
 }
 
-func processPtRPCTypedArrayParseMessages(msg []byte) interface{} {
+func processPtRPCTypedArrayParseMessages(ctx context.Context, msg []byte) interface{} {
 	incomingMessage := agentstructs.PTRPCTypedArrayParseFunctionMessage{}
 	response := agentstructs.PTRPCTypedArrayParseMessageResponse{
 		Success: false,
@@ -30,7 +31,7 @@ func processPtRPCTypedArrayParseMessages(msg []byte) interface{} {
 				for _, param := range command.CommandParameters {
 					if incomingMessage.ParameterName == param.Name {
 						if param.TypedArrayParseFunction != nil {
-							response.TypedArray = param.TypedArrayParseFunction(incomingMessage)
+							response.TypedArray = param.TypedArrayParseFunction(ctx, incomingMessage)
 							response.Success = true
 							return response
 						} else {

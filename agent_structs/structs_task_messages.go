@@ -1,5 +1,7 @@
 package agentstructs
 
+import "context"
+
 // PT_TASK_* structs
 
 type PTTaskMessageAllData struct {
@@ -107,8 +109,8 @@ type PTTaskMessagePayloadData struct {
 
 type PT_TASK_FUNCTION_STATUS = string
 
-type PtTaskFunctionParseArgString func(args *PTTaskMessageArgsData, input string) error
-type PtTaskFunctionParseArgDictionary func(args *PTTaskMessageArgsData, input map[string]interface{}) error
+type PtTaskFunctionParseArgString func(ctx context.Context, args *PTTaskMessageArgsData, input string) error
+type PtTaskFunctionParseArgDictionary func(ctx context.Context, args *PTTaskMessageArgsData, input map[string]interface{}) error
 
 // PTTaskMessageArgsData - struct for tracking, adding, removing, updating, validating, etc arguments for a task.
 // If you want to set your own manual arguments, use the .SetManualArgs function.
@@ -159,7 +161,7 @@ const (
 	OPSEC_ROLE_OTHER_OPERATOR            = "other_operator"
 )
 
-type PtTaskFunctionOPSECPre func(*PTTaskMessageAllData) PTTTaskOPSECPreTaskMessageResponse
+type PtTaskFunctionOPSECPre func(context.Context, *PTTaskMessageAllData) PTTTaskOPSECPreTaskMessageResponse
 type PTTTaskOPSECPreTaskMessageResponse struct {
 	TaskID             int        `json:"task_id"`
 	Success            bool       `json:"success"`
@@ -175,7 +177,7 @@ type PTTTaskOPSECPreTaskMessageResponse struct {
 
 // PtTaskFunctionCreateTasking - Process the tasking request from the user. If you want to access/modify the arguments
 // for this task, use the Task.Args.* functions.
-type PtTaskFunctionCreateTasking func(*PTTaskMessageAllData) PTTaskCreateTaskingMessageResponse
+type PtTaskFunctionCreateTasking func(context.Context, *PTTaskMessageAllData) PTTaskCreateTaskingMessageResponse
 type PTTaskCreateTaskingMessageResponse struct {
 	// TaskID - the task associated with the create tasking function - this will be automatically filled in for you
 	TaskID int `json:"task_id"`
@@ -210,7 +212,7 @@ type PTTaskCreateTaskingMessageResponse struct {
 // Task message/process after running create_tasking but before the task can be picked up by an agent
 //
 //	this is the time to check any artifacts generated from create_tasking
-type PtTaskFunctionOPSECPost func(*PTTaskMessageAllData) PTTaskOPSECPostTaskMessageResponse
+type PtTaskFunctionOPSECPost func(context.Context, *PTTaskMessageAllData) PTTaskOPSECPostTaskMessageResponse
 type PTTaskOPSECPostTaskMessageResponse struct {
 	TaskID              int        `json:"task_id"`
 	Success             bool       `json:"success"`
@@ -236,7 +238,7 @@ type PTTaskCompletionFunctionMessage struct {
 // taskData is always your current task
 // subtaskData is optional if this is executing once a subtask finishes execution
 // subtaskGroupName is optional if the subtask was part of a named group
-type PTTaskCompletionFunction func(*PTTaskMessageAllData, *PTTaskMessageAllData, *SubtaskGroupName) PTTaskCompletionFunctionMessageResponse
+type PTTaskCompletionFunction func(context.Context, *PTTaskMessageAllData, *PTTaskMessageAllData, *SubtaskGroupName) PTTaskCompletionFunctionMessageResponse
 type PTTaskCompletionFunctionMessageResponse struct {
 	TaskID                 int     `json:"task_id"`
 	ParentTaskId           int     `json:"parent_task_id"`
@@ -259,7 +261,7 @@ type PtTaskProcessResponseMessage struct {
 	TaskData *PTTaskMessageAllData `json:"task"`
 	Response interface{}           `json:"response"`
 }
-type PtTaskFunctionProcessResponse func(PtTaskProcessResponseMessage) PTTaskProcessResponseMessageResponse
+type PtTaskFunctionProcessResponse func(context.Context, PtTaskProcessResponseMessage) PTTaskProcessResponseMessageResponse
 type PTTaskProcessResponseMessageResponse struct {
 	TaskID  int    `json:"task_id"`
 	Success bool   `json:"success"`

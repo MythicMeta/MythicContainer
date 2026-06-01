@@ -1,6 +1,7 @@
 package rabbitmq
 
 import (
+	"context"
 	"encoding/json"
 	agentstructs "github.com/MythicMeta/MythicContainer/agent_structs"
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -14,7 +15,7 @@ func init() {
 	})
 }
 
-func processPtRPCCommandHelpFunctionMessages(msg []byte) interface{} {
+func processPtRPCCommandHelpFunctionMessages(ctx context.Context, msg []byte) interface{} {
 	incomingMessage := agentstructs.PTRPCCommandHelpFunctionMessage{}
 	response := agentstructs.PTRPCCommandHelpFunctionMessageResponse{
 		Success: false,
@@ -26,7 +27,7 @@ func processPtRPCCommandHelpFunctionMessages(msg []byte) interface{} {
 	} else {
 		pt := agentstructs.AllPayloadData.Get(incomingMessage.PayloadType).GetPayloadDefinition()
 		if pt.CommandHelpFunction != nil {
-			resp := pt.CommandHelpFunction(incomingMessage)
+			resp := pt.CommandHelpFunction(ctx, incomingMessage)
 			return resp
 		}
 		response.Error = "Function is null"

@@ -1,6 +1,7 @@
 package mythicrpc
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -29,9 +30,10 @@ type MythicRPCPayloadSearchMessageResponse struct {
 	PayloadConfigurations []PayloadConfiguration `json:"payloads"`
 }
 
-func SendMythicRPCPayloadSearch(input MythicRPCPayloadSearchMessage) (*MythicRPCPayloadSearchMessageResponse, error) {
+func SendMythicRPCPayloadSearch(ctx context.Context, input MythicRPCPayloadSearchMessage) (*MythicRPCPayloadSearchMessageResponse, error) {
 	response := MythicRPCPayloadSearchMessageResponse{}
-	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(
+	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessageWithContext(
+		ctx,
 		rabbitmq.MYTHIC_EXCHANGE,
 		rabbitmq.MYTHIC_RPC_PAYLOAD_SEARCH,
 		input,

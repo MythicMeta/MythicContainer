@@ -1,6 +1,7 @@
 package mythicrpc
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -26,9 +27,10 @@ type MythicRPCCallbackEncryptBytesMessageResponse struct {
 }
 
 // SendMythicRPCCallbackEncryptBytes - Ask Mythic to encrypt a message for a specific callback UUID.
-func SendMythicRPCCallbackEncryptBytes(input MythicRPCCallbackEncryptBytesMessage) (*MythicRPCCallbackEncryptBytesMessageResponse, error) {
+func SendMythicRPCCallbackEncryptBytes(ctx context.Context, input MythicRPCCallbackEncryptBytesMessage) (*MythicRPCCallbackEncryptBytesMessageResponse, error) {
 	response := MythicRPCCallbackEncryptBytesMessageResponse{}
-	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(
+	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessageWithContext(
+		ctx,
 		rabbitmq.MYTHIC_EXCHANGE,
 		rabbitmq.MYTHIC_RPC_CALLBACK_ENCRYPT_BYTES,
 		input,

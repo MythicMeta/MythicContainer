@@ -1,6 +1,7 @@
 package loggingstructs
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/MythicMeta/MythicContainer/logging"
 	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
@@ -26,14 +27,14 @@ func init() {
 	})
 }
 
-func processResponseLog(input []byte) {
+func processResponseLog(ctx context.Context, input []byte) {
 	inputStruct := NewResponseLog{}
 	if err := json.Unmarshal(input, &inputStruct); err != nil {
 		logging.LogError(err, "Failed to process message")
 	} else {
 		for _, webhook := range AllLoggingData.GetAllNames() {
 			if AllLoggingData.Get(webhook).GetLoggingDefinition().NewResponseFunction != nil {
-				AllLoggingData.Get(webhook).GetLoggingDefinition().NewResponseFunction(inputStruct)
+				AllLoggingData.Get(webhook).GetLoggingDefinition().NewResponseFunction(ctx, inputStruct)
 			}
 		}
 	}

@@ -1,6 +1,7 @@
 package rabbitmq
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/MythicMeta/MythicContainer/eventingstructs"
@@ -15,7 +16,7 @@ func init() {
 		RabbitmqProcessingFunction: processTaskInterceptEventingFunction,
 	})
 }
-func processTaskInterceptEventingFunction(input []byte) {
+func processTaskInterceptEventingFunction(ctx context.Context, input []byte) {
 	inputStruct := eventingstructs.TaskInterceptMessage{}
 	err := json.Unmarshal(input, &inputStruct)
 	if err != nil {
@@ -26,14 +27,14 @@ func processTaskInterceptEventingFunction(input []byte) {
 		if eventingstructs.AllEventingData.Get(eventing).GetEventingDefinition().Name == inputStruct.ContainerName {
 			if eventingstructs.AllEventingData.Get(eventing).GetEventingDefinition().TaskInterceptFunction != nil {
 				go func(incomingMessage eventingstructs.TaskInterceptMessage) {
-					response := eventingstructs.AllEventingData.Get(eventing).GetEventingDefinition().TaskInterceptFunction(incomingMessage)
+					response := eventingstructs.AllEventingData.Get(eventing).GetEventingDefinition().TaskInterceptFunction(ctx, incomingMessage)
 					response.EventStepInstanceID = incomingMessage.EventStepInstanceID
 					response.TaskID = incomingMessage.TaskID
 					if response.BlockTask && response.BypassRole == "" {
 						response.BypassRole = eventingstructs.OPSEC_ROLE_OPERATOR
 					}
 					for {
-						err = RabbitMQConnection.SendStructMessage(
+						err = RabbitMQConnection.SendStructMessageWithContext(ctx,
 							MYTHIC_EXCHANGE,
 							EVENTING_TASK_INTERCEPT_RESPONSE,
 							"",
@@ -53,7 +54,7 @@ func processTaskInterceptEventingFunction(input []byte) {
 			logging.LogError(nil, fmt.Sprintf("Found container name, %s, but missing task intercept function",
 				inputStruct.ContainerName))
 			for {
-				err = RabbitMQConnection.SendStructMessage(
+				err = RabbitMQConnection.SendStructMessageWithContext(ctx,
 					MYTHIC_EXCHANGE,
 					EVENTING_TASK_INTERCEPT_RESPONSE,
 					"",

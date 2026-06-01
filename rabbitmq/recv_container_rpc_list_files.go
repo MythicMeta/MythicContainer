@@ -1,13 +1,17 @@
 package rabbitmq
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	agentstructs "github.com/MythicMeta/MythicContainer/agent_structs"
 	"github.com/MythicMeta/MythicContainer/authstructs"
 	"github.com/MythicMeta/MythicContainer/c2_structs"
+	"github.com/MythicMeta/MythicContainer/chatstructs"
 	"github.com/MythicMeta/MythicContainer/custombrowserstructs"
 	"github.com/MythicMeta/MythicContainer/eventingstructs"
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -25,6 +29,10 @@ func init() {
 		RabbitmqProcessingFunction: processContainerRPCListFile,
 	})
 	authstructs.AllAuthData.Get("").AddRPCMethod(sharedStructs.RabbitmqRPCMethod{
+		RabbitmqRoutingKey:         CONTAINER_RPC_LIST_FILE,
+		RabbitmqProcessingFunction: processContainerRPCListFile,
+	})
+	chatstructs.AllChatData.Get("").AddRPCMethod(sharedStructs.RabbitmqRPCMethod{
 		RabbitmqRoutingKey:         CONTAINER_RPC_LIST_FILE,
 		RabbitmqProcessingFunction: processContainerRPCListFile,
 	})
@@ -54,7 +62,7 @@ func init() {
 	})
 }
 
-func processContainerRPCListFile(msg []byte) interface{} {
+func processContainerRPCListFile(ctx context.Context, msg []byte) interface{} {
 	input := sharedStructs.ContainerRPCListFileMessage{}
 	responseMsg := sharedStructs.ContainerRPCListFileMessageResponse{}
 	if err := json.Unmarshal(msg, &input); err != nil {
@@ -78,26 +86,7 @@ func ContainerRPCListFile(inputStruct sharedStructs.ContainerRPCListFileMessage)
 	}
 	for _, containerName := range c2structs.AllC2Data.GetAllNames() {
 		if c2structs.AllC2Data.Get(containerName).GetC2Definition().Name == inputStruct.ContainerName {
-			path, err := filepath.Abs(c2structs.AllC2Data.Get(inputStruct.ContainerName).GetC2ServerFolderPath())
-			if err != nil {
-				logging.LogError(err, "Failed to get c2 server folder path")
-				responseMsg.Error = err.Error()
-				return responseMsg
-			}
-			entries, err := os.ReadDir(path)
-			if err != nil {
-				logging.LogError(err, "Failed to list out contents of server folder path")
-				responseMsg.Error = err.Error()
-				return responseMsg
-			}
-			logging.LogInfo("getting file list", "folder path", c2structs.AllC2Data.Get(inputStruct.ContainerName).GetC2ServerFolderPath())
-			for _, entry := range entries {
-				if !entry.IsDir() {
-					responseMsg.Files = append(responseMsg.Files, entry.Name())
-				}
-			}
-			responseMsg.Success = true
-			return responseMsg
+			return listContainerFiles(c2structs.AllC2Data.Get(inputStruct.ContainerName).GetC2ServerFolderPath(), inputStruct)
 		}
 	}
 	for _, containerName := range loggingstructs.AllLoggingData.GetAllNames() {
@@ -125,6 +114,11 @@ func ContainerRPCListFile(inputStruct sharedStructs.ContainerRPCListFileMessage)
 			return genericContainerListFiles(inputStruct)
 		}
 	}
+	for _, containerName := range chatstructs.AllChatData.GetAllNames() {
+		if chatstructs.AllChatData.Get(containerName).GetChatDefinition().Name == inputStruct.ContainerName {
+			return genericContainerListFiles(inputStruct)
+		}
+	}
 	for _, containerName := range custombrowserstructs.AllCustomBrowserData.GetAllNames() {
 		if custombrowserstructs.AllCustomBrowserData.Get(containerName).GetCustomBrowserDefinition().Name == inputStruct.ContainerName {
 			return genericContainerListFiles(inputStruct)
@@ -134,10 +128,33 @@ func ContainerRPCListFile(inputStruct sharedStructs.ContainerRPCListFileMessage)
 	return responseMsg
 }
 func genericContainerListFiles(inputStruct sharedStructs.ContainerRPCListFileMessage) sharedStructs.ContainerRPCListFileMessageResponse {
+	return listContainerFiles(helpers.GetCwdFromExe(), inputStruct)
+}
+
+func resolveContainerListPath(basePath string, requestedPath string) (string, error) {
+	base, err := filepath.Abs(basePath)
+	if err != nil {
+		return "", err
+	}
+	target, err := filepath.Abs(filepath.Join(base, requestedPath))
+	if err != nil {
+		return "", err
+	}
+	relativePath, err := filepath.Rel(base, target)
+	if err != nil {
+		return "", err
+	}
+	if relativePath == ".." || strings.HasPrefix(relativePath, fmt.Sprintf("..%c", os.PathSeparator)) {
+		return "", fmt.Errorf("requested path is outside of the container folder")
+	}
+	return target, nil
+}
+
+func listContainerFiles(basePath string, inputStruct sharedStructs.ContainerRPCListFileMessage) sharedStructs.ContainerRPCListFileMessageResponse {
 	responseMsg := sharedStructs.ContainerRPCListFileMessageResponse{
 		Success: false,
 	}
-	path, err := filepath.Abs(filepath.Join(helpers.GetCwdFromExe()))
+	path, err := resolveContainerListPath(basePath, inputStruct.Path)
 	if err != nil {
 		logging.LogError(err, "Failed to get c2 server folder path")
 		responseMsg.Error = err.Error()
@@ -151,7 +168,9 @@ func genericContainerListFiles(inputStruct sharedStructs.ContainerRPCListFileMes
 	}
 	logging.LogInfo("getting file list", "folder path", path)
 	for _, entry := range entries {
-		if !entry.IsDir() {
+		if entry.IsDir() {
+			responseMsg.Folders = append(responseMsg.Folders, entry.Name())
+		} else {
 			responseMsg.Files = append(responseMsg.Files, entry.Name())
 		}
 	}

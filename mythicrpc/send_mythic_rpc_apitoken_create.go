@@ -1,6 +1,7 @@
 package mythicrpc
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -9,10 +10,13 @@ import (
 
 // MythicRPCAPITokenCreateMessage needs at least one parameter to generate an appropriate apitoken, the rest are unnecessary
 type MythicRPCAPITokenCreateMessage struct {
-	AgentTaskID     *string `json:"agent_task_id"`
-	AgentCallbackID *string `json:"agent_callback_id"`
-	PayloadUUID     *string `json:"payload_uuid"`
-	OperationID     *int    `json:"operation_id"`
+	AgentTaskID     *string  `json:"agent_task_id"`
+	AgentCallbackID *string  `json:"agent_callback_id"`
+	PayloadUUID     *string  `json:"payload_uuid"`
+	ChatChannelID   *int     `json:"chat_channel_id"`
+	APITokenID      *int     `json:"apitoken_id"`
+	Scopes          []string `json:"scopes"`
+	OperationID     *int     `json:"operation_id,omitempty"`
 }
 
 // Every mythicRPC function call must return a response that includes the following two values
@@ -22,9 +26,10 @@ type MythicRPCAPITokenCreateMessageResponse struct {
 	APIToken string `json:"apitoken"`
 }
 
-func SendMythicRPCAPITokenCreate(input MythicRPCAPITokenCreateMessage) (*MythicRPCAPITokenCreateMessageResponse, error) {
+func SendMythicRPCAPITokenCreate(ctx context.Context, input MythicRPCAPITokenCreateMessage) (*MythicRPCAPITokenCreateMessageResponse, error) {
 	response := MythicRPCAPITokenCreateMessageResponse{}
-	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(
+	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessageWithContext(
+		ctx,
 		rabbitmq.MYTHIC_EXCHANGE,
 		rabbitmq.MYTHIC_RPC_APITOKEN_CREATE,
 		input,

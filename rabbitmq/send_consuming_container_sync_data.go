@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/MythicMeta/MythicContainer/authstructs"
+	"github.com/MythicMeta/MythicContainer/chatstructs"
 	"github.com/MythicMeta/MythicContainer/eventingstructs"
 	"github.com/MythicMeta/MythicContainer/loggingstructs"
 	"github.com/MythicMeta/MythicContainer/webhookstructs"
@@ -54,6 +55,14 @@ func SyncConsumingContainerData(consumingContainerName string, consumingType str
 		def := authstructs.AllAuthData.Get(consumingContainerName).GetAuthDefinition()
 		if def.Name == "" {
 			logging.LogError(nil, "Failed to find eventing info to sync")
+			return
+		}
+		description = def.Description
+		subscriptions = def.Subscriptions
+	case "chat":
+		def := chatstructs.AllChatData.Get(consumingContainerName).GetChatDefinition()
+		if def.Name == "" {
+			logging.LogError(nil, "Failed to find chat info to sync")
 			return
 		}
 		description = def.Description

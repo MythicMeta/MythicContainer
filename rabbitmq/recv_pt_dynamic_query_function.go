@@ -1,6 +1,7 @@
 package rabbitmq
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	agentstructs "github.com/MythicMeta/MythicContainer/agent_structs"
@@ -15,7 +16,7 @@ func init() {
 	})
 }
 
-func processPtRPCDynamicQueryFunctionMessages(msg []byte) interface{} {
+func processPtRPCDynamicQueryFunctionMessages(ctx context.Context, msg []byte) interface{} {
 	incomingMessage := agentstructs.PTRPCDynamicQueryFunctionMessage{}
 	response := agentstructs.PTRPCDynamicQueryFunctionMessageResponse{
 		Success: false,
@@ -30,7 +31,7 @@ func processPtRPCDynamicQueryFunctionMessages(msg []byte) interface{} {
 				for _, param := range command.CommandParameters {
 					if incomingMessage.ParameterName == param.Name {
 						if param.DynamicQueryFunction != nil {
-							response.Choices = param.DynamicQueryFunction(incomingMessage)
+							response.Choices = param.DynamicQueryFunction(ctx, incomingMessage)
 							response.Success = true
 							return response
 						} else {

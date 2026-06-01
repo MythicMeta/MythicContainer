@@ -1,6 +1,7 @@
 package rabbitmq
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -9,6 +10,7 @@ import (
 	agentstructs "github.com/MythicMeta/MythicContainer/agent_structs"
 	"github.com/MythicMeta/MythicContainer/authstructs"
 	"github.com/MythicMeta/MythicContainer/c2_structs"
+	"github.com/MythicMeta/MythicContainer/chatstructs"
 	"github.com/MythicMeta/MythicContainer/custombrowserstructs"
 	"github.com/MythicMeta/MythicContainer/eventingstructs"
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -26,6 +28,10 @@ func init() {
 		RabbitmqProcessingFunction: processContainerRPCRemoveFile,
 	})
 	authstructs.AllAuthData.Get("").AddRPCMethod(sharedStructs.RabbitmqRPCMethod{
+		RabbitmqRoutingKey:         CONTAINER_RPC_REMOVE_FILE,
+		RabbitmqProcessingFunction: processContainerRPCRemoveFile,
+	})
+	chatstructs.AllChatData.Get("").AddRPCMethod(sharedStructs.RabbitmqRPCMethod{
 		RabbitmqRoutingKey:         CONTAINER_RPC_REMOVE_FILE,
 		RabbitmqProcessingFunction: processContainerRPCRemoveFile,
 	})
@@ -55,7 +61,7 @@ func init() {
 	})
 }
 
-func processContainerRPCRemoveFile(msg []byte) interface{} {
+func processContainerRPCRemoveFile(ctx context.Context, msg []byte) interface{} {
 	input := sharedStructs.ContainerRPCRemoveFileMessage{}
 	responseMsg := sharedStructs.ContainerRPCRemoveFileMessageResponse{}
 	if err := json.Unmarshal(msg, &input); err != nil {
@@ -114,6 +120,11 @@ func ContainerRPCRemoveFile(inputStruct sharedStructs.ContainerRPCRemoveFileMess
 	}
 	for _, containerName := range authstructs.AllAuthData.GetAllNames() {
 		if authstructs.AllAuthData.Get(containerName).GetAuthDefinition().Name == inputStruct.ContainerName {
+			return genericContainerRemoveFile(inputStruct)
+		}
+	}
+	for _, containerName := range chatstructs.AllChatData.GetAllNames() {
+		if chatstructs.AllChatData.Get(containerName).GetChatDefinition().Name == inputStruct.ContainerName {
 			return genericContainerRemoveFile(inputStruct)
 		}
 	}

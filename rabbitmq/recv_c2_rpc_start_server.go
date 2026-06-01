@@ -2,6 +2,7 @@ package rabbitmq
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/MythicMeta/MythicContainer/c2_structs"
@@ -22,7 +23,7 @@ func init() {
 	})
 }
 
-func processC2RPCStartServer(msg []byte) interface{} {
+func processC2RPCStartServer(ctx context.Context, msg []byte) interface{} {
 	input := c2structs.C2RPCStartServerMessage{}
 	responseMsg := c2structs.C2RPCStartServerMessageResponse{
 		Success: false,
@@ -33,12 +34,12 @@ func processC2RPCStartServer(msg []byte) interface{} {
 		responseMsg.Success = false
 		responseMsg.Error = "Failed to unmarshal JSON message into structs"
 	} else {
-		return C2RPCStartServer(input)
+		return C2RPCStartServer(ctx, input)
 	}
 	return responseMsg
 }
 
-func C2RPCStartServer(input c2structs.C2RPCStartServerMessage) c2structs.C2RPCStartServerMessageResponse {
+func C2RPCStartServer(ctx context.Context, input c2structs.C2RPCStartServerMessage) c2structs.C2RPCStartServerMessageResponse {
 	responseMsg := c2structs.C2RPCStartServerMessageResponse{
 		Success:               false,
 		InternalServerRunning: false,

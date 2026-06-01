@@ -1,6 +1,7 @@
 package rabbitmq
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/MythicMeta/MythicContainer/eventingstructs"
@@ -15,7 +16,7 @@ func init() {
 		RabbitmqProcessingFunction: processNewCustomEventingFunction,
 	})
 }
-func processNewCustomEventingFunction(input []byte) {
+func processNewCustomEventingFunction(ctx context.Context, input []byte) {
 	inputStruct := eventingstructs.NewCustomEventingMessage{}
 	err := json.Unmarshal(input, &inputStruct)
 	if err != nil {
@@ -27,10 +28,10 @@ func processNewCustomEventingFunction(input []byte) {
 			for i, _ := range eventingstructs.AllEventingData.Get(eventing).GetEventingDefinition().CustomFunctions {
 				if eventingstructs.AllEventingData.Get(eventing).GetEventingDefinition().CustomFunctions[i].Name == inputStruct.FunctionName {
 					go func(incomingMessage eventingstructs.NewCustomEventingMessage) {
-						response := eventingstructs.AllEventingData.Get(eventing).GetEventingDefinition().CustomFunctions[i].Function(incomingMessage)
+						response := eventingstructs.AllEventingData.Get(eventing).GetEventingDefinition().CustomFunctions[i].Function(ctx, incomingMessage)
 						response.EventStepInstanceID = incomingMessage.EventStepInstanceID
 						for {
-							err = RabbitMQConnection.SendStructMessage(
+							err = RabbitMQConnection.SendStructMessageWithContext(ctx,
 								MYTHIC_EXCHANGE,
 								EVENTING_CUSTOM_FUNCTION_RESPONSE,
 								"",
@@ -51,7 +52,7 @@ func processNewCustomEventingFunction(input []byte) {
 			logging.LogError(nil, fmt.Sprintf("Found container name, %s, but missing function, %s",
 				inputStruct.ContainerName, inputStruct.FunctionName))
 			for {
-				err = RabbitMQConnection.SendStructMessage(
+				err = RabbitMQConnection.SendStructMessageWithContext(ctx,
 					MYTHIC_EXCHANGE,
 					EVENTING_CUSTOM_FUNCTION_RESPONSE,
 					"",

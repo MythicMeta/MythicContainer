@@ -17,6 +17,7 @@ const (
 	MythicServiceTranslationContainer MythicServices = "translation"
 	MythicServiceEventing             MythicServices = "eventing"
 	MythicServiceAuth                 MythicServices = "auth"
+	MythicServiceChat                 MythicServices = "chat"
 	MythicServiceCustomBrowser        MythicServices = "custombrowser"
 )
 

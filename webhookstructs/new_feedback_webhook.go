@@ -1,6 +1,7 @@
 package webhookstructs
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/MythicMeta/MythicContainer/logging"
 	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
@@ -26,14 +27,14 @@ func init() {
 	})
 }
 
-func processNewFeedbackWebhook(input []byte) {
+func processNewFeedbackWebhook(ctx context.Context, input []byte) {
 	inputStruct := NewFeedbackWebookMessage{}
 	if err := json.Unmarshal(input, &inputStruct); err != nil {
 		logging.LogError(err, "Failed to process new feedback webhook message")
 	} else {
 		for _, webhook := range AllWebhookData.GetAllNames() {
 			if AllWebhookData.Get(webhook).GetWebhookDefinition().NewFeedbackFunction != nil {
-				AllWebhookData.Get(webhook).GetWebhookDefinition().NewFeedbackFunction(inputStruct)
+				AllWebhookData.Get(webhook).GetWebhookDefinition().NewFeedbackFunction(ctx, inputStruct)
 			}
 		}
 	}

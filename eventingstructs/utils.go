@@ -1,6 +1,7 @@
 package eventingstructs
 
 import (
+	"context"
 	"fmt"
 	"github.com/MythicMeta/MythicContainer/utils/helpers"
 	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
@@ -11,13 +12,13 @@ type CustomFunctionDefinition struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	// SemVer is a specific semantic version tracker you can use for your payload type
-	SemVer   string                                                                `json:"semver"`
-	Function func(input NewCustomEventingMessage) NewCustomEventingMessageResponse `json:"-"`
+	SemVer   string                                                                           `json:"semver"`
+	Function func(context.Context, NewCustomEventingMessage) NewCustomEventingMessageResponse `json:"-"`
 }
 type ConditionalCheckDefinition struct {
-	Name        string                                                                              `json:"name"`
-	Description string                                                                              `json:"description"`
-	Function    func(input ConditionalCheckEventingMessage) ConditionalCheckEventingMessageResponse `json:"-"`
+	Name        string                                                                                         `json:"name"`
+	Description string                                                                                         `json:"description"`
+	Function    func(context.Context, ConditionalCheckEventingMessage) ConditionalCheckEventingMessageResponse `json:"-"`
 }
 
 type EventingDefinition struct {
@@ -25,10 +26,10 @@ type EventingDefinition struct {
 	Description               string `json:"description"`
 	CustomFunctions           []CustomFunctionDefinition
 	ConditionalChecks         []ConditionalCheckDefinition
-	TaskInterceptFunction     func(input TaskInterceptMessage) TaskInterceptMessageResponse                             `json:"-"`
-	ResponseInterceptFunction func(input ResponseInterceptMessage) ResponseInterceptMessageResponse                     `json:"-"`
-	Subscriptions             []string                                                                                  `json:"subscriptions"`
-	OnContainerStartFunction  func(sharedStructs.ContainerOnStartMessage) sharedStructs.ContainerOnStartMessageResponse `json:"-"`
+	TaskInterceptFunction     func(context.Context, TaskInterceptMessage) TaskInterceptMessageResponse                                   `json:"-"`
+	ResponseInterceptFunction func(context.Context, ResponseInterceptMessage) ResponseInterceptMessageResponse                           `json:"-"`
+	Subscriptions             []string                                                                                                   `json:"subscriptions"`
+	OnContainerStartFunction  func(context.Context, sharedStructs.ContainerOnStartMessage) sharedStructs.ContainerOnStartMessageResponse `json:"-"`
 }
 
 // REQUIRED, Don't Modify

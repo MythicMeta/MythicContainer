@@ -2,6 +2,7 @@ package agentstructs
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -23,7 +24,7 @@ type allPayloadData struct {
 	containerVersion  string
 	rpcMethods        []sharedStructs.RabbitmqRPCMethod
 	directMethods     []sharedStructs.RabbitmqDirectMethod
-	buildFunction     func(PayloadBuildMessage) PayloadBuildResponse
+	buildFunction     func(context.Context, PayloadBuildMessage) PayloadBuildResponse
 }
 
 var (
@@ -119,18 +120,18 @@ func (r *allPayloadData) RemoveCommand(cmd Command) {
 	}
 	logging.LogWarning("failed to find command for removal", "command", cmd.Name)
 }
-func (r *allPayloadData) AddBuildFunction(f func(PayloadBuildMessage) PayloadBuildResponse) {
+func (r *allPayloadData) AddBuildFunction(f func(context.Context, PayloadBuildMessage) PayloadBuildResponse) {
 	r.buildFunction = f
 }
-func (r *allPayloadData) AddOnNewCallbackFunction(f func(PTOnNewCallbackAllData) PTOnNewCallbackResponse) {
+func (r *allPayloadData) AddOnNewCallbackFunction(f func(context.Context, PTOnNewCallbackAllData) PTOnNewCallbackResponse) {
 	r.payloadDefinition.OnNewCallback = f
 }
-func (r *allPayloadData) AddCheckIfCallbacksAliveFunction(f func(PTCheckIfCallbacksAliveMessage) PTCheckIfCallbacksAliveMessageResponse) {
+func (r *allPayloadData) AddCheckIfCallbacksAliveFunction(f func(context.Context, PTCheckIfCallbacksAliveMessage) PTCheckIfCallbacksAliveMessageResponse) {
 	r.payloadDefinition.CheckIfCallbacksAliveFunction = f
 }
 func (r *allPayloadData) AddPayloadDefinition(payloadDef PayloadType) {
 	if payloadDef.CustomRPCFunctions == nil {
-		payloadDef.CustomRPCFunctions = make(map[string]func(message PTRPCOtherServiceRPCMessage) PTRPCOtherServiceRPCMessageResponse)
+		payloadDef.CustomRPCFunctions = make(map[string]func(context.Context, PTRPCOtherServiceRPCMessage) PTRPCOtherServiceRPCMessageResponse)
 	}
 	r.payloadDefinition = payloadDef
 }
@@ -189,13 +190,13 @@ func (r *allPayloadData) GetCommands() []Command {
 func (r *allPayloadData) GetBuildParameters() []BuildParameter {
 	return r.payloadDefinition.BuildParameters
 }
-func (r *allPayloadData) GetBuildFunction() func(PayloadBuildMessage) PayloadBuildResponse {
+func (r *allPayloadData) GetBuildFunction() func(context.Context, PayloadBuildMessage) PayloadBuildResponse {
 	return r.buildFunction
 }
-func (r *allPayloadData) GetOnNewCallbackFunction() func(PTOnNewCallbackAllData) PTOnNewCallbackResponse {
+func (r *allPayloadData) GetOnNewCallbackFunction() func(context.Context, PTOnNewCallbackAllData) PTOnNewCallbackResponse {
 	return r.payloadDefinition.OnNewCallback
 }
-func (r *allPayloadData) GetCheckIfCallbacksAliveFunction() func(PTCheckIfCallbacksAliveMessage) PTCheckIfCallbacksAliveMessageResponse {
+func (r *allPayloadData) GetCheckIfCallbacksAliveFunction() func(context.Context, PTCheckIfCallbacksAliveMessage) PTCheckIfCallbacksAliveMessageResponse {
 	return r.payloadDefinition.CheckIfCallbacksAliveFunction
 }
 func (r *allPayloadData) AddContainerVersion(ver string) {

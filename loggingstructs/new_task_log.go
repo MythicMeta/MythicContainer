@@ -1,6 +1,7 @@
 package loggingstructs
 
 import (
+	"context"
 	"encoding/json"
 	agentstructs "github.com/MythicMeta/MythicContainer/agent_structs"
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -20,14 +21,14 @@ func init() {
 	})
 }
 
-func processNewTaskLog(input []byte) {
+func processNewTaskLog(ctx context.Context, input []byte) {
 	inputStruct := NewTaskLog{}
 	if err := json.Unmarshal(input, &inputStruct); err != nil {
 		logging.LogError(err, "Failed to process message")
 	} else {
 		for _, webhook := range AllLoggingData.GetAllNames() {
 			if AllLoggingData.Get(webhook).GetLoggingDefinition().NewTaskFunction != nil {
-				AllLoggingData.Get(webhook).GetLoggingDefinition().NewTaskFunction(inputStruct)
+				AllLoggingData.Get(webhook).GetLoggingDefinition().NewTaskFunction(ctx, inputStruct)
 			}
 		}
 	}

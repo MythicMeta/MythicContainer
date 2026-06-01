@@ -1,6 +1,7 @@
 package mythicrpc
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -30,9 +31,10 @@ type MythicRPCFileCreateMessageResponse struct {
 	AgentFileID string `json:"agent_file_id"`
 }
 
-func SendMythicRPCFileCreate(input MythicRPCFileCreateMessage) (*MythicRPCFileCreateMessageResponse, error) {
+func SendMythicRPCFileCreate(ctx context.Context, input MythicRPCFileCreateMessage) (*MythicRPCFileCreateMessageResponse, error) {
 	response := MythicRPCFileCreateMessageResponse{}
-	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(
+	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessageWithContext(
+		ctx,
 		rabbitmq.MYTHIC_EXCHANGE,
 		rabbitmq.MYTHIC_RPC_FILE_CREATE,
 		input,

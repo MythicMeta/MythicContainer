@@ -1,6 +1,7 @@
 package mythicrpc
 
 import (
+	"context"
 	"encoding/json"
 	"time"
 
@@ -28,9 +29,10 @@ type MythicRPCCallbackEdgeSearchMessageResponse struct {
 	Results []MythicRPCCallbackEdgeSearchMessageResult `json:"results"`
 }
 
-func SendMythicRPCCallbackEdgeSearch(input MythicRPCCallbackEdgeSearchMessage) (*MythicRPCCallbackEdgeSearchMessageResponse, error) {
+func SendMythicRPCCallbackEdgeSearch(ctx context.Context, input MythicRPCCallbackEdgeSearchMessage) (*MythicRPCCallbackEdgeSearchMessageResponse, error) {
 	response := MythicRPCCallbackEdgeSearchMessageResponse{}
-	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(
+	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessageWithContext(
+		ctx,
 		rabbitmq.MYTHIC_EXCHANGE,
 		rabbitmq.MYTHIC_RPC_CALLBACK_EDGE_SEARCH,
 		input,

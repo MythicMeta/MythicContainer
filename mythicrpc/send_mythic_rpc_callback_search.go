@@ -1,6 +1,7 @@
 package mythicrpc
 
 import (
+	"context"
 	"encoding/json"
 	"time"
 
@@ -82,9 +83,10 @@ type MythicRPCCallbackSearchMessageResponse struct {
 	Results []MythicRPCCallbackSearchMessageResult `json:"results"`
 }
 
-func SendMythicRPCCallbackSearch(input MythicRPCCallbackSearchMessage) (*MythicRPCCallbackSearchMessageResponse, error) {
+func SendMythicRPCCallbackSearch(ctx context.Context, input MythicRPCCallbackSearchMessage) (*MythicRPCCallbackSearchMessageResponse, error) {
 	response := MythicRPCCallbackSearchMessageResponse{}
-	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(
+	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessageWithContext(
+		ctx,
 		rabbitmq.MYTHIC_EXCHANGE,
 		rabbitmq.MYTHIC_RPC_CALLBACK_SEARCH,
 		input,

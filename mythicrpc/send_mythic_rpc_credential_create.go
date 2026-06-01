@@ -1,6 +1,7 @@
 package mythicrpc
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -25,9 +26,10 @@ type agentMessagePostResponseCredentials struct {
 	ExtraData      string `json:"metadata" mapstructure:"metadata"`
 }
 
-func SendMythicRPCCredentialCreate(input MythicRPCCredentialCreateMessage) (*MythicRPCCredentialCreateMessageResponse, error) {
+func SendMythicRPCCredentialCreate(ctx context.Context, input MythicRPCCredentialCreateMessage) (*MythicRPCCredentialCreateMessageResponse, error) {
 	response := MythicRPCCredentialCreateMessageResponse{}
-	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(
+	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessageWithContext(
+		ctx,
 		rabbitmq.MYTHIC_EXCHANGE,
 		rabbitmq.MYTHIC_RPC_CREDENTIAL_CREATE,
 		input,

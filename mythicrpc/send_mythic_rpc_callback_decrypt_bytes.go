@@ -1,6 +1,7 @@
 package mythicrpc
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -26,9 +27,10 @@ type MythicRPCCallbackDecryptBytesMessageResponse struct {
 }
 
 // SendMythicRPCCallbackDecryptBytes - Ask Mythic to look up the associated callback and decrypt a message for that callback
-func SendMythicRPCCallbackDecryptBytes(input MythicRPCCallbackDecryptBytesMessage) (*MythicRPCCallbackDecryptBytesMessageResponse, error) {
+func SendMythicRPCCallbackDecryptBytes(ctx context.Context, input MythicRPCCallbackDecryptBytesMessage) (*MythicRPCCallbackDecryptBytesMessageResponse, error) {
 	response := MythicRPCCallbackDecryptBytesMessageResponse{}
-	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(
+	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessageWithContext(
+		ctx,
 		rabbitmq.MYTHIC_EXCHANGE,
 		rabbitmq.MYTHIC_RPC_CALLBACK_DECRYPT_BYTES,
 		input,

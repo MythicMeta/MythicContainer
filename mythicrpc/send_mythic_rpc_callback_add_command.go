@@ -1,6 +1,7 @@
 package mythicrpc
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -26,9 +27,10 @@ type MythicRPCCallbackAddCommandMessageResponse struct {
 
 // SendMythicRPCCallbackAddCommand - Register new commands as being "loaded" into the current callback. This makes them
 // available for tasking through the UI.
-func SendMythicRPCCallbackAddCommand(input MythicRPCCallbackAddCommandMessage) (*MythicRPCCallbackAddCommandMessageResponse, error) {
+func SendMythicRPCCallbackAddCommand(ctx context.Context, input MythicRPCCallbackAddCommandMessage) (*MythicRPCCallbackAddCommandMessageResponse, error) {
 	response := MythicRPCCallbackAddCommandMessageResponse{}
-	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(
+	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessageWithContext(
+		ctx,
 		rabbitmq.MYTHIC_EXCHANGE,
 		rabbitmq.MYTHIC_RPC_CALLBACK_ADD_COMMAND,
 		input,

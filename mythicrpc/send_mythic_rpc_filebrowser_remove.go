@@ -1,6 +1,7 @@
 package mythicrpc
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -21,9 +22,10 @@ type agentMessagePostResponseRemovedFiles struct {
 	Path string  `json:"path" mapstructure:"path"` // full path to file removed
 }
 
-func SendMythicRPCFileBrowserRemove(input MythicRPCFileBrowserRemoveMessage) (*MythicRPCFileBrowserRemoveMessageResponse, error) {
+func SendMythicRPCFileBrowserRemove(ctx context.Context, input MythicRPCFileBrowserRemoveMessage) (*MythicRPCFileBrowserRemoveMessageResponse, error) {
 	response := MythicRPCFileBrowserRemoveMessageResponse{}
-	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(
+	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessageWithContext(
+		ctx,
 		rabbitmq.MYTHIC_EXCHANGE,
 		rabbitmq.MYTHIC_RPC_FILEBROWSER_REMOVE,
 		input,

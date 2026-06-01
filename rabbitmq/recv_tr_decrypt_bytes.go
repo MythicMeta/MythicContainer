@@ -1,6 +1,7 @@
 package rabbitmq
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/MythicMeta/MythicContainer/translationstructs"
 
@@ -10,7 +11,7 @@ import (
 // Register this RPC method with rabbitmq so it can be called
 func init() {
 	/*
-		translationstructs.AllTranslationData.Get("").AddRPCMethod(translationstructs.RabbitmqRPCMethod{
+		translationstructs.AllTranslationData.Get("").AddRPCMethod(sharedStructs.RabbitmqRPCMethod{
 			RabbitmqRoutingKey:         TR_RPC_DECRYPT_BYTES,
 			RabbitmqProcessingFunction: processTrRPCDecryptBytes,
 		})
@@ -20,7 +21,7 @@ func init() {
 
 // All rabbitmq methods must take byte inputs and return an interface.
 // However, we can cast these to the input and return types defined in this file
-func processTrRPCDecryptBytes(msg []byte) interface{} {
+func processTrRPCDecryptBytes(ctx context.Context, msg []byte) interface{} {
 	input := translationstructs.TrDecryptBytesMessage{}
 	responseMsg := translationstructs.TrDecryptBytesMessageResponse{}
 	if err := json.Unmarshal(msg, &input); err != nil {
@@ -29,18 +30,18 @@ func processTrRPCDecryptBytes(msg []byte) interface{} {
 		responseMsg.Error = "Failed to unmarshal JSON message into structs"
 	} else {
 		// actually do config checks on configCheck
-		return TrRPCDecryptBytes(input)
+		return TrRPCDecryptBytes(ctx, input)
 	}
 	return responseMsg
 }
 
-func TrRPCDecryptBytes(input translationstructs.TrDecryptBytesMessage) translationstructs.TrDecryptBytesMessageResponse {
+func TrRPCDecryptBytes(ctx context.Context, input translationstructs.TrDecryptBytesMessage) translationstructs.TrDecryptBytesMessageResponse {
 	response := translationstructs.TrDecryptBytesMessageResponse{
 		Success: false,
 		Error:   "No Translation function defined",
 	}
 	if translationstructs.AllTranslationData.Get(input.TranslationContainerName).GetPayloadDefinition().DecryptBytes != nil {
-		response = translationstructs.AllTranslationData.Get(input.TranslationContainerName).GetPayloadDefinition().DecryptBytes(input)
+		response = translationstructs.AllTranslationData.Get(input.TranslationContainerName).GetPayloadDefinition().DecryptBytes(ctx, input)
 	}
 	return response
 }

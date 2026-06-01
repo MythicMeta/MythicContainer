@@ -1,6 +1,7 @@
 package mythicrpc
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -25,9 +26,10 @@ type MythicRPCCredentialSearchCredentialData struct {
 	Metadata   *string `json:"metadata"`   // optional
 }
 
-func SendMythicRPCCredentialSearch(input MythicRPCCredentialSearchMessage) (*MythicRPCCredentialSearchMessageResponse, error) {
+func SendMythicRPCCredentialSearch(ctx context.Context, input MythicRPCCredentialSearchMessage) (*MythicRPCCredentialSearchMessageResponse, error) {
 	response := MythicRPCCredentialSearchMessageResponse{}
-	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(
+	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessageWithContext(
+		ctx,
 		rabbitmq.MYTHIC_EXCHANGE,
 		rabbitmq.MYTHIC_RPC_CREDENTIAL_SEARCH,
 		input,

@@ -1,6 +1,7 @@
 package mythicrpc
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -33,9 +34,10 @@ type agentMessagePostResponseProcesses struct {
 	Other                  map[string]interface{} `json:"-" mapstructure:",remain"`
 }
 
-func SendMythicRPCProcessCreate(input MythicRPCProcessCreateMessage) (*MythicRPCProcessCreateMessageResponse, error) {
+func SendMythicRPCProcessCreate(ctx context.Context, input MythicRPCProcessCreateMessage) (*MythicRPCProcessCreateMessageResponse, error) {
 	response := MythicRPCProcessCreateMessageResponse{}
-	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(
+	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessageWithContext(
+		ctx,
 		rabbitmq.MYTHIC_EXCHANGE,
 		rabbitmq.MYTHIC_RPC_PROCESS_CREATE,
 		input,

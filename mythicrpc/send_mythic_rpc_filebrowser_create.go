@@ -1,6 +1,7 @@
 package mythicrpc
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -38,9 +39,10 @@ type agentMessagePostResponseFileBrowserChildren struct {
 	Size        uint64                 `json:"size" mapstructure:"size"`
 }
 
-func SendMythicRPCFileBrowserCreate(input MythicRPCFileBrowserCreateMessage) (*MythicRPCFileBrowserCreateMessageResponse, error) {
+func SendMythicRPCFileBrowserCreate(ctx context.Context, input MythicRPCFileBrowserCreateMessage) (*MythicRPCFileBrowserCreateMessageResponse, error) {
 	response := MythicRPCFileBrowserCreateMessageResponse{}
-	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(
+	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessageWithContext(
+		ctx,
 		rabbitmq.MYTHIC_EXCHANGE,
 		rabbitmq.MYTHIC_RPC_FILEBROWSER_CREATE,
 		input,

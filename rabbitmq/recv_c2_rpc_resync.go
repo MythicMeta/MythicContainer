@@ -1,6 +1,7 @@
 package rabbitmq
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/MythicMeta/MythicContainer/c2_structs"
 	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
@@ -18,7 +19,7 @@ func init() {
 
 // All rabbitmq methods must take byte inputs and return an interface.
 // However, we can cast these to the input and return types defined in this file
-func processC2RPCReSync(msg []byte) interface{} {
+func processC2RPCReSync(ctx context.Context, msg []byte) interface{} {
 	input := c2structs.C2RPCReSyncMessage{}
 	responseMsg := c2structs.C2RPCReSyncMessageResponse{}
 	if err := json.Unmarshal(msg, &input); err != nil {
@@ -27,12 +28,12 @@ func processC2RPCReSync(msg []byte) interface{} {
 		responseMsg.Error = "Failed to unmarshal JSON message into structs"
 	} else {
 		// actually do config checks on configCheck
-		return C2RPCReSync(input)
+		return C2RPCReSync(ctx, input)
 	}
 	return responseMsg
 }
 
-func C2RPCReSync(input c2structs.C2RPCReSyncMessage) c2structs.C2RPCReSyncMessageResponse {
+func C2RPCReSync(ctx context.Context, input c2structs.C2RPCReSyncMessage) c2structs.C2RPCReSyncMessageResponse {
 	response := c2structs.C2RPCReSyncMessageResponse{
 		Success: true,
 		Error:   "",

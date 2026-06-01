@@ -1,6 +1,7 @@
 package mythicrpc
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -27,9 +28,10 @@ type MythicRPCTaskSearchMessageResponse struct {
 	Tasks   []PTTaskMessageTaskData `json:"tasks"`
 }
 
-func SendMythicRPCTaskSearch(input MythicRPCTaskSearchMessage) (*MythicRPCTaskSearchMessageResponse, error) {
+func SendMythicRPCTaskSearch(ctx context.Context, input MythicRPCTaskSearchMessage) (*MythicRPCTaskSearchMessageResponse, error) {
 	response := MythicRPCTaskSearchMessageResponse{}
-	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(
+	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessageWithContext(
+		ctx,
 		rabbitmq.MYTHIC_EXCHANGE,
 		rabbitmq.MYTHIC_RPC_TASK_SEARCH,
 		input,

@@ -1,6 +1,7 @@
 package rabbitmq
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/MythicMeta/MythicContainer/c2_structs"
 	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
@@ -18,7 +19,7 @@ func init() {
 
 // All rabbitmq methods must take byte inputs and return an interface.
 // However, we can cast these to the input and return types defined in this file
-func processC2RPCGetIOC(msg []byte) interface{} {
+func processC2RPCGetIOC(ctx context.Context, msg []byte) interface{} {
 	input := c2structs.C2GetIOCMessage{}
 	responseMsg := c2structs.C2GetIOCMessageResponse{}
 	if err := json.Unmarshal(msg, &input); err != nil {
@@ -27,19 +28,19 @@ func processC2RPCGetIOC(msg []byte) interface{} {
 		responseMsg.Error = "Failed to unmarshal JSON message into structs"
 	} else {
 		// actually do C2RPCGetIOC
-		return C2RPCGetIOC(input)
+		return C2RPCGetIOC(ctx, input)
 	}
 	return responseMsg
 }
 
-func C2RPCGetIOC(input c2structs.C2GetIOCMessage) c2structs.C2GetIOCMessageResponse {
+func C2RPCGetIOC(ctx context.Context, input c2structs.C2GetIOCMessage) c2structs.C2GetIOCMessageResponse {
 	responseMsg := c2structs.C2GetIOCMessageResponse{
 		Success: true,
 		Error:   "No IOCs configured",
 	}
 	c2Mutex.Lock()
 	if c2structs.AllC2Data.Get(input.Name).GetC2Definition().GetIOCFunction != nil {
-		responseMsg = c2structs.AllC2Data.Get(input.Name).GetC2Definition().GetIOCFunction(input)
+		responseMsg = c2structs.AllC2Data.Get(input.Name).GetC2Definition().GetIOCFunction(ctx, input)
 	}
 	c2Mutex.Unlock()
 	if responseMsg.RestartInternalServer {

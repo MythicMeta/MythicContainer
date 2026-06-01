@@ -1,6 +1,7 @@
 package rabbitmq
 
 import (
+	"context"
 	"encoding/json"
 	agentstructs "github.com/MythicMeta/MythicContainer/agent_structs"
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -14,7 +15,7 @@ func init() {
 	})
 }
 
-func processPtCheckIfCallbacksAliveMessages(msg []byte) interface{} {
+func processPtCheckIfCallbacksAliveMessages(ctx context.Context, msg []byte) interface{} {
 	incomingMessage := agentstructs.PTCheckIfCallbacksAliveMessage{}
 	response := agentstructs.PTCheckIfCallbacksAliveMessageResponse{}
 	err := json.Unmarshal(msg, &incomingMessage)
@@ -29,7 +30,7 @@ func processPtCheckIfCallbacksAliveMessages(msg []byte) interface{} {
 	if checkIfCallbacksAliveFunc == nil {
 		response.Success = true
 	} else {
-		response = checkIfCallbacksAliveFunc(incomingMessage)
+		response = checkIfCallbacksAliveFunc(ctx, incomingMessage)
 	}
 	return response
 }

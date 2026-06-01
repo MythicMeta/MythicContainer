@@ -1,5 +1,7 @@
 package mythicrpc
 
+import "context"
+
 import "github.com/MythicMeta/MythicContainer/utils/mythicutils"
 
 type MythicRPCFileGetContentMessage struct {
@@ -13,7 +15,7 @@ type MythicRPCFileGetContentMessageResponse struct {
 	Content []byte `json:"content"`
 }
 
-func SendMythicRPCFileGetContent(input MythicRPCFileGetContentMessage) (*MythicRPCFileGetContentMessageResponse, error) {
+func SendMythicRPCFileGetContent(ctx context.Context, input MythicRPCFileGetContentMessage) (*MythicRPCFileGetContentMessageResponse, error) {
 	response := MythicRPCFileGetContentMessageResponse{}
 	if content, err := mythicutils.GetFileFromMythic(input.AgentFileID); err != nil {
 		response.Success = false
@@ -25,7 +27,8 @@ func SendMythicRPCFileGetContent(input MythicRPCFileGetContentMessage) (*MythicR
 		return &response, nil
 	}
 	/*
-		if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(
+		if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessageWithContext(
+		ctx,
 			rabbitmq.MYTHIC_EXCHANGE,
 			rabbitmq.MYTHIC_RPC_FILE_GET_CONTENT,
 			input,

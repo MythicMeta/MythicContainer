@@ -1,6 +1,7 @@
 package rabbitmq
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/MythicMeta/MythicContainer/eventingstructs"
@@ -15,7 +16,7 @@ func init() {
 		RabbitmqProcessingFunction: processResponseInterceptEventingFunction,
 	})
 }
-func processResponseInterceptEventingFunction(input []byte) {
+func processResponseInterceptEventingFunction(ctx context.Context, input []byte) {
 	inputStruct := eventingstructs.ResponseInterceptMessage{}
 	err := json.Unmarshal(input, &inputStruct)
 	if err != nil {
@@ -26,11 +27,11 @@ func processResponseInterceptEventingFunction(input []byte) {
 		if eventingstructs.AllEventingData.Get(eventing).GetEventingDefinition().Name == inputStruct.ContainerName {
 			if eventingstructs.AllEventingData.Get(eventing).GetEventingDefinition().ResponseInterceptFunction != nil {
 				go func(incomingMessage eventingstructs.ResponseInterceptMessage) {
-					response := eventingstructs.AllEventingData.Get(eventing).GetEventingDefinition().ResponseInterceptFunction(incomingMessage)
+					response := eventingstructs.AllEventingData.Get(eventing).GetEventingDefinition().ResponseInterceptFunction(ctx, incomingMessage)
 					response.EventStepInstanceID = incomingMessage.EventStepInstanceID
 					response.ResponseID = incomingMessage.ResponseID
 					for {
-						err = RabbitMQConnection.SendStructMessage(
+						err = RabbitMQConnection.SendStructMessageWithContext(ctx,
 							MYTHIC_EXCHANGE,
 							EVENTING_RESPONSE_INTERCEPT_RESPONSE,
 							"",
@@ -50,7 +51,7 @@ func processResponseInterceptEventingFunction(input []byte) {
 			logging.LogError(nil, fmt.Sprintf("Found container name, %s, but missing response intercept function",
 				inputStruct.ContainerName))
 			for {
-				err = RabbitMQConnection.SendStructMessage(
+				err = RabbitMQConnection.SendStructMessageWithContext(ctx,
 					MYTHIC_EXCHANGE,
 					EVENTING_RESPONSE_INTERCEPT_RESPONSE,
 					"",

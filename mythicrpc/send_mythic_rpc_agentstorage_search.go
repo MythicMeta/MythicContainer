@@ -1,6 +1,7 @@
 package mythicrpc
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -22,9 +23,10 @@ type MythicRPCAgentstorageSearchResult struct {
 }
 
 // SendMythicRPCAgentStorageSearch - Search for a specific entry within the agentstorage table and fetch the results.
-func SendMythicRPCAgentStorageSearch(input MythicRPCAgentstorageSearchMessage) (*MythicRPCAgentstorageSearchMessageResponse, error) {
+func SendMythicRPCAgentStorageSearch(ctx context.Context, input MythicRPCAgentstorageSearchMessage) (*MythicRPCAgentstorageSearchMessageResponse, error) {
 	response := MythicRPCAgentstorageSearchMessageResponse{}
-	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(
+	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessageWithContext(
+		ctx,
 		rabbitmq.MYTHIC_EXCHANGE,
 		rabbitmq.MYTHIC_RPC_AGENTSTORAGE_SEARCH,
 		input,

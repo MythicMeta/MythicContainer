@@ -1,6 +1,7 @@
 package mythicrpc
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -22,9 +23,10 @@ type MythicRPCKeylogSearchKeylogData struct {
 	Keystrokes  *[]byte `json:"keystrokes" `   // optional
 }
 
-func SendMythicRPCKeylogSearch(input MythicRPCKeylogSearchMessage) (*MythicRPCKeylogSearchMessageResponse, error) {
+func SendMythicRPCKeylogSearch(ctx context.Context, input MythicRPCKeylogSearchMessage) (*MythicRPCKeylogSearchMessageResponse, error) {
 	response := MythicRPCKeylogSearchMessageResponse{}
-	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(
+	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessageWithContext(
+		ctx,
 		rabbitmq.MYTHIC_EXCHANGE,
 		rabbitmq.MYTHIC_RPC_KEYLOG_SEARCH,
 		input,

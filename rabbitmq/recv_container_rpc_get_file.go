@@ -1,6 +1,7 @@
 package rabbitmq
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -9,6 +10,7 @@ import (
 
 	agentstructs "github.com/MythicMeta/MythicContainer/agent_structs"
 	"github.com/MythicMeta/MythicContainer/authstructs"
+	"github.com/MythicMeta/MythicContainer/chatstructs"
 	"github.com/MythicMeta/MythicContainer/custombrowserstructs"
 	"github.com/MythicMeta/MythicContainer/eventingstructs"
 	"github.com/MythicMeta/MythicContainer/loggingstructs"
@@ -28,6 +30,10 @@ func init() {
 		RabbitmqProcessingFunction: processContainerRPCGetFile,
 	})
 	authstructs.AllAuthData.Get("").AddRPCMethod(sharedStructs.RabbitmqRPCMethod{
+		RabbitmqRoutingKey:         CONTAINER_RPC_GET_FILE,
+		RabbitmqProcessingFunction: processContainerRPCGetFile,
+	})
+	chatstructs.AllChatData.Get("").AddRPCMethod(sharedStructs.RabbitmqRPCMethod{
 		RabbitmqRoutingKey:         CONTAINER_RPC_GET_FILE,
 		RabbitmqProcessingFunction: processContainerRPCGetFile,
 	})
@@ -57,7 +63,7 @@ func init() {
 	})
 }
 
-func processContainerRPCGetFile(msg []byte) interface{} {
+func processContainerRPCGetFile(ctx context.Context, msg []byte) interface{} {
 	input := sharedStructs.ContainerRPCGetFileMessage{}
 	responseMsg := sharedStructs.ContainerRPCGetFileMessageResponse{}
 	if err := json.Unmarshal(msg, &input); err != nil {
@@ -124,6 +130,11 @@ func ContainerRPCGetFile(inputStruct sharedStructs.ContainerRPCGetFileMessage) s
 	}
 	for _, containerName := range authstructs.AllAuthData.GetAllNames() {
 		if authstructs.AllAuthData.Get(containerName).GetAuthDefinition().Name == inputStruct.ContainerName {
+			return genericContainerGetFile(inputStruct)
+		}
+	}
+	for _, containerName := range chatstructs.AllChatData.GetAllNames() {
+		if chatstructs.AllChatData.Get(containerName).GetChatDefinition().Name == inputStruct.ContainerName {
 			return genericContainerGetFile(inputStruct)
 		}
 	}

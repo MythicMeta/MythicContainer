@@ -1,6 +1,7 @@
 package rabbitmq
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/MythicMeta/MythicContainer/c2_structs"
 	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
@@ -16,7 +17,7 @@ func init() {
 	})
 }
 
-func processC2RPCGetRedirectorRules(msg []byte) interface{} {
+func processC2RPCGetRedirectorRules(ctx context.Context, msg []byte) interface{} {
 	input := c2structs.C2GetRedirectorRuleMessage{}
 	responseMsg := c2structs.C2GetRedirectorRuleMessageResponse{}
 	if err := json.Unmarshal(msg, &input); err != nil {
@@ -24,19 +25,19 @@ func processC2RPCGetRedirectorRules(msg []byte) interface{} {
 		responseMsg.Success = false
 		responseMsg.Error = "Failed to unmarshal JSON message into structs"
 	} else {
-		return C2RPCGetRedirectorRules(input)
+		return C2RPCGetRedirectorRules(ctx, input)
 	}
 	return responseMsg
 }
 
-func C2RPCGetRedirectorRules(input c2structs.C2GetRedirectorRuleMessage) c2structs.C2GetRedirectorRuleMessageResponse {
+func C2RPCGetRedirectorRules(ctx context.Context, input c2structs.C2GetRedirectorRuleMessage) c2structs.C2GetRedirectorRuleMessageResponse {
 	responseMsg := c2structs.C2GetRedirectorRuleMessageResponse{
 		Success: false,
 		Error:   "Not implemented, not getting redirector rules",
 	}
 	c2Mutex.Lock()
 	if c2structs.AllC2Data.Get(input.Name).GetC2Definition().GetRedirectorRulesFunction != nil {
-		responseMsg = c2structs.AllC2Data.Get(input.Name).GetC2Definition().GetRedirectorRulesFunction(input)
+		responseMsg = c2structs.AllC2Data.Get(input.Name).GetC2Definition().GetRedirectorRulesFunction(ctx, input)
 	}
 	c2Mutex.Unlock()
 	if responseMsg.RestartInternalServer {

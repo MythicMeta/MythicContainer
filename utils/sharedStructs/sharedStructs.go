@@ -1,12 +1,14 @@
 package sharedStructs
 
+import "context"
+
 type RabbitmqRPCMethod struct {
 	RabbitmqRoutingKey         string
-	RabbitmqProcessingFunction func([]byte) interface{}
+	RabbitmqProcessingFunction func(context.Context, []byte) interface{}
 }
 type RabbitmqDirectMethod struct {
 	RabbitmqRoutingKey         string
-	RabbitmqProcessingFunction func([]byte)
+	RabbitmqProcessingFunction func(context.Context, []byte)
 }
 
 type ContainerOnStartMessage struct {
@@ -37,12 +39,14 @@ type ContainerRPCGetFileMessageResponse struct {
 
 type ContainerRPCListFileMessage struct {
 	ContainerName string `json:"container_name"`
+	Path          string `json:"path,omitempty"`
 }
 
 type ContainerRPCListFileMessageResponse struct {
 	Success bool     `json:"success"`
 	Error   string   `json:"error"`
 	Files   []string `json:"files"`
+	Folders []string `json:"folders"`
 }
 
 type ContainerRPCRemoveFileMessage struct {

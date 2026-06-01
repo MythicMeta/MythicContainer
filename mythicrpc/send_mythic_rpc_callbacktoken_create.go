@@ -1,6 +1,7 @@
 package mythicrpc
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -42,9 +43,10 @@ type agentMessagePostResponseCallbackTokens struct {
 	TokenInfo *agentMessagePostResponseToken `mapstructure:"token"`
 }
 
-func SendMythicRPCCallbackTokenCreate(input MythicRPCCallbackTokenCreateMessage) (*MythicRPCCallbackTokenCreateMessageResponse, error) {
+func SendMythicRPCCallbackTokenCreate(ctx context.Context, input MythicRPCCallbackTokenCreateMessage) (*MythicRPCCallbackTokenCreateMessageResponse, error) {
 	response := MythicRPCCallbackTokenCreateMessageResponse{}
-	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(
+	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessageWithContext(
+		ctx,
 		rabbitmq.MYTHIC_EXCHANGE,
 		rabbitmq.MYTHIC_RPC_CALLBACKTOKEN_CREATE,
 		input,

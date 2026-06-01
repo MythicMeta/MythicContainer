@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/MythicMeta/MythicContainer/utils/helpers"
 	"github.com/spf13/viper"
@@ -18,6 +19,7 @@ type Config struct {
 	RabbitmqUser     string
 	RabbitmqPassword string
 	RabbitmqVHost    string
+	CustomRPCTimeout time.Duration
 	// mythic information
 	MythicServerHost     string
 	MythicServerPort     uint
@@ -48,6 +50,7 @@ func init() {
 	mythicEnv.SetDefault("rabbitmq_user", "mythic_user")
 	mythicEnv.SetDefault("rabbitmq_password", "")
 	mythicEnv.SetDefault("rabbitmq_vhost", "mythic_vhost")
+	mythicEnv.SetDefault("custom_rpc_timeout", 0)
 	// webhook configuration
 	mythicEnv.SetDefault("webhook_default_url", "")
 	mythicEnv.SetDefault("webhook_default_channel", "")
@@ -86,6 +89,7 @@ func setConfigFromEnv(mythicEnv *viper.Viper) {
 	MythicConfig.RabbitmqUser = mythicEnv.GetString("rabbitmq_user")
 	MythicConfig.RabbitmqPassword = mythicEnv.GetString("rabbitmq_password")
 	MythicConfig.RabbitmqVHost = mythicEnv.GetString("rabbitmq_vhost")
+	MythicConfig.CustomRPCTimeout = time.Duration(mythicEnv.GetUint("custom_rpc_timeout")) * time.Second
 	// mythic information
 	MythicConfig.MythicServerPort = mythicEnv.GetUint("mythic_server_port")
 	MythicConfig.MythicServerGRPCPort = mythicEnv.GetUint("mythic_server_grpc_port")

@@ -1,11 +1,13 @@
 package rabbitmq
 
 import (
+	"context"
 	"encoding/json"
 
 	agentstructs "github.com/MythicMeta/MythicContainer/agent_structs"
 	"github.com/MythicMeta/MythicContainer/authstructs"
 	c2structs "github.com/MythicMeta/MythicContainer/c2_structs"
+	"github.com/MythicMeta/MythicContainer/chatstructs"
 	"github.com/MythicMeta/MythicContainer/custombrowserstructs"
 	"github.com/MythicMeta/MythicContainer/eventingstructs"
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -45,12 +47,16 @@ func init() {
 		RabbitmqRoutingKey:         CONTAINER_ON_START,
 		RabbitmqProcessingFunction: processOnEventingStart,
 	})
+	chatstructs.AllChatData.Get("").AddDirectMethod(sharedStructs.RabbitmqDirectMethod{
+		RabbitmqRoutingKey:         CONTAINER_ON_START,
+		RabbitmqProcessingFunction: processOnEventingStart,
+	})
 	custombrowserstructs.AllCustomBrowserData.Get("").AddDirectMethod(sharedStructs.RabbitmqDirectMethod{
 		RabbitmqRoutingKey:         CONTAINER_ON_START,
 		RabbitmqProcessingFunction: processOnEventingStart,
 	})
 }
-func processOnEventingStart(input []byte) {
+func processOnEventingStart(ctx context.Context, input []byte) {
 	inputStruct := sharedStructs.ContainerOnStartMessage{}
 	err := json.Unmarshal(input, &inputStruct)
 	if err != nil {
@@ -60,7 +66,7 @@ func processOnEventingStart(input []byte) {
 	for _, containerName := range agentstructs.AllPayloadData.GetAllPayloadTypeNames() {
 		if agentstructs.AllPayloadData.Get(containerName).GetPayloadDefinition().Name == inputStruct.ContainerName {
 			if agentstructs.AllPayloadData.Get(containerName).GetPayloadDefinition().OnContainerStartFunction != nil {
-				go processContainerOnStart(agentstructs.AllPayloadData.Get(containerName).GetPayloadDefinition().OnContainerStartFunction,
+				go processContainerOnStart(ctx, agentstructs.AllPayloadData.Get(containerName).GetPayloadDefinition().OnContainerStartFunction,
 					inputStruct)
 				return
 			}
@@ -69,7 +75,7 @@ func processOnEventingStart(input []byte) {
 	for _, containerName := range c2structs.AllC2Data.GetAllNames() {
 		if c2structs.AllC2Data.Get(containerName).GetC2Definition().Name == inputStruct.ContainerName {
 			if c2structs.AllC2Data.Get(containerName).GetC2Definition().OnContainerStartFunction != nil {
-				go processContainerOnStart(c2structs.AllC2Data.Get(containerName).GetC2Definition().OnContainerStartFunction,
+				go processContainerOnStart(ctx, c2structs.AllC2Data.Get(containerName).GetC2Definition().OnContainerStartFunction,
 					inputStruct)
 				return
 			}
@@ -78,7 +84,7 @@ func processOnEventingStart(input []byte) {
 	for _, containerName := range loggingstructs.AllLoggingData.GetAllNames() {
 		if loggingstructs.AllLoggingData.Get(containerName).GetLoggingDefinition().Name == inputStruct.ContainerName {
 			if loggingstructs.AllLoggingData.Get(containerName).GetLoggingDefinition().OnContainerStartFunction != nil {
-				go processContainerOnStart(loggingstructs.AllLoggingData.Get(containerName).GetLoggingDefinition().OnContainerStartFunction,
+				go processContainerOnStart(ctx, loggingstructs.AllLoggingData.Get(containerName).GetLoggingDefinition().OnContainerStartFunction,
 					inputStruct)
 				return
 			}
@@ -87,7 +93,7 @@ func processOnEventingStart(input []byte) {
 	for _, containerName := range translationstructs.AllTranslationData.GetAllPayloadTypeNames() {
 		if translationstructs.AllTranslationData.Get(containerName).GetPayloadDefinition().Name == inputStruct.ContainerName {
 			if translationstructs.AllTranslationData.Get(containerName).GetPayloadDefinition().OnContainerStartFunction != nil {
-				go processContainerOnStart(translationstructs.AllTranslationData.Get(containerName).GetPayloadDefinition().OnContainerStartFunction,
+				go processContainerOnStart(ctx, translationstructs.AllTranslationData.Get(containerName).GetPayloadDefinition().OnContainerStartFunction,
 					inputStruct)
 				return
 			}
@@ -96,7 +102,7 @@ func processOnEventingStart(input []byte) {
 	for _, containerName := range webhookstructs.AllWebhookData.GetAllNames() {
 		if webhookstructs.AllWebhookData.Get(containerName).GetWebhookDefinition().Name == inputStruct.ContainerName {
 			if webhookstructs.AllWebhookData.Get(containerName).GetWebhookDefinition().OnContainerStartFunction != nil {
-				go processContainerOnStart(webhookstructs.AllWebhookData.Get(containerName).GetWebhookDefinition().OnContainerStartFunction,
+				go processContainerOnStart(ctx, webhookstructs.AllWebhookData.Get(containerName).GetWebhookDefinition().OnContainerStartFunction,
 					inputStruct)
 				return
 			}
@@ -105,7 +111,7 @@ func processOnEventingStart(input []byte) {
 	for _, containerName := range eventingstructs.AllEventingData.GetAllNames() {
 		if eventingstructs.AllEventingData.Get(containerName).GetEventingDefinition().Name == inputStruct.ContainerName {
 			if eventingstructs.AllEventingData.Get(containerName).GetEventingDefinition().OnContainerStartFunction != nil {
-				go processContainerOnStart(eventingstructs.AllEventingData.Get(containerName).GetEventingDefinition().OnContainerStartFunction,
+				go processContainerOnStart(ctx, eventingstructs.AllEventingData.Get(containerName).GetEventingDefinition().OnContainerStartFunction,
 					inputStruct)
 				return
 			}
@@ -114,7 +120,16 @@ func processOnEventingStart(input []byte) {
 	for _, containerName := range authstructs.AllAuthData.GetAllNames() {
 		if authstructs.AllAuthData.Get(containerName).GetAuthDefinition().Name == inputStruct.ContainerName {
 			if authstructs.AllAuthData.Get(containerName).GetAuthDefinition().OnContainerStartFunction != nil {
-				go processContainerOnStart(authstructs.AllAuthData.Get(containerName).GetAuthDefinition().OnContainerStartFunction,
+				go processContainerOnStart(ctx, authstructs.AllAuthData.Get(containerName).GetAuthDefinition().OnContainerStartFunction,
+					inputStruct)
+				return
+			}
+		}
+	}
+	for _, containerName := range chatstructs.AllChatData.GetAllNames() {
+		if chatstructs.AllChatData.Get(containerName).GetChatDefinition().Name == inputStruct.ContainerName {
+			if chatstructs.AllChatData.Get(containerName).GetChatDefinition().OnContainerStartFunction != nil {
+				go processContainerOnStart(ctx, chatstructs.AllChatData.Get(containerName).GetChatDefinition().OnContainerStartFunction,
 					inputStruct)
 				return
 			}
@@ -123,18 +138,18 @@ func processOnEventingStart(input []byte) {
 	for _, containerName := range custombrowserstructs.AllCustomBrowserData.GetAllNames() {
 		if custombrowserstructs.AllCustomBrowserData.Get(containerName).GetCustomBrowserDefinition().Name == inputStruct.ContainerName {
 			if custombrowserstructs.AllCustomBrowserData.Get(containerName).GetCustomBrowserDefinition().OnContainerStartFunction != nil {
-				go processContainerOnStart(custombrowserstructs.AllCustomBrowserData.Get(containerName).GetCustomBrowserDefinition().OnContainerStartFunction,
+				go processContainerOnStart(ctx, custombrowserstructs.AllCustomBrowserData.Get(containerName).GetCustomBrowserDefinition().OnContainerStartFunction,
 					inputStruct)
 				return
 			}
 		}
 	}
 }
-func processContainerOnStart(inputFunc func(sharedStructs.ContainerOnStartMessage) sharedStructs.ContainerOnStartMessageResponse,
+func processContainerOnStart(ctx context.Context, inputFunc func(context.Context, sharedStructs.ContainerOnStartMessage) sharedStructs.ContainerOnStartMessageResponse,
 	incomingMessage sharedStructs.ContainerOnStartMessage) {
-	responseMsg := inputFunc(incomingMessage)
+	responseMsg := inputFunc(ctx, incomingMessage)
 	responseMsg.ContainerName = incomingMessage.ContainerName
-	err := RabbitMQConnection.SendStructMessage(
+	err := RabbitMQConnection.SendStructMessageWithContext(ctx,
 		MYTHIC_EXCHANGE,
 		CONTAINER_ON_START_RESPONSE,
 		"",

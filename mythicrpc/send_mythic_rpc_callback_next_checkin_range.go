@@ -1,6 +1,7 @@
 package mythicrpc
 
 import (
+	"context"
 	"encoding/json"
 	"time"
 
@@ -22,9 +23,10 @@ type MythicRPCCallbackNextCheckinRangeMessageResponse struct {
 }
 
 // SendMythicRPCCallbackEncryptBytes - Ask Mythic to encrypt a message for a specific callback UUID.
-func SendMythicRPCCallbackNextCheckinRange(input MythicRPCCallbackNextCheckinRangeMessage) (*MythicRPCCallbackNextCheckinRangeMessageResponse, error) {
+func SendMythicRPCCallbackNextCheckinRange(ctx context.Context, input MythicRPCCallbackNextCheckinRangeMessage) (*MythicRPCCallbackNextCheckinRangeMessageResponse, error) {
 	response := MythicRPCCallbackNextCheckinRangeMessageResponse{}
-	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(
+	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessageWithContext(
+		ctx,
 		rabbitmq.MYTHIC_EXCHANGE,
 		rabbitmq.MYTHIC_RPC_CALLBACK_NEXT_CHECKIN_RANGE,
 		input,

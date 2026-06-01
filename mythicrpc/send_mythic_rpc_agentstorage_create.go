@@ -1,6 +1,7 @@
 package mythicrpc
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -20,9 +21,10 @@ type MythicRPCAgentstorageCreateMessageResponse struct {
 
 // SendMythicRPCAgentStorageCreate - Create a new entry in the agentstorage table within Mythic.
 // This can be used to store arbitrary data that the agent/c2 profile might need later on and used a way to share data.
-func SendMythicRPCAgentStorageCreate(input MythicRPCAgentstorageCreateMessage) (*MythicRPCAgentstorageCreateMessageResponse, error) {
+func SendMythicRPCAgentStorageCreate(ctx context.Context, input MythicRPCAgentstorageCreateMessage) (*MythicRPCAgentstorageCreateMessageResponse, error) {
 	response := MythicRPCAgentstorageCreateMessageResponse{}
-	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(
+	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessageWithContext(
+		ctx,
 		rabbitmq.MYTHIC_EXCHANGE,
 		rabbitmq.MYTHIC_RPC_AGENTSTORAGE_CREATE,
 		input,

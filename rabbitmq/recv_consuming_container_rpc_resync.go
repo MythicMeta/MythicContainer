@@ -1,8 +1,10 @@
 package rabbitmq
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/MythicMeta/MythicContainer/authstructs"
+	"github.com/MythicMeta/MythicContainer/chatstructs"
 	"github.com/MythicMeta/MythicContainer/eventingstructs"
 	"github.com/MythicMeta/MythicContainer/loggingstructs"
 	"github.com/MythicMeta/MythicContainer/translationstructs"
@@ -30,11 +32,15 @@ func init() {
 		RabbitmqRoutingKey:         CONSUMING_CONTAINER_RESYNC_ROUTING_KEY,
 		RabbitmqProcessingFunction: processConsumingServiceRPCReSync,
 	})
+	chatstructs.AllChatData.Get("").AddRPCMethod(sharedStructs.RabbitmqRPCMethod{
+		RabbitmqRoutingKey:         CONSUMING_CONTAINER_RESYNC_ROUTING_KEY,
+		RabbitmqProcessingFunction: processConsumingServiceRPCReSync,
+	})
 }
 
 // All rabbitmq methods must take byte inputs and return an interface.
 // However, we can cast these to the input and return types defined in this file
-func processConsumingServiceRPCReSync(msg []byte) interface{} {
+func processConsumingServiceRPCReSync(ctx context.Context, msg []byte) interface{} {
 	input := translationstructs.TRRPCReSyncMessage{}
 	responseMsg := translationstructs.TRRPCReSyncMessageResponse{Success: true}
 	err := json.Unmarshal(msg, &input)
@@ -62,6 +68,9 @@ func ConsumingContainerReSync(input translationstructs.TRRPCReSyncMessage) trans
 	}
 	if authstructs.AllAuthData.Get(input.Name).GetAuthDefinition().Name == input.Name {
 		SyncConsumingContainerData(input.Name, "auth")
+	}
+	if chatstructs.AllChatData.Get(input.Name).GetChatDefinition().Name == input.Name {
+		SyncConsumingContainerData(input.Name, "chat")
 	}
 	return response
 }

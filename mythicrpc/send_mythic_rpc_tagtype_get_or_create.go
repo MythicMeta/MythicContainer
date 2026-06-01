@@ -1,6 +1,7 @@
 package mythicrpc
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -22,9 +23,10 @@ type MythicRPCTagTypeGetOrCreateMessageResponse struct {
 	TagType MythicRPCTagTypeData `json:"tagtype"`
 }
 
-func SendMythicRPCTagTypeGetOrCreate(input MythicRPCTagTypeGetOrCreateMessage) (*MythicRPCTagTypeGetOrCreateMessageResponse, error) {
+func SendMythicRPCTagTypeGetOrCreate(ctx context.Context, input MythicRPCTagTypeGetOrCreateMessage) (*MythicRPCTagTypeGetOrCreateMessageResponse, error) {
 	response := MythicRPCTagTypeGetOrCreateMessageResponse{}
-	responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(
+	responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessageWithContext(
+		ctx,
 		rabbitmq.MYTHIC_EXCHANGE,
 		rabbitmq.MYTHIC_RPC_TAGTYPE_GET_OR_CREATE,
 		input,

@@ -1,6 +1,7 @@
 package mythicrpc
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -23,9 +24,10 @@ type MythicRPCArtifactCreateMessageResponse struct {
 }
 
 // SendMythicRPCArtifactCreate - Create a new artifact for Mythic to track.
-func SendMythicRPCArtifactCreate(input MythicRPCArtifactCreateMessage) (*MythicRPCArtifactCreateMessageResponse, error) {
+func SendMythicRPCArtifactCreate(ctx context.Context, input MythicRPCArtifactCreateMessage) (*MythicRPCArtifactCreateMessageResponse, error) {
 	response := MythicRPCArtifactCreateMessageResponse{}
-	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(
+	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessageWithContext(
+		ctx,
 		rabbitmq.MYTHIC_EXCHANGE,
 		rabbitmq.MYTHIC_RPC_ARTIFACT_CREATE,
 		input,

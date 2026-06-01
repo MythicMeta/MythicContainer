@@ -1,6 +1,7 @@
 package mythicrpc
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -27,9 +28,10 @@ type MythicRPCCallbackRemoveCommandMessageResponse struct {
 
 // SendMythicRPCCallbackRemoveCommand - Remove commands from a certain callback. This is helpful if you want to
 // unload certain functionality that might have been temporarily loaded in the first place.
-func SendMythicRPCCallbackRemoveCommand(input MythicRPCCallbackRemoveCommandMessage) (*MythicRPCCallbackRemoveCommandMessageResponse, error) {
+func SendMythicRPCCallbackRemoveCommand(ctx context.Context, input MythicRPCCallbackRemoveCommandMessage) (*MythicRPCCallbackRemoveCommandMessageResponse, error) {
 	response := MythicRPCCallbackRemoveCommandMessageResponse{}
-	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(
+	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessageWithContext(
+		ctx,
 		rabbitmq.MYTHIC_EXCHANGE,
 		rabbitmq.MYTHIC_RPC_CALLBACK_REMOVE_COMMAND,
 		input,

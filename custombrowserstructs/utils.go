@@ -1,6 +1,7 @@
 package custombrowserstructs
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"sync"
@@ -65,10 +66,10 @@ type CustomBrowserDefinition struct {
 	RowActions                 []CustomBrowserRowAction              `json:"row_actions"`
 	ExtraTableTaskingInputs    []CustomBrowserExtraTableTaskingInput `json:"extra_table_inputs"`
 
-	ExportFunction           CustomBrowserExportFunction                                                               `json:"export_function"`
-	OnContainerStartFunction func(sharedStructs.ContainerOnStartMessage) sharedStructs.ContainerOnStartMessageResponse `json:"-"`
+	ExportFunction           CustomBrowserExportFunction                                                                                `json:"export_function"`
+	OnContainerStartFunction func(context.Context, sharedStructs.ContainerOnStartMessage) sharedStructs.ContainerOnStartMessageResponse `json:"-"`
 }
-type CustomBrowserExportFunction func(message ExportFunctionMessage) ExportFunctionMessageResponse
+type CustomBrowserExportFunction func(context.Context, ExportFunctionMessage) ExportFunctionMessageResponse
 
 func (f CustomBrowserExportFunction) MarshalJSON() ([]byte, error) {
 	if f != nil {

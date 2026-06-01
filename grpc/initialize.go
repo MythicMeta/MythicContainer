@@ -15,6 +15,7 @@ import (
 	"github.com/MythicMeta/MythicContainer/grpc/services"
 	"github.com/MythicMeta/MythicContainer/logging"
 	"github.com/MythicMeta/MythicContainer/translationstructs"
+	"github.com/MythicMeta/MythicContainer/utils/authcontext"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -81,7 +82,8 @@ func handleGenerateKeys(wg *sync.WaitGroup, translationContainerName string, cli
 					break
 				} else {
 					if translationstructs.AllTranslationData.Get(input.TranslationContainerName).GetPayloadDefinition().GenerateEncryptionKeys != nil {
-						response := translationstructs.AllTranslationData.Get(input.TranslationContainerName).GetPayloadDefinition().GenerateEncryptionKeys(translationstructs.TrGenerateEncryptionKeysMessage{
+						ctx := authcontext.NewContextWithAuthToken(context.Background(), input.GetAuthContext())
+						response := translationstructs.AllTranslationData.Get(input.TranslationContainerName).GetPayloadDefinition().GenerateEncryptionKeys(ctx, translationstructs.TrGenerateEncryptionKeysMessage{
 							TranslationContainerName: input.GetTranslationContainerName(),
 							C2Name:                   input.GetC2Name(),
 							CryptoParamValue:         input.GetCryptoParamValue(),
@@ -92,6 +94,7 @@ func handleGenerateKeys(wg *sync.WaitGroup, translationContainerName string, cli
 							Error:                    response.Error,
 							DecryptionKey:            nil,
 							TranslationContainerName: input.GetTranslationContainerName(),
+							AuthContext:              input.GetAuthContext(),
 						}
 						if response.EncryptionKey != nil {
 							sendResp.EncryptionKey = *response.EncryptionKey
@@ -154,13 +157,16 @@ func handleCustomToMythicFormat(wg *sync.WaitGroup, translationContainerName str
 							cryptoKeys[i].DecKey = &grpcCryptoKeys[i].DecKey
 							cryptoKeys[i].EncKey = &grpcCryptoKeys[i].EncKey
 							cryptoKeys[i].Value = grpcCryptoKeys[i].Value
+							cryptoKeys[i].Location = grpcCryptoKeys[i].Location
 						}
 						sendMsg.CryptoKeys = cryptoKeys
-						response := translationstructs.AllTranslationData.Get(input.TranslationContainerName).GetPayloadDefinition().TranslateCustomToMythicFormat(sendMsg)
+						ctx := authcontext.NewContextWithAuthToken(context.Background(), input.GetAuthContext())
+						response := translationstructs.AllTranslationData.Get(input.TranslationContainerName).GetPayloadDefinition().TranslateCustomToMythicFormat(ctx, sendMsg)
 						sendResp := services.TrCustomMessageToMythicC2FormatMessageResponse{
 							Success:                  response.Success,
 							Error:                    response.Error,
 							TranslationContainerName: input.GetTranslationContainerName(),
+							AuthContext:              input.GetAuthContext(),
 						}
 						if messageBytes, err := json.Marshal(response.Message); err != nil {
 							logging.LogError(err, "Failed to convert interface to bytes")
@@ -229,14 +235,17 @@ func handleMythicToCustomFormat(wg *sync.WaitGroup, translationContainerName str
 							cryptoKeys[i].DecKey = &grpcCryptoKeys[i].DecKey
 							cryptoKeys[i].EncKey = &grpcCryptoKeys[i].EncKey
 							cryptoKeys[i].Value = grpcCryptoKeys[i].Value
+							cryptoKeys[i].Location = grpcCryptoKeys[i].Location
 						}
 						sendMsg.CryptoKeys = cryptoKeys
-						response := translationstructs.AllTranslationData.Get(input.TranslationContainerName).GetPayloadDefinition().TranslateMythicToCustomFormat(sendMsg)
+						ctx := authcontext.NewContextWithAuthToken(context.Background(), input.GetAuthContext())
+						response := translationstructs.AllTranslationData.Get(input.TranslationContainerName).GetPayloadDefinition().TranslateMythicToCustomFormat(ctx, sendMsg)
 						sendResp := services.TrMythicC2ToCustomMessageFormatMessageResponse{
 							Success:                  response.Success,
 							Error:                    response.Error,
 							TranslationContainerName: input.GetTranslationContainerName(),
 							Message:                  response.Message,
+							AuthContext:              input.GetAuthContext(),
 						}
 						if err := stream.Send(&sendResp); err != nil {
 							logging.LogError(err, "Failed to send response back to Mythic over grpc")

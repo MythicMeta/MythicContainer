@@ -1,6 +1,7 @@
 package rabbitmq
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
@@ -21,27 +22,27 @@ type ptTaskCreateTaskingMessageResponseWrapper struct {
 	Params string `json:"params"`
 }
 
-func processPtTaskCreateMessages(msg []byte) {
+func processPtTaskCreateMessages(ctx context.Context, msg []byte) {
 	incomingMessage := agentstructs.PTTaskMessageAllData{}
 	response := ptTaskCreateTaskingMessageResponseWrapper{}
 	if err := json.Unmarshal(msg, &incomingMessage); err != nil {
 		logging.LogError(err, "Failed to unmarshal JSON into struct")
 		response.Success = false
 		response.Error = "Failed to unmarshal JSON message into structs"
-		sendTaskCreateResponse(response)
+		sendTaskCreateResponse(ctx, response)
 		return
 	} else {
 		response.Success = false
 		response.TaskID = incomingMessage.Task.ID
 		for _, command := range agentstructs.AllPayloadData.Get(incomingMessage.CommandPayloadType).GetCommands() {
 			if command.Name == incomingMessage.Task.CommandName {
-				if err := prepTaskArgs(command, &incomingMessage); err != nil {
+				if err := prepTaskArgs(ctx, command, &incomingMessage); err != nil {
 					response.Success = false
 					response.Error = err.Error()
-					sendTaskCreateResponse(response)
+					sendTaskCreateResponse(ctx, response)
 					return
 				}
-				agentResponse := command.TaskFunctionCreateTasking(&incomingMessage)
+				agentResponse := command.TaskFunctionCreateTasking(ctx, &incomingMessage)
 				finalResponse := ptTaskCreateTaskingMessageResponseWrapper{
 					agentResponse,
 					"",
@@ -79,20 +80,20 @@ func processPtTaskCreateMessages(msg []byte) {
 						}
 					}
 				}
-				sendTaskCreateResponse(finalResponse)
+				sendTaskCreateResponse(ctx, finalResponse)
 				return
 			}
 		}
 		// if we get here then we never found the command
 		response.Error = fmt.Sprintf("Failed to find command: %s", incomingMessage.Task.CommandName)
-		sendTaskCreateResponse(response)
+		sendTaskCreateResponse(ctx, response)
 		return
 	}
 }
 
-func sendTaskCreateResponse(response ptTaskCreateTaskingMessageResponseWrapper) {
+func sendTaskCreateResponse(ctx context.Context, response ptTaskCreateTaskingMessageResponseWrapper) {
 	for {
-		err := RabbitMQConnection.SendStructMessage(
+		err := RabbitMQConnection.SendStructMessageWithContext(ctx,
 			MYTHIC_EXCHANGE,
 			PT_TASK_CREATE_TASKING_RESPONSE,
 			"",

@@ -1,6 +1,7 @@
 package mythicrpc
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -34,9 +35,10 @@ type MythicRPCArtifactearchArtifactData struct {
 }
 
 // SendMythicRPCArtifactSearch - Search for artifacts that are tracked by Mythic.
-func SendMythicRPCArtifactSearch(input MythicRPCArtifactSearchMessage) (*MythicRPCArtifactSearchMessageResponse, error) {
+func SendMythicRPCArtifactSearch(ctx context.Context, input MythicRPCArtifactSearchMessage) (*MythicRPCArtifactSearchMessageResponse, error) {
 	response := MythicRPCArtifactSearchMessageResponse{}
-	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(
+	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessageWithContext(
+		ctx,
 		rabbitmq.MYTHIC_EXCHANGE,
 		rabbitmq.MYTHIC_RPC_ARTIFACT_SEARCH,
 		input,

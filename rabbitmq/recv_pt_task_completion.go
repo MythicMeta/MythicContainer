@@ -1,6 +1,7 @@
 package rabbitmq
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	agentstructs "github.com/MythicMeta/MythicContainer/agent_structs"
@@ -15,7 +16,7 @@ func init() {
 	})
 }
 
-func processPtTaskCompletionMessages(msg []byte) {
+func processPtTaskCompletionMessages(ctx context.Context, msg []byte) {
 	incomingMessage := agentstructs.PTTaskCompletionFunctionMessage{}
 	response := agentstructs.PTTaskCompletionFunctionMessageResponse{
 		Success: false,
@@ -23,14 +24,14 @@ func processPtTaskCompletionMessages(msg []byte) {
 	if err := json.Unmarshal(msg, &incomingMessage); err != nil {
 		logging.LogError(err, "Failed to unmarshal JSON into struct")
 		response.Error = "Failed to unmarshal JSON message into structs"
-		sendTaskCompletionResponse(response)
+		sendTaskCompletionResponse(ctx, response)
 		return
 	} else {
 		for _, command := range agentstructs.AllPayloadData.Get(incomingMessage.TaskData.CommandPayloadType).GetCommands() {
 			if command.Name == incomingMessage.TaskData.Task.CommandName {
-				if err := prepTaskArgs(command, incomingMessage.TaskData); err != nil {
+				if err := prepTaskArgs(ctx, command, incomingMessage.TaskData); err != nil {
 					response.Error = err.Error()
-					sendTaskCompletionResponse(response)
+					sendTaskCompletionResponse(ctx, response)
 					return
 				}
 				if command.TaskCompletionFunctions != nil {
@@ -38,7 +39,7 @@ func processPtTaskCompletionMessages(msg []byte) {
 					for funcName, funcDef := range command.TaskCompletionFunctions {
 						if funcName == incomingMessage.CompletionFunctionName {
 							found = true
-							response = funcDef(incomingMessage.TaskData, incomingMessage.SubtaskData, incomingMessage.SubtaskGroup)
+							response = funcDef(ctx, incomingMessage.TaskData, incomingMessage.SubtaskData, incomingMessage.SubtaskGroup)
 						}
 					}
 					if !found {
@@ -53,19 +54,19 @@ func processPtTaskCompletionMessages(msg []byte) {
 				} else {
 					response.TaskID = incomingMessage.TaskData.Task.ID
 				}
-				sendTaskCompletionResponse(response)
+				sendTaskCompletionResponse(ctx, response)
 				return
 			}
 		}
 		response.Error = fmt.Sprintf("Failed to find command %s", incomingMessage.TaskData.Task.CommandName)
-		sendTaskCompletionResponse(response)
+		sendTaskCompletionResponse(ctx, response)
 		return
 	}
 }
 
-func sendTaskCompletionResponse(response agentstructs.PTTaskCompletionFunctionMessageResponse) {
+func sendTaskCompletionResponse(ctx context.Context, response agentstructs.PTTaskCompletionFunctionMessageResponse) {
 	for {
-		err := RabbitMQConnection.SendStructMessage(
+		err := RabbitMQConnection.SendStructMessageWithContext(ctx,
 			MYTHIC_EXCHANGE,
 			PT_TASK_COMPLETION_FUNCTION_RESPONSE,
 			"",

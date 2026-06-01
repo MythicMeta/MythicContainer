@@ -1,6 +1,7 @@
 package mythicrpc
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -30,9 +31,10 @@ type MythicRPCProcessSearchProcessData struct {
 	Signer          *string `json:"signer"`             // optional
 }
 
-func SendMythicRPCProcessSearch(input MythicRPCProcessSearchMessage) (*MythicRPCProcessSearchMessageResponse, error) {
+func SendMythicRPCProcessSearch(ctx context.Context, input MythicRPCProcessSearchMessage) (*MythicRPCProcessSearchMessageResponse, error) {
 	response := MythicRPCProcessSearchMessageResponse{}
-	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(
+	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessageWithContext(
+		ctx,
 		rabbitmq.MYTHIC_EXCHANGE,
 		rabbitmq.MYTHIC_RPC_PROCESS_SEARCH,
 		input,

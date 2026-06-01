@@ -1,6 +1,7 @@
 package mythicrpc
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -21,9 +22,10 @@ type MythicRPCPayloadOnHostCreateData struct {
 	PayloadUUID *string `json:"payload_uuid"`
 }
 
-func SendMythicRPCPayloadOnHostCreate(input MythicRPCPayloadOnHostCreateMessage) (*MythicRPCPayloadOnHostCreateMessageResponse, error) {
+func SendMythicRPCPayloadOnHostCreate(ctx context.Context, input MythicRPCPayloadOnHostCreateMessage) (*MythicRPCPayloadOnHostCreateMessageResponse, error) {
 	response := MythicRPCPayloadOnHostCreateMessageResponse{}
-	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(
+	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessageWithContext(
+		ctx,
 		rabbitmq.MYTHIC_EXCHANGE,
 		rabbitmq.MYTHIC_RPC_PAYLOADONHOST_CREATE,
 		input,

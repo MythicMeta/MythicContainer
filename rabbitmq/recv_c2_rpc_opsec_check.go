@@ -1,6 +1,7 @@
 package rabbitmq
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/MythicMeta/MythicContainer/c2_structs"
 	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
@@ -16,7 +17,7 @@ func init() {
 	})
 }
 
-func processC2RPCOpsecCheck(msg []byte) interface{} {
+func processC2RPCOpsecCheck(ctx context.Context, msg []byte) interface{} {
 	input := c2structs.C2OPSECMessage{}
 	responseMsg := c2structs.C2OPSECMessageResponse{}
 	if err := json.Unmarshal(msg, &input); err != nil {
@@ -24,20 +25,20 @@ func processC2RPCOpsecCheck(msg []byte) interface{} {
 		responseMsg.Success = false
 		responseMsg.Error = "Failed to unmarshal JSON message into structs"
 	} else {
-		return C2RPCOpsecCheck(input)
+		return C2RPCOpsecCheck(ctx, input)
 	}
 
 	return responseMsg
 }
 
-func C2RPCOpsecCheck(input c2structs.C2OPSECMessage) c2structs.C2OPSECMessageResponse {
+func C2RPCOpsecCheck(ctx context.Context, input c2structs.C2OPSECMessage) c2structs.C2OPSECMessageResponse {
 	responseMsg := c2structs.C2OPSECMessageResponse{
 		Success: true,
 		Error:   "No OPSEC Check performed - passing by default",
 	}
 	c2Mutex.Lock()
 	if c2structs.AllC2Data.Get(input.Name).GetC2Definition().OPSECCheckFunction != nil {
-		responseMsg = c2structs.AllC2Data.Get(input.Name).GetC2Definition().OPSECCheckFunction(input)
+		responseMsg = c2structs.AllC2Data.Get(input.Name).GetC2Definition().OPSECCheckFunction(ctx, input)
 	}
 	c2Mutex.Unlock()
 	if responseMsg.RestartInternalServer {

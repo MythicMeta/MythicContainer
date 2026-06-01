@@ -2,6 +2,7 @@ package webhookstructs
 
 import (
 	"bytes"
+	"context"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
@@ -35,13 +36,13 @@ type WebhookDefinition struct {
 	SemVer                   string `json:"semver"`
 	WebhookURL               string
 	WebhookChannel           string
-	NewFeedbackFunction      func(input NewFeedbackWebookMessage)
-	NewCallbackFunction      func(input NewCallbackWebookMessage)
-	NewStartupFunction       func(input NewStartupWebhookMessage)
-	NewAlertFunction         func(input NewAlertWebhookMessage)
-	NewCustomFunction        func(input NewCustomWebhookMessage)
+	NewFeedbackFunction      func(context.Context, NewFeedbackWebookMessage)
+	NewCallbackFunction      func(context.Context, NewCallbackWebookMessage)
+	NewStartupFunction       func(context.Context, NewStartupWebhookMessage)
+	NewAlertFunction         func(context.Context, NewAlertWebhookMessage)
+	NewCustomFunction        func(context.Context, NewCustomWebhookMessage)
 	Subscriptions            []string
-	OnContainerStartFunction func(sharedStructs.ContainerOnStartMessage) sharedStructs.ContainerOnStartMessageResponse
+	OnContainerStartFunction func(context.Context, sharedStructs.ContainerOnStartMessage) sharedStructs.ContainerOnStartMessageResponse
 }
 
 var tr = &http.Transport{

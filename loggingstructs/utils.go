@@ -1,6 +1,7 @@
 package loggingstructs
 
 import (
+	"context"
 	"fmt"
 	"github.com/MythicMeta/MythicContainer/utils/helpers"
 	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
@@ -45,16 +46,16 @@ type LoggingDefinition struct {
 	LogLevel                 string
 	LogMaxSizeInMB           int
 	LogMaxBackups            int
-	NewCallbackFunction      func(input NewCallbackLog)
-	NewCredentialFunction    func(input NewCredentialLog)
-	NewKeylogFunction        func(input NewKeylogLog)
-	NewFileFunction          func(input NewFileLog)
-	NewPayloadFunction       func(input NewPayloadLog)
-	NewArtifactFunction      func(input NewArtifactLog)
-	NewTaskFunction          func(input NewTaskLog)
-	NewResponseFunction      func(input NewResponseLog)
+	NewCallbackFunction      func(context.Context, NewCallbackLog)
+	NewCredentialFunction    func(context.Context, NewCredentialLog)
+	NewKeylogFunction        func(context.Context, NewKeylogLog)
+	NewFileFunction          func(context.Context, NewFileLog)
+	NewPayloadFunction       func(context.Context, NewPayloadLog)
+	NewArtifactFunction      func(context.Context, NewArtifactLog)
+	NewTaskFunction          func(context.Context, NewTaskLog)
+	NewResponseFunction      func(context.Context, NewResponseLog)
 	Subscriptions            []string
-	OnContainerStartFunction func(sharedStructs.ContainerOnStartMessage) sharedStructs.ContainerOnStartMessageResponse
+	OnContainerStartFunction func(context.Context, sharedStructs.ContainerOnStartMessage) sharedStructs.ContainerOnStartMessageResponse
 }
 
 // REQUIRED, Don't Modify

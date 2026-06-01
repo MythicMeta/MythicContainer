@@ -1,6 +1,7 @@
 package rabbitmq
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/MythicMeta/MythicContainer/translationstructs"
 	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
@@ -18,7 +19,7 @@ func init() {
 
 // All rabbitmq methods must take byte inputs and return an interface.
 // However, we can cast these to the input and return types defined in this file
-func processTrRPCReSync(msg []byte) interface{} {
+func processTrRPCReSync(ctx context.Context, msg []byte) interface{} {
 	input := translationstructs.TRRPCReSyncMessage{}
 	responseMsg := translationstructs.TRRPCReSyncMessageResponse{}
 	if err := json.Unmarshal(msg, &input); err != nil {
@@ -27,12 +28,12 @@ func processTrRPCReSync(msg []byte) interface{} {
 		responseMsg.Error = "Failed to unmarshal JSON message into structs"
 	} else {
 		// actually do config checks on configCheck
-		return TrRPCReSync(input)
+		return TrRPCReSync(ctx, input)
 	}
 	return responseMsg
 }
 
-func TrRPCReSync(input translationstructs.TRRPCReSyncMessage) translationstructs.TRRPCReSyncMessageResponse {
+func TrRPCReSync(ctx context.Context, input translationstructs.TRRPCReSyncMessage) translationstructs.TRRPCReSyncMessageResponse {
 	response := translationstructs.TRRPCReSyncMessageResponse{
 		Success: true,
 		Error:   "",

@@ -1,6 +1,7 @@
 package rabbitmq
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/MythicMeta/MythicContainer/c2_structs"
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -15,7 +16,7 @@ func init() {
 		RabbitmqProcessingFunction: processC2RPCGetDebugOutput,
 	})
 }
-func processC2RPCGetDebugOutput(msg []byte) interface{} {
+func processC2RPCGetDebugOutput(ctx context.Context, msg []byte) interface{} {
 	input := c2structs.C2GetDebugOutputMessage{}
 	responseMsg := c2structs.C2GetDebugOutputMessageResponse{}
 	if err := json.Unmarshal(msg, &input); err != nil {
@@ -24,12 +25,12 @@ func processC2RPCGetDebugOutput(msg []byte) interface{} {
 		responseMsg.Error = "Failed to unmarshal JSON message into structs"
 	} else {
 		// actually start the c2 profile if needed
-		return C2RPCGetDebugOutput(input)
+		return C2RPCGetDebugOutput(ctx, input)
 	}
 	return responseMsg
 }
 
-func C2RPCGetDebugOutput(input c2structs.C2GetDebugOutputMessage) c2structs.C2GetDebugOutputMessageResponse {
+func C2RPCGetDebugOutput(ctx context.Context, input c2structs.C2GetDebugOutputMessage) c2structs.C2GetDebugOutputMessageResponse {
 	responseMsg := c2structs.C2GetDebugOutputMessageResponse{
 		Success: false,
 		Error:   "Not implemented, not getting debug output",

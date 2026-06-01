@@ -1,6 +1,7 @@
 package mythicrpc
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -34,9 +35,10 @@ type MythicRPCProxyStartMessageResponse struct {
 	LocalPort int    `json:"local_port"`
 }
 
-func SendMythicRPCProxyStart(input MythicRPCProxyStartMessage) (*MythicRPCProxyStartMessageResponse, error) {
+func SendMythicRPCProxyStart(ctx context.Context, input MythicRPCProxyStartMessage) (*MythicRPCProxyStartMessageResponse, error) {
 	response := MythicRPCProxyStartMessageResponse{}
-	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(
+	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessageWithContext(
+		ctx,
 		rabbitmq.MYTHIC_EXCHANGE,
 		rabbitmq.MYTHIC_RPC_PROXY_START,
 		input,

@@ -1,6 +1,7 @@
 package agentstructs
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
@@ -143,7 +144,7 @@ type PayloadType struct {
 	AgentIcon         *[]byte `json:"agent_icon"` // automatically filled in based on Name
 	DarkModeAgentIcon *[]byte `json:"dark_mode_agent_icon"`
 	// CustomRPCFunctions - The RPC functions you want to expose to other PayloadTypes or C2 Profiles
-	CustomRPCFunctions map[string]func(message PTRPCOtherServiceRPCMessage) PTRPCOtherServiceRPCMessageResponse `json:"-"`
+	CustomRPCFunctions map[string]func(context.Context, PTRPCOtherServiceRPCMessage) PTRPCOtherServiceRPCMessageResponse `json:"-"`
 	// MessageFormat identifies if the agent uses json or xml messages with Mythic. If you're using a translation container for a custom format, you'd set this to whichever (json/xml) you're going to do your conversions to.
 	// This defaults to MessageFormatJSON
 	MessageFormat MessageFormat `json:"message_format"`
@@ -154,11 +155,11 @@ type PayloadType struct {
 	AgentType AgentType `json:"agent_type"`
 	// OnContainerStartFunction is where you can execution a function when the container first starts with access to an operation-specific API token for a few minutes
 	// this helps with potential run-time configuration that's needed
-	OnContainerStartFunction func(sharedStructs.ContainerOnStartMessage) sharedStructs.ContainerOnStartMessageResponse `json:"-"`
+	OnContainerStartFunction func(context.Context, sharedStructs.ContainerOnStartMessage) sharedStructs.ContainerOnStartMessageResponse `json:"-"`
 	// CheckIfCallbacksAliveFunction is given a list of callbacks and some configurations to determine if they are still alive or not
-	CheckIfCallbacksAliveFunction func(PTCheckIfCallbacksAliveMessage) PTCheckIfCallbacksAliveMessageResponse `json:"-"`
+	CheckIfCallbacksAliveFunction func(context.Context, PTCheckIfCallbacksAliveMessage) PTCheckIfCallbacksAliveMessageResponse `json:"-"`
 	// OnNewCallback function is executed on new callbacks of this payload type to potentially do some extra setup
-	OnNewCallback func(PTOnNewCallbackAllData) PTOnNewCallbackResponse `json:"-"`
+	OnNewCallback func(context.Context, PTOnNewCallbackAllData) PTOnNewCallbackResponse `json:"-"`
 	// CommandAugmentSupportedAgents allows you to limit these commands to only be added to callbacks based on the listed agents or if you leave this empty, it'll apply to all callbacks
 	// ex: setting this to []string{"apollo"} will only have these commands associated with new "apollo" callbacks
 	CommandAugmentSupportedAgents []string `json:"command_augment_supported_agents"`
@@ -289,10 +290,10 @@ type CommandParameter struct {
 	userSupplied  bool        // was this value supplied by the user or a default value
 }
 
-type PTTaskingDynamicQueryFunction func(PTRPCDynamicQueryFunctionMessage) []string
-type PTTaskingTypedArrayParseFunction func(message PTRPCTypedArrayParseFunctionMessage) [][]string
-type PTRPCBuildParameterDynamicQueryFunction func(message PTRPCDynamicQueryBuildParameterFunctionMessage) PTRPCDynamicQueryBuildParameterFunctionMessageResponse
-type PTCommandHelpFunction func(message PTRPCCommandHelpFunctionMessage) PTRPCCommandHelpFunctionMessageResponse
+type PTTaskingDynamicQueryFunction func(context.Context, PTRPCDynamicQueryFunctionMessage) []string
+type PTTaskingTypedArrayParseFunction func(context.Context, PTRPCTypedArrayParseFunctionMessage) [][]string
+type PTRPCBuildParameterDynamicQueryFunction func(context.Context, PTRPCDynamicQueryBuildParameterFunctionMessage) PTRPCDynamicQueryBuildParameterFunctionMessageResponse
+type PTCommandHelpFunction func(context.Context, PTRPCCommandHelpFunctionMessage) PTRPCCommandHelpFunctionMessageResponse
 
 func (f PTTaskingDynamicQueryFunction) MarshalJSON() ([]byte, error) {
 	if f != nil {

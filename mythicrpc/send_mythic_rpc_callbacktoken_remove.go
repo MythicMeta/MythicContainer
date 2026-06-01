@@ -1,6 +1,7 @@
 package mythicrpc
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -17,9 +18,10 @@ type MythicRPCCallbackTokenRemoveMessageResponse struct {
 }
 type MythicRPCCallbackTokenRemoveCallbackTokenData = agentMessagePostResponseCallbackTokens
 
-func SendMythicRPCCallbackTokenRemove(input MythicRPCCallbackTokenRemoveMessage) (*MythicRPCCallbackTokenRemoveMessageResponse, error) {
+func SendMythicRPCCallbackTokenRemove(ctx context.Context, input MythicRPCCallbackTokenRemoveMessage) (*MythicRPCCallbackTokenRemoveMessageResponse, error) {
 	response := MythicRPCCallbackTokenRemoveMessageResponse{}
-	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessage(
+	if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessageWithContext(
+		ctx,
 		rabbitmq.MYTHIC_EXCHANGE,
 		rabbitmq.MYTHIC_RPC_CALLBACKTOKEN_REMOVE,
 		input,

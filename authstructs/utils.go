@@ -1,6 +1,7 @@
 package authstructs
 
 import (
+	"context"
 	"fmt"
 	"github.com/MythicMeta/MythicContainer/utils/helpers"
 	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
@@ -14,15 +15,15 @@ type AuthDefinition struct {
 	SemVer                string   `json:"semver"`
 	IDPServices           []string `json:"idp_services"`
 	NonIDPServices        []string `json:"non_idp_services"`
-	GetIDPMetadata        func(GetIDPMetadataMessage) GetIDPMetadataMessageResponse
-	GetIDPRedirect        func(GetIDPRedirectMessage) GetIDPRedirectMessageResponse
-	ProcessIDPResponse    func(ProcessIDPResponseMessage) ProcessIDPResponseMessageResponse
-	GetNonIDPMetadata     func(GetNonIDPMetadataMessage) GetNonIDPMetadataMessageResponse
-	GetNonIDPRedirect     func(GetNonIDPRedirectMessage) GetNonIDPRedirectMessageResponse
-	ProcessNonIDPResponse func(ProcessNonIDPResponseMessage) ProcessNonIDPResponseMessageResponse
+	GetIDPMetadata        func(context.Context, GetIDPMetadataMessage) GetIDPMetadataMessageResponse
+	GetIDPRedirect        func(context.Context, GetIDPRedirectMessage) GetIDPRedirectMessageResponse
+	ProcessIDPResponse    func(context.Context, ProcessIDPResponseMessage) ProcessIDPResponseMessageResponse
+	GetNonIDPMetadata     func(context.Context, GetNonIDPMetadataMessage) GetNonIDPMetadataMessageResponse
+	GetNonIDPRedirect     func(context.Context, GetNonIDPRedirectMessage) GetNonIDPRedirectMessageResponse
+	ProcessNonIDPResponse func(context.Context, ProcessNonIDPResponseMessage) ProcessNonIDPResponseMessageResponse
 	// Subscriptions - don't bother here, this will be auto filled out on syncing
-	Subscriptions            []string                                                                                  `json:"subscriptions"`
-	OnContainerStartFunction func(sharedStructs.ContainerOnStartMessage) sharedStructs.ContainerOnStartMessageResponse `json:"-"`
+	Subscriptions            []string                                                                                                   `json:"subscriptions"`
+	OnContainerStartFunction func(context.Context, sharedStructs.ContainerOnStartMessage) sharedStructs.ContainerOnStartMessageResponse `json:"-"`
 }
 
 // REQUIRED, Don't Modify

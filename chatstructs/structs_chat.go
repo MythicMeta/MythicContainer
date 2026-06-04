@@ -3,11 +3,12 @@ package chatstructs
 import "time"
 
 type ChatContextMessage struct {
-	ID                int       `json:"id"`
-	AuthorType        string    `json:"author_type"`
-	SenderDisplayName string    `json:"sender_display_name"`
-	Message           string    `json:"message"`
-	CreatedAt         time.Time `json:"created_at"`
+	ID                int                    `json:"id"`
+	AuthorType        string                 `json:"author_type"`
+	SenderDisplayName string                 `json:"sender_display_name"`
+	Message           string                 `json:"message"`
+	Metadata          map[string]interface{} `json:"metadata"`
+	CreatedAt         time.Time              `json:"created_at"`
 }
 
 type ChatRequestMessage struct {
@@ -25,6 +26,7 @@ type ChatRequestMessage struct {
 	Config            map[string]interface{} `json:"config"`
 	Context           []ChatContextMessage   `json:"context"`
 	Secrets           map[string]interface{} `json:"secrets"`
+	ConfirmedToolCall map[string]interface{} `json:"confirmed_tool_call,omitempty"`
 }
 
 type ChatCancelMessage struct {

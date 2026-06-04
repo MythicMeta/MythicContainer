@@ -13,9 +13,11 @@ import (
 type ChatModelConfigurationOptionType string
 
 const (
-	CHAT_MODEL_CONFIGURATION_OPTION_TYPE_STRING ChatModelConfigurationOptionType = "string"
-	CHAT_MODEL_CONFIGURATION_OPTION_TYPE_NUMBER                                  = "number"
-	CHAT_MODEL_CONFIGURATION_OPTION_TYPE_CHOICE                                  = "choice"
+	CHAT_MODEL_CONFIGURATION_OPTION_TYPE_STRING  ChatModelConfigurationOptionType = "string"
+	CHAT_MODEL_CONFIGURATION_OPTION_TYPE_NUMBER                                   = "number"
+	CHAT_MODEL_CONFIGURATION_OPTION_TYPE_CHOICE                                   = "choice"
+	CHAT_MODEL_CONFIGURATION_OPTION_TYPE_BOOLEAN                                  = "boolean"
+	CHAT_MODEL_CONFIGURATION_OPTION_TYPE_JSON                                     = "json"
 )
 
 type ChatModelConfigurationOptionChoice struct {
@@ -32,7 +34,7 @@ type ChatModelConfigurationOption struct {
 	Name string `json:"name"`
 	// DisplayName - the human-readable label shown for this option in the Mythic UI.
 	DisplayName string `json:"display_name"`
-	// Type - how the UI should render the option, such as string, number, or choice.
+	// Type - how the UI should render the option, such as string, number, choice, boolean, or json.
 	Type ChatModelConfigurationOptionType `json:"type"`
 	// Description - helper text that explains what the operator should supply.
 	Description string `json:"description"`
@@ -42,6 +44,14 @@ type ChatModelConfigurationOption struct {
 	DefaultValue interface{} `json:"default_value"`
 	// Choices - selectable values when Type is choice.
 	Choices []ChatModelConfigurationOptionChoice `json:"choices,omitempty"`
+	// JSONSchema - optional JSON schema shown beside json config editors.
+	JSONSchema map[string]interface{} `json:"json_schema,omitempty"`
+	// Examples - optional named examples operators can load into json config editors.
+	Examples []map[string]interface{} `json:"examples,omitempty"`
+	// HelpText - longer operator-facing help for complex config fields.
+	HelpText string `json:"help_text,omitempty"`
+	// MinRows - preferred minimum visible rows for multiline/json config editors.
+	MinRows int `json:"min_rows,omitempty"`
 }
 
 type ChatModelMetadata struct {

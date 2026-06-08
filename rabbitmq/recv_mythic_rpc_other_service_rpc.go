@@ -3,6 +3,7 @@ package rabbitmq
 import (
 	"context"
 	"encoding/json"
+
 	agentstructs "github.com/MythicMeta/MythicContainer/agent_structs"
 	"github.com/MythicMeta/MythicContainer/c2_structs"
 	"github.com/MythicMeta/MythicContainer/logging"
@@ -50,7 +51,7 @@ func C2OtherServiceRPC(ctx context.Context, input c2structs.C2RPCOtherServiceRPC
 		}
 	}
 	if responseMsg.RestartInternalServer {
-		go restartC2Server(input.ServiceName)
+		go restartC2Server(ctx, input.ServiceName)
 	}
 	return responseMsg
 }

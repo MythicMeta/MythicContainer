@@ -47,7 +47,7 @@ type C2Profile struct {
 	OPSECCheckFunction         func(context.Context, C2OPSECMessage) C2OPSECMessageResponse                                               `json:"-"`
 	GetIOCFunction             func(context.Context, C2GetIOCMessage) C2GetIOCMessageResponse                                             `json:"-"`
 	SampleMessageFunction      func(context.Context, C2SampleMessageMessage) C2SampleMessageResponse                                      `json:"-"`
-	HostFileFunction           func(context.Context, C2HostFileMessage) C2HostFileMessageResponse                                         `json:"-"`
+	HostFileFunction           func(context.Context, C2HostFilesMessage) C2HostFilesMessageResponse                                       `json:"-"`
 	CustomRPCFunctions         map[string]func(context.Context, C2RPCOtherServiceRPCMessage) C2RPCOtherServiceRPCMessageResponse          `json:"-"`
 	OnContainerStartFunction   func(context.Context, sharedStructs.ContainerOnStartMessage) sharedStructs.ContainerOnStartMessageResponse `json:"-"`
 }

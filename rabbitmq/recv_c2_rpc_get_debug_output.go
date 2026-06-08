@@ -3,10 +3,11 @@ package rabbitmq
 import (
 	"context"
 	"encoding/json"
+	"time"
+
 	"github.com/MythicMeta/MythicContainer/c2_structs"
 	"github.com/MythicMeta/MythicContainer/logging"
 	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
-	"time"
 )
 
 // Register this RPC method with rabbitmq so it can be called
@@ -87,7 +88,7 @@ func C2RPCGetDebugOutput(ctx context.Context, input c2structs.C2GetDebugOutputMe
 	}
 	c2Mutex.Unlock()
 	if responseMsg.RestartInternalServer {
-		go restartC2Server(input.Name)
+		go restartC2Server(ctx, input.Name)
 	}
 	return responseMsg
 }

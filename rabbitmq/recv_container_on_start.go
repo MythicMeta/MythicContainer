@@ -160,6 +160,6 @@ func processContainerOnStart(ctx context.Context, inputFunc func(context.Context
 		logging.LogError(err, "Failed to send response back to Mythic")
 	}
 	if responseMsg.RestartInternalServer {
-		go restartC2Server(responseMsg.ContainerName)
+		go restartC2Server(ctx, responseMsg.ContainerName)
 	}
 }

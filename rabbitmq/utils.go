@@ -5,12 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	c2structs "github.com/MythicMeta/MythicContainer/c2_structs"
 	"log"
 	"net"
 	"strings"
 	"sync"
 	"time"
+
+	c2structs "github.com/MythicMeta/MythicContainer/c2_structs"
 
 	"github.com/google/uuid"
 
@@ -917,22 +918,22 @@ func prepTaskArgs(ctx context.Context, command agentstructs.Command, taskMessage
 
 }
 
-func restartC2Server(name string) {
-	stopResponse := C2RPCStopServer(context.Background(), c2structs.C2RPCStopServerMessage{
+func restartC2Server(ctx context.Context, name string) {
+	stopResponse := C2RPCStopServer(ctx, c2structs.C2RPCStopServerMessage{
 		Name: name,
 	})
 	if !stopResponse.Success {
-		_, _ = SendMythicRPCC2UpdateStatus(context.Background(), MythicRPCC2UpdateStatusMessage{
+		_, _ = SendMythicRPCC2UpdateStatus(ctx, MythicRPCC2UpdateStatusMessage{
 			Error:                 stopResponse.Error,
 			InternalServerRunning: stopResponse.InternalServerRunning,
 			C2Profile:             name,
 		})
 		return
 	}
-	startResponse := C2RPCStartServer(context.Background(), c2structs.C2RPCStartServerMessage{
+	startResponse := C2RPCStartServer(ctx, c2structs.C2RPCStartServerMessage{
 		Name: name,
 	})
-	_, _ = SendMythicRPCC2UpdateStatus(context.Background(), MythicRPCC2UpdateStatusMessage{
+	_, _ = SendMythicRPCC2UpdateStatus(ctx, MythicRPCC2UpdateStatusMessage{
 		Error:                 startResponse.Error,
 		InternalServerRunning: startResponse.InternalServerRunning,
 		C2Profile:             name,

@@ -3,6 +3,7 @@ package rabbitmq
 import (
 	"context"
 	"encoding/json"
+
 	"github.com/MythicMeta/MythicContainer/c2_structs"
 	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
 
@@ -41,7 +42,7 @@ func C2RPCGetRedirectorRules(ctx context.Context, input c2structs.C2GetRedirecto
 	}
 	c2Mutex.Unlock()
 	if responseMsg.RestartInternalServer {
-		go restartC2Server(input.Name)
+		go restartC2Server(ctx, input.Name)
 	}
 	return responseMsg
 }

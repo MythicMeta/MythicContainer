@@ -68,18 +68,22 @@ const (
 )
 
 type C2Parameter struct {
-	Description       string                  `json:"description"`
-	Name              string                  `json:"name"`
-	DefaultValue      interface{}             `json:"default_value"`
-	Randomize         bool                    `json:"randomize"`
-	FormatString      string                  `json:"format_string"`
-	ParameterType     C2ParameterType         `json:"parameter_type"`
-	Required          bool                    `json:"required"`
-	VerifierRegex     string                  `json:"verifier_regex"`
-	IsCryptoType      bool                    `json:"crypto_type"`
-	Choices           []string                `json:"choices"`
-	DictionaryChoices []C2ParameterDictionary `json:"dictionary_choices"`
-	UiPosition        int                     `json:"ui_position"`
+	Description         string                  `json:"description"`
+	Name                string                  `json:"name"`
+	DisplayName         string                  `json:"display_name"`
+	GroupName           string                  `json:"group_name"`
+	DefaultValue        interface{}             `json:"default_value"`
+	Randomize           bool                    `json:"randomize"`
+	FormatString        string                  `json:"format_string"`
+	ParameterType       C2ParameterType         `json:"parameter_type"`
+	Required            bool                    `json:"required"`
+	VerifierRegex       string                  `json:"verifier_regex"`
+	IsCryptoType        bool                    `json:"crypto_type"`
+	Choices             []string                `json:"choices"`
+	ChoicesDisplayNames map[string]string       `json:"choices_display_names"`
+	DictionaryChoices   []C2ParameterDictionary `json:"dictionary_choices"`
+	UiPosition          int                     `json:"ui_position"`
+	FormSchema          map[string]interface{}  `json:"form_schema"`
 }
 
 type C2ParameterDictionary struct {

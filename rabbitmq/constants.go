@@ -171,7 +171,8 @@ const (
 	//
 	C2_RPC_GET_SERVER_DEBUG_OUTPUT = "c2_rpc_get_server_debug_output"
 	//
-	C2_RPC_HOST_FILE = "c2_rpc_host_file"
+	C2_RPC_HOST_FILE                           = "c2_rpc_host_file"
+	C2_RPC_DYNAMIC_QUERY_C2_PARAMETER_FUNCTION = "c2_rpc_parameter_dynamic_query_function"
 	//
 	CONTAINER_RPC_GET_FILE = "container_rpc_get_file"
 	//

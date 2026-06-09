@@ -28,13 +28,14 @@ const (
 	BUILD_PARAMETER_TYPE_CHOOSE_ONE                           = "ChooseOne"
 	BUILD_PARAMETER_TYPE_CHOOSE_ONE_CUSTOM                    = "ChooseOneCustom"
 	BUILD_PARAMETER_TYPE_CHOOSE_MULTIPLE                      = "ChooseMultiple"
+	BUILD_PARAMETER_TYPE_ARRAY                                = "Array"
 	BUILD_PARAMETER_TYPE_DATE                                 = "Date"
 	BUILD_PARAMETER_TYPE_DICTIONARY                           = "Dictionary"
-	BUILD_PARAMETER_TYPE_ARRAY                                = "Array"
 	BUILD_PARAMETER_TYPE_NUMBER                               = "Number"
+	BUILD_PARAMETER_TYPE_TYPED_ARRAY                          = "TypedArray"
 	BUILD_PARAMETER_TYPE_FILE                                 = "File"
 	BUILD_PARAMETER_TYPE_FILE_MULTIPLE                        = "FileMultiple"
-	BUILD_PARAMETER_TYPE_TYPED_ARRAY                          = "TypedArray"
+	BUILD_PARAMETER_TYPE_JSON_STRING                          = "JSONString"
 )
 
 type BuildParameterHideCondition struct {
@@ -48,6 +49,8 @@ type BuildParameterHideCondition struct {
 type BuildParameter struct {
 	// Name - the name of the build parameter for use during the Payload Type's build function
 	Name string `json:"name"`
+	// DisplayName - Human-friendly name of the build parameter to be presented to the user during build
+	DisplayName string `json:"display_name"`
 	// Description - the description of the build parameter to be presented to the user during build
 	Description string `json:"description"`
 	// Required - indicate if this requires the user to supply a value or not
@@ -66,8 +69,11 @@ type BuildParameter struct {
 	IsCryptoType bool `json:"crypto_type"`
 	// Choices - If the ParameterType is ChooseOne or ChooseMultiple, then the options presented to the user are here.
 	Choices []string `json:"choices"`
+	// ChoicesDisplayNames - Human-friendly names for the choices presented to the user
+	ChoicesDisplayNames map[string]string `json:"choices_display_names"`
 	// DictionaryChoices - if the ParameterType is Dictionary, then the dictionary choices/preconfigured data is set here
 	DictionaryChoices    []BuildParameterDictionary              `json:"dictionary_choices"`
+	JsonStringSchema     map[string]interface{}                  `json:"json_string_schema"`
 	GroupName            string                                  `json:"group_name"`
 	SupportedOS          []string                                `json:"supported_os"`
 	HideConditions       []BuildParameterHideCondition           `json:"hide_conditions"`
@@ -298,30 +304,26 @@ type PTCommandHelpFunction func(context.Context, PTRPCCommandHelpFunctionMessage
 func (f PTTaskingDynamicQueryFunction) MarshalJSON() ([]byte, error) {
 	if f != nil {
 		return json.Marshal("function defined")
-	} else {
-		return json.Marshal("")
 	}
+	return json.Marshal("")
 }
 func (f PTTaskingTypedArrayParseFunction) MarshalJSON() ([]byte, error) {
 	if f != nil {
 		return json.Marshal("function defined")
-	} else {
-		return json.Marshal("")
 	}
+	return json.Marshal("")
 }
 func (f PTRPCBuildParameterDynamicQueryFunction) MarshalJSON() ([]byte, error) {
 	if f != nil {
 		return json.Marshal("function defined")
-	} else {
-		return json.Marshal("")
 	}
+	return json.Marshal("")
 }
 func (f PTCommandHelpFunction) MarshalJSON() ([]byte, error) {
 	if f != nil {
 		return json.Marshal("function defined")
-	} else {
-		return json.Marshal("")
 	}
+	return json.Marshal("")
 }
 
 // CommandAttribute - Attributes about a specific command to influence build options and command parameter options

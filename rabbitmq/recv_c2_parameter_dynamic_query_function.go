@@ -5,21 +5,21 @@ import (
 	"encoding/json"
 	"fmt"
 
-	agentstructs "github.com/MythicMeta/MythicContainer/agent_structs"
+	c2structs "github.com/MythicMeta/MythicContainer/c2_structs"
 	"github.com/MythicMeta/MythicContainer/logging"
 	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
 )
 
 func init() {
-	agentstructs.AllPayloadData.Get("").AddRPCMethod(sharedStructs.RabbitmqRPCMethod{
-		RabbitmqRoutingKey:         PT_RPC_DYNAMIC_QUERY_BUILD_PARAMETER_FUNCTION,
-		RabbitmqProcessingFunction: processPtRPCBuildParameterDynamicQueryFunctionMessages,
+	c2structs.AllC2Data.Get("").AddRPCMethod(sharedStructs.RabbitmqRPCMethod{
+		RabbitmqRoutingKey:         C2_RPC_DYNAMIC_QUERY_C2_PARAMETER_FUNCTION,
+		RabbitmqProcessingFunction: processC2RPCC2ParameterDynamicQueryFunctionMessages,
 	})
 }
 
-func processPtRPCBuildParameterDynamicQueryFunctionMessages(ctx context.Context, msg []byte) interface{} {
-	incomingMessage := agentstructs.PTRPCDynamicQueryBuildParameterFunctionMessage{}
-	response := agentstructs.PTRPCDynamicQueryBuildParameterFunctionMessageResponse{
+func processC2RPCC2ParameterDynamicQueryFunctionMessages(ctx context.Context, msg []byte) interface{} {
+	incomingMessage := c2structs.C2RPCDynamicQueryC2ParameterFunctionMessage{}
+	response := c2structs.C2RPCDynamicQueryC2ParameterFunctionMessageResponse{
 		Success: false,
 	}
 	if err := json.Unmarshal(msg, &incomingMessage); err != nil {
@@ -28,7 +28,7 @@ func processPtRPCBuildParameterDynamicQueryFunctionMessages(ctx context.Context,
 		return response
 	}
 
-	for _, param := range agentstructs.AllPayloadData.Get(incomingMessage.PayloadType).GetBuildParameters() {
+	for _, param := range c2structs.AllC2Data.Get(incomingMessage.C2Profile).GetParameters() {
 		if param.Name == incomingMessage.ParameterName {
 			if param.DynamicQueryFunction != nil {
 				response = param.DynamicQueryFunction(ctx, incomingMessage)

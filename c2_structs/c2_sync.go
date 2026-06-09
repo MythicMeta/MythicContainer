@@ -2,6 +2,7 @@ package c2structs
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/MythicMeta/MythicContainer/utils/sharedStructs"
 )
@@ -62,28 +63,62 @@ const (
 	C2_PARAMETER_TYPE_DATE                              = "Date"
 	C2_PARAMETER_TYPE_DICTIONARY                        = "Dictionary"
 	C2_PARAMETER_TYPE_NUMBER                            = "Number"
-	C2_PARAMETER_TYPE_TYPED_ARRAY                       = "TypedArray"
 	C2_PARAMETER_TYPE_FILE                              = "File"
 	C2_PARAMETER_TYPE_FILE_MULTIPLE                     = "FileMultiple"
+	C2_PARAMETER_TYPE_JSON_STRING                       = "JSONString"
 )
 
+type HideConditionOperand string
+
+const (
+	HideConditionOperandEQ                 HideConditionOperand = "eq"
+	HideConditionOperandNotEQ                                   = "neq"
+	HideConditionOperandIN                                      = "in"
+	HideConditionOperandNotIN                                   = "nin"
+	HideConditionOperandLessThan                                = "lt"
+	HideConditionOperandGreaterThan                             = "gt"
+	HideConditionOperandLessThanOrEqual                         = "lte"
+	HideConditionOperandGreaterThanOrEqual                      = "gte"
+	HideConditionOperationStartsWith                            = "sw"
+	HideConditionOperationEndsWith                              = "ew"
+	HideConditionOperationContains                              = "co"
+	HideConditionOperationNotContains                           = "nco"
+)
+
+type BuildParameterHideCondition struct {
+	Name    string               `json:"name"`
+	Operand HideConditionOperand `json:"operand"`
+	Value   string               `json:"value"`
+	Choices []string             `json:"choices"`
+}
+type C2RPCC2ParameterDynamicQueryFunction func(context.Context, C2RPCDynamicQueryC2ParameterFunctionMessage) C2RPCDynamicQueryC2ParameterFunctionMessageResponse
+
+func (f C2RPCC2ParameterDynamicQueryFunction) MarshalJSON() ([]byte, error) {
+	if f != nil {
+		return json.Marshal("function defined")
+	}
+	return json.Marshal("")
+}
+
 type C2Parameter struct {
-	Description         string                  `json:"description"`
-	Name                string                  `json:"name"`
-	DisplayName         string                  `json:"display_name"`
-	GroupName           string                  `json:"group_name"`
-	DefaultValue        interface{}             `json:"default_value"`
-	Randomize           bool                    `json:"randomize"`
-	FormatString        string                  `json:"format_string"`
-	ParameterType       C2ParameterType         `json:"parameter_type"`
-	Required            bool                    `json:"required"`
-	VerifierRegex       string                  `json:"verifier_regex"`
-	IsCryptoType        bool                    `json:"crypto_type"`
-	Choices             []string                `json:"choices"`
-	ChoicesDisplayNames map[string]string       `json:"choices_display_names"`
-	DictionaryChoices   []C2ParameterDictionary `json:"dictionary_choices"`
-	UiPosition          int                     `json:"ui_position"`
-	FormSchema          map[string]interface{}  `json:"form_schema"`
+	Name                 string                               `json:"name"`
+	DisplayName          string                               `json:"display_name"`
+	Description          string                               `json:"description"`
+	Required             bool                                 `json:"required"`
+	VerifierRegex        string                               `json:"verifier_regex"`
+	DefaultValue         interface{}                          `json:"default_value"`
+	ParameterType        C2ParameterType                      `json:"parameter_type"`
+	FormatString         string                               `json:"format_string"`
+	Randomize            bool                                 `json:"randomize"`
+	IsCryptoType         bool                                 `json:"crypto_type"`
+	Choices              []string                             `json:"choices"`
+	ChoicesDisplayNames  map[string]string                    `json:"choices_display_names"`
+	DictionaryChoices    []C2ParameterDictionary              `json:"dictionary_choices"`
+	JsonStringSchema     map[string]interface{}               `json:"json_string_schema"`
+	GroupName            string                               `json:"group_name"`
+	HideConditions       []BuildParameterHideCondition        `json:"hide_conditions"`
+	UiPosition           int                                  `json:"ui_position"`
+	DynamicQueryFunction C2RPCC2ParameterDynamicQueryFunction `json:"dynamic_query_function"`
 }
 
 type C2ParameterDictionary struct {

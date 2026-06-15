@@ -54,6 +54,7 @@ type CustomBrowserExtraTableTaskingInput struct {
 
 type CustomBrowserDefinition struct {
 	Name                       string                                `json:"name"`
+	DisplayName                string                                `json:"display_name"`
 	Description                string                                `json:"description"`
 	Author                     string                                `json:"author"`
 	SemVer                     string                                `json:"semver"`

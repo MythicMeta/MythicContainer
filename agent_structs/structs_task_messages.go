@@ -1,6 +1,12 @@
 package agentstructs
 
-import "context"
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"sort"
+	"strings"
+)
 
 // PT_TASK_* structs
 
@@ -29,42 +35,145 @@ type PTTaskMessageAllData struct {
 }
 
 type PTTaskMessageTaskData struct {
-	ID                                 int    `json:"id"`
-	AgentTaskID                        string `json:"agent_task_id"`
-	CommandName                        string `json:"command_name"`
-	Params                             string `json:"params"`
-	Timestamp                          string `json:"timestamp"`
-	CallbackID                         int    `json:"callback_id"`
-	Status                             string `json:"status"`
-	OriginalParams                     string `json:"original_params"`
-	DisplayParams                      string `json:"display_params"`
-	Comment                            string `json:"comment"`
-	Stdout                             string `json:"stdout"`
-	Stderr                             string `json:"stderr"`
-	Completed                          bool   `json:"completed"`
-	OperatorUsername                   string `json:"operator_username"`
-	OperatorID                         int    `json:"operator_id"`
-	OpsecPreBlocked                    bool   `json:"opsec_pre_blocked"`
-	OpsecPreMessage                    string `json:"opsec_pre_message"`
-	OpsecPreBypassed                   bool   `json:"opsec_pre_bypassed"`
-	OpsecPreBypassRole                 string `json:"opsec_pre_bypass_role"`
-	OpsecPostBlocked                   bool   `json:"opsec_post_blocked"`
-	OpsecPostMessage                   string `json:"opsec_post_message"`
-	OpsecPostBypassed                  bool   `json:"opsec_post_bypassed"`
-	OpsecPostBypassRole                string `json:"opsec_post_bypass_role"`
-	ParentTaskID                       int    `json:"parent_task_id"`
-	SubtaskCallbackFunction            string `json:"subtask_callback_function"`
-	SubtaskCallbackFunctionCompleted   bool   `json:"subtask_callback_function_completed"`
-	GroupCallbackFunction              string `json:"group_callback_function"`
-	GroupCallbackFunctionCompleted     bool   `json:"group_callback_function_completed"`
-	CompletedCallbackFunction          string `json:"completed_callback_function"`
-	CompletedCallbackFunctionCompleted bool   `json:"completed_callback_function_completed"`
-	SubtaskGroupName                   string `json:"subtask_group_name"`
-	TaskingLocation                    string `json:"tasking_location"`
-	ParameterGroupName                 string `json:"parameter_group_name"`
-	TokenID                            int    `json:"token_id"`
-	IsInteractiveTask                  bool   `json:"is_interactive_task"`
-	InteractiveTaskType                int    `json:"interactive_task_type"`
+	ID                                 int                       `json:"id"`
+	AgentTaskID                        string                    `json:"agent_task_id"`
+	CommandName                        string                    `json:"command_name"`
+	Params                             string                    `json:"params"`
+	Timestamp                          string                    `json:"timestamp"`
+	CallbackID                         int                       `json:"callback_id"`
+	Status                             string                    `json:"status"`
+	OriginalParams                     string                    `json:"original_params"`
+	DisplayParams                      string                    `json:"display_params"`
+	KeywordResolution                  []PTTaskKeywordResolution `json:"keyword_resolution"`
+	Comment                            string                    `json:"comment"`
+	Stdout                             string                    `json:"stdout"`
+	Stderr                             string                    `json:"stderr"`
+	Completed                          bool                      `json:"completed"`
+	OperatorUsername                   string                    `json:"operator_username"`
+	OperatorID                         int                       `json:"operator_id"`
+	OpsecPreBlocked                    bool                      `json:"opsec_pre_blocked"`
+	OpsecPreMessage                    string                    `json:"opsec_pre_message"`
+	OpsecPreBypassed                   bool                      `json:"opsec_pre_bypassed"`
+	OpsecPreBypassRole                 string                    `json:"opsec_pre_bypass_role"`
+	OpsecPostBlocked                   bool                      `json:"opsec_post_blocked"`
+	OpsecPostMessage                   string                    `json:"opsec_post_message"`
+	OpsecPostBypassed                  bool                      `json:"opsec_post_bypassed"`
+	OpsecPostBypassRole                string                    `json:"opsec_post_bypass_role"`
+	ParentTaskID                       int                       `json:"parent_task_id"`
+	SubtaskCallbackFunction            string                    `json:"subtask_callback_function"`
+	SubtaskCallbackFunctionCompleted   bool                      `json:"subtask_callback_function_completed"`
+	GroupCallbackFunction              string                    `json:"group_callback_function"`
+	GroupCallbackFunctionCompleted     bool                      `json:"group_callback_function_completed"`
+	CompletedCallbackFunction          string                    `json:"completed_callback_function"`
+	CompletedCallbackFunctionCompleted bool                      `json:"completed_callback_function_completed"`
+	SubtaskGroupName                   string                    `json:"subtask_group_name"`
+	TaskingLocation                    string                    `json:"tasking_location"`
+	ParameterGroupName                 string                    `json:"parameter_group_name"`
+	TokenID                            int                       `json:"token_id"`
+	IsInteractiveTask                  bool                      `json:"is_interactive_task"`
+	InteractiveTaskType                int                       `json:"interactive_task_type"`
+}
+
+type PTTaskKeywordResolution struct {
+	Raw            string   `json:"raw"`
+	Keyword        string   `json:"keyword"`
+	Selector       string   `json:"selector"`
+	Field          string   `json:"field"`
+	ValueType      string   `json:"value_type"`
+	ExpandedValue  string   `json:"expanded_value"`
+	ParameterNames []string `json:"parameter_names"`
+}
+
+func (t *PTTaskMessageTaskData) RevertKeywords(parameter interface{}, parameterName ...string) string {
+	name := ""
+	if len(parameterName) > 0 {
+		name = parameterName[0]
+	}
+	return revertKeywords(parameter, t.KeywordResolution, name)
+}
+
+func revertKeywords(parameter interface{}, keywordResolution []PTTaskKeywordResolution, parameterName string) string {
+	reverted := keywordParameterToString(parameter)
+	if len(keywordResolution) == 0 {
+		return reverted
+	}
+	if parameterName != "" {
+		for _, entry := range keywordResolution {
+			if entry.ValueType == "structured" && keywordResolutionContainsParameter(entry.ParameterNames, parameterName) {
+				return entry.Raw
+			}
+		}
+		specificEntries := filterKeywordResolutionEntries(keywordResolution, parameterName, false)
+		updated := applyKeywordResolutionStringEntries(reverted, specificEntries)
+		if updated != reverted {
+			return updated
+		}
+		return applyKeywordResolutionStringEntries(reverted, filterKeywordResolutionEntries(keywordResolution, "", true))
+	}
+	return applyKeywordResolutionStringEntries(reverted, keywordResolution)
+}
+
+func keywordParameterToString(parameter interface{}) string {
+	switch typed := parameter.(type) {
+	case string:
+		return typed
+	case []byte:
+		return string(typed)
+	default:
+		marshaled, err := json.Marshal(typed)
+		if err != nil {
+			return fmt.Sprint(typed)
+		}
+		return string(marshaled)
+	}
+}
+
+func filterKeywordResolutionEntries(keywordResolution []PTTaskKeywordResolution, parameterName string, globalsOnly bool) []PTTaskKeywordResolution {
+	filtered := make([]PTTaskKeywordResolution, 0, len(keywordResolution))
+	for _, entry := range keywordResolution {
+		if entry.ValueType != "string" {
+			continue
+		}
+		if globalsOnly {
+			if len(entry.ParameterNames) == 0 {
+				filtered = append(filtered, entry)
+			}
+			continue
+		}
+		if keywordResolutionContainsParameter(entry.ParameterNames, parameterName) {
+			filtered = append(filtered, entry)
+		}
+	}
+	return filtered
+}
+
+func applyKeywordResolutionStringEntries(parameter string, keywordResolution []PTTaskKeywordResolution) string {
+	sort.SliceStable(keywordResolution, func(i, j int) bool {
+		return len(keywordResolution[i].ExpandedValue) > len(keywordResolution[j].ExpandedValue)
+	})
+	reverted := parameter
+	placeholders := make(map[string]string)
+	for i, entry := range keywordResolution {
+		if entry.ValueType != "string" || entry.ExpandedValue == "" {
+			continue
+		}
+		placeholder := fmt.Sprintf("\x00MYTHIC_KEYWORD_%d\x00", i)
+		placeholders[placeholder] = entry.Raw
+		reverted = strings.ReplaceAll(reverted, entry.ExpandedValue, placeholder)
+	}
+	for placeholder, raw := range placeholders {
+		reverted = strings.ReplaceAll(reverted, placeholder, raw)
+	}
+	return reverted
+}
+
+func keywordResolutionContainsParameter(parameterNames []string, parameterName string) bool {
+	for _, existing := range parameterNames {
+		if existing == parameterName {
+			return true
+		}
+	}
+	return false
 }
 
 type PTTaskMessageCallbackData struct {

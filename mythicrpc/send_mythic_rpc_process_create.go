@@ -9,8 +9,11 @@ import (
 )
 
 type MythicRPCProcessCreateMessage struct {
-	TaskID    int                                 `json:"task_id"` //required
-	Processes []MythicRPCProcessCreateProcessData `json:"processes"`
+	TaskID        int                                 `json:"task_id"` //required
+	UpdateDeleted *bool                               `json:"update_deleted"`
+	Host          *string                             `json:"host"`
+	OS            *string                             `json:"os"`
+	Processes     []MythicRPCProcessCreateProcessData `json:"processes"`
 }
 type MythicRPCProcessCreateMessageResponse struct {
 	Success bool   `json:"success"`
@@ -18,7 +21,6 @@ type MythicRPCProcessCreateMessageResponse struct {
 }
 type MythicRPCProcessCreateProcessData = agentMessagePostResponseProcesses
 type agentMessagePostResponseProcesses struct {
-	Host                   *string                `mapstructure:"host,omitempty" json:"host,omitempty"`
 	ProcessID              int                    `mapstructure:"process_id" json:"process_id"`
 	ParentProcessID        int                    `mapstructure:"parent_process_id" json:"parent_process_id"`
 	Architecture           string                 `mapstructure:"architecture" json:"architecture"`

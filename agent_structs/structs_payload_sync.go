@@ -38,6 +38,60 @@ const (
 	BUILD_PARAMETER_TYPE_JSON_STRING                          = "JSONString"
 )
 
+type PayloadBuildArchitecture string
+
+const (
+	PAYLOAD_BUILD_ARCHITECTURE_X86   PayloadBuildArchitecture = "x86"
+	PAYLOAD_BUILD_ARCHITECTURE_X64   PayloadBuildArchitecture = "x64"
+	PAYLOAD_BUILD_ARCHITECTURE_ARM   PayloadBuildArchitecture = "arm"
+	PAYLOAD_BUILD_ARCHITECTURE_ARM64 PayloadBuildArchitecture = "arm64"
+)
+
+type PayloadBuildFormat string
+
+const (
+	PAYLOAD_BUILD_FORMAT_EXE       PayloadBuildFormat = "exe"
+	PAYLOAD_BUILD_FORMAT_DLL       PayloadBuildFormat = "dll"
+	PAYLOAD_BUILD_FORMAT_SHELLCODE PayloadBuildFormat = "shellcode"
+	PAYLOAD_BUILD_FORMAT_MACHO     PayloadBuildFormat = "macho"
+	PAYLOAD_BUILD_FORMAT_ELF       PayloadBuildFormat = "elf"
+	PAYLOAD_BUILD_FORMAT_SO        PayloadBuildFormat = "so"
+	PAYLOAD_BUILD_FORMAT_DYLIB     PayloadBuildFormat = "dylib"
+)
+
+// WrapperPayloadRequirementRequires defines every file property a wrapper can
+// require. PayloadType is optional; the other fields describe the output file.
+type WrapperPayloadRequirementRequires struct {
+	OS           string                   `json:"os"`
+	Architecture PayloadBuildArchitecture `json:"architecture"`
+	Format       PayloadBuildFormat       `json:"format"`
+	PayloadType  string                   `json:"payload_type,omitempty"`
+}
+
+// WrapperPayloadRequirementWhen activates a wrapper requirement when the
+// named build parameter has the specified value.
+type WrapperPayloadRequirementWhen struct {
+	BuildParameterName  string `json:"build_parameter_name"`
+	BuildParameterValue string `json:"build_parameter_value"`
+}
+
+type WrapperPayloadRequirementWhenConditions []WrapperPayloadRequirementWhen
+
+func (conditions WrapperPayloadRequirementWhenConditions) MarshalJSON() ([]byte, error) {
+	when := make(map[string]string, len(conditions))
+	for _, condition := range conditions {
+		when[condition.BuildParameterName] = condition.BuildParameterValue
+	}
+	return json.Marshal(when)
+}
+
+// WrapperPayloadRequirement is one accepted metadata combination. Rules are
+// ORed together. Every optional When condition must match to activate its rule.
+type WrapperPayloadRequirement struct {
+	When     WrapperPayloadRequirementWhenConditions `json:"when,omitempty"`
+	Requires WrapperPayloadRequirementRequires       `json:"requires"`
+}
+
 type BuildParameterHideCondition struct {
 	Name    string               `json:"name"`
 	Operand HideConditionOperand `json:"operand"`
@@ -130,8 +184,8 @@ type PayloadType struct {
 	SupportedOS []string `json:"supported_os"`
 	// Wrapper - Is this a payload type a wrapper for other payload types or is it a regular payload type
 	Wrapper bool `json:"wrapper"`
-	// CanBeWrappedByTheFollowingPayloadTypes - Which wrapper payload types does this payload type support (i.e. If this payload type can be supplied to the service_wrapper payload type, list service_wrapper here)
-	CanBeWrappedByTheFollowingPayloadTypes []string `json:"supported_wrapper_payload_types"`
+	// WrapperPayloadRequirements - OR rules describing the exact payload metadata this wrapper accepts
+	WrapperPayloadRequirements []WrapperPayloadRequirement `json:"wrapper_payload_requirements"`
 	// SupportsDynamicLoading - Does this payload type allow you to dynamically select which commands are loaded into the base payload? If so, set this to True, otherwise all commands are baked into the agent all the time.
 	SupportsDynamicLoading bool `json:"supports_dynamic_load"`
 	// Description - The description of the payload type to show in the Mythic UI

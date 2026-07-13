@@ -325,6 +325,13 @@ const (
 	PAYLOAD_BUILD_STATUS_ERROR                        = "error"
 )
 
+// PayloadBuildMetadata describes the generated file. Mythic records the
+// selected OS itself, so payload builders only set architecture and format.
+type PayloadBuildMetadata struct {
+	Architecture PayloadBuildArchitecture `json:"architecture"`
+	Format       PayloadBuildFormat       `json:"format"`
+}
+
 // PayloadBuildResponse - The result of calling a payload type's build function. This returns not only the actual
 // payload bytes, but surrounding metadata such as updated filenames, command lists, and stdout/stderr messages.
 type PayloadBuildResponse struct {
@@ -345,4 +352,6 @@ type PayloadBuildResponse struct {
 	BuildStdOut string `json:"build_stdout"`
 	// BuildMessage - general message to associate with the build. Usually not as verbose as the stdout/stderr.
 	BuildMessage string `json:"build_message"`
+	// BuildMetadata - architecture and output format of the generated file
+	BuildMetadata *PayloadBuildMetadata `json:"build_metadata,omitempty"`
 }

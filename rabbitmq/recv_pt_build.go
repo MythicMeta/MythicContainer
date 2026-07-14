@@ -24,13 +24,20 @@ func WrapPayloadBuild(ctx context.Context, msg []byte) {
 		payloadBuildResponse.Success = false
 	} else {
 		if payloadBuildMsg.WrappedPayloadUUID != nil && *payloadBuildMsg.WrappedPayloadUUID != "" {
-			fileContents, err := mythicutils.GetFileFromMythic(*payloadBuildMsg.WrappedPayloadUUID)
+			directFileToken, err := RequestDirectFileToken(ctx, *payloadBuildMsg.WrappedPayloadUUID, "download")
 			if err != nil {
+				logging.LogError(err, "Failed to create direct file download token")
 				payloadBuildResponse.Success = false
-				payloadBuildResponse.BuildStdErr = "Failed to get file contents of wrapped payload"
+				payloadBuildResponse.BuildStdErr += "\nFailed to get file contents of wrapped payload"
 			} else {
-				payloadBuildMsg.WrappedPayload = fileContents
-				payloadBuildResponse = payloadBuildFunc(ctx, payloadBuildMsg)
+				fileContents, err := mythicutils.GetFileFromMythic(ctx, *payloadBuildMsg.WrappedPayloadUUID, directFileToken)
+				if err != nil {
+					payloadBuildResponse.Success = false
+					payloadBuildResponse.BuildStdErr = "Failed to get file contents of wrapped payload"
+				} else {
+					payloadBuildMsg.WrappedPayload = fileContents
+					payloadBuildResponse = payloadBuildFunc(ctx, payloadBuildMsg)
+				}
 			}
 		} else {
 			payloadBuildResponse = payloadBuildFunc(ctx, payloadBuildMsg)
@@ -38,7 +45,11 @@ func WrapPayloadBuild(ctx context.Context, msg []byte) {
 	}
 	// handle sending off the payload via a web request separately from the rest of the message
 	if payloadBuildResponse.Payload != nil {
-		if err := mythicutils.SendFileToMythic(payloadBuildResponse.Payload, payloadBuildMsg.PayloadFileUUID); err != nil {
+		directFileToken, err := RequestDirectFileToken(ctx, payloadBuildMsg.PayloadFileUUID, "upload")
+		if err == nil {
+			err = mythicutils.SendFileToMythic(ctx, payloadBuildResponse.Payload, payloadBuildMsg.PayloadFileUUID, directFileToken)
+		}
+		if err != nil {
 			logging.LogError(err, "Failed to send payload back to Mythic via web request")
 			payloadBuildResponse.BuildMessage = payloadBuildResponse.BuildMessage + "\nFailed to send payload back to Mythic: " + err.Error()
 			payloadBuildResponse.Success = false

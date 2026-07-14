@@ -40,7 +40,13 @@ func SendMythicRPCFileUpdate(ctx context.Context, input MythicRPCFileUpdateMessa
 		return nil, err
 	} else if response.Success {
 		if input.ReplaceContents != nil {
-			if err := mythicutils.SendFileToMythic(input.ReplaceContents, input.AgentFileID); err != nil {
+			directFileToken, err := getDirectFileToken(ctx, input.AgentFileID, "upload")
+			if err != nil {
+				response.Success = false
+				response.Error = err.Error()
+				return &response, nil
+			}
+			if err := mythicutils.SendFileToMythic(ctx, input.ReplaceContents, input.AgentFileID, directFileToken); err != nil {
 				response.Success = false
 				response.Error = err.Error()
 			}

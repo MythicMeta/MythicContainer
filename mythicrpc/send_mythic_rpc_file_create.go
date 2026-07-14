@@ -45,7 +45,12 @@ func SendMythicRPCFileCreate(ctx context.Context, input MythicRPCFileCreateMessa
 		logging.LogError(err, "Failed to parse response back to struct", "response", response)
 		return nil, err
 	} else if response.Success {
-		if err := mythicutils.SendFileToMythic(&input.FileContents, response.AgentFileID); err != nil {
+		directFileToken, err := getDirectFileToken(ctx, response.AgentFileID, "upload")
+		if err != nil {
+			logging.LogError(err, "Failed to create direct file upload token")
+			return nil, err
+		}
+		if err := mythicutils.SendFileToMythic(ctx, &input.FileContents, response.AgentFileID, directFileToken); err != nil {
 			logging.LogError(err, "Failed to send file contents to Mythic")
 			return nil, err
 		} else {

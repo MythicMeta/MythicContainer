@@ -17,7 +17,13 @@ type MythicRPCPayloadGetContentMessageResponse struct {
 
 func SendMythicRPCPayloadGetContent(ctx context.Context, input MythicRPCPayloadGetContentMessage) (*MythicRPCPayloadGetContentMessageResponse, error) {
 	response := MythicRPCPayloadGetContentMessageResponse{}
-	if contents, err := mythicutils.GetFileFromMythic(input.PayloadUUID); err != nil {
+	directFileToken, err := getDirectFileToken(ctx, input.PayloadUUID, "download")
+	if err != nil {
+		response.Error = err.Error()
+		response.Success = false
+		return &response, nil
+	}
+	if contents, err := mythicutils.GetFileFromMythic(ctx, input.PayloadUUID, directFileToken); err != nil {
 		response.Error = err.Error()
 		response.Success = false
 	} else {
@@ -25,21 +31,4 @@ func SendMythicRPCPayloadGetContent(ctx context.Context, input MythicRPCPayloadG
 		response.Content = *contents
 	}
 	return &response, nil
-	/*
-		if responseBytes, err := rabbitmq.RabbitMQConnection.SendRPCStructMessageWithContext(
-		ctx,
-			rabbitmq.MYTHIC_EXCHANGE,
-			rabbitmq.MYTHIC_RPC_PAYLOAD_GET_PAYLOAD_CONTENT,
-			input,
-		); err != nil {
-			logging.LogError(err, "Failed to send RPC message")
-			return nil, err
-		} else if err := json.Unmarshal(responseBytes, &response); err != nil {
-			logging.LogError(err, "Failed to parse response back to struct", "response", response)
-			return nil, err
-		} else {
-			return &response, nil
-		}
-
-	*/
 }

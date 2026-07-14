@@ -17,7 +17,13 @@ type MythicRPCFileGetContentMessageResponse struct {
 
 func SendMythicRPCFileGetContent(ctx context.Context, input MythicRPCFileGetContentMessage) (*MythicRPCFileGetContentMessageResponse, error) {
 	response := MythicRPCFileGetContentMessageResponse{}
-	if content, err := mythicutils.GetFileFromMythic(input.AgentFileID); err != nil {
+	directFileToken, err := getDirectFileToken(ctx, input.AgentFileID, "download")
+	if err != nil {
+		response.Success = false
+		response.Error = err.Error()
+		return &response, nil
+	}
+	if content, err := mythicutils.GetFileFromMythic(ctx, input.AgentFileID, directFileToken); err != nil {
 		response.Success = false
 		response.Error = err.Error()
 		return &response, nil

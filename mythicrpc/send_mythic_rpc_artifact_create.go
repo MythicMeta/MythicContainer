@@ -17,6 +17,8 @@ type MythicRPCArtifactCreateMessage struct {
 	BaseArtifactType string `json:"base_artifact"`
 	// ArtifactHost (Optional) - what's the hostname for where this artifact happened? If none is specified, it's assumed to be the same host where the task ran
 	ArtifactHost *string `json:"host,omitempty"`
+	// NeedsCleanup (Optional) - should this artifact be cleaned up?
+	NeedsCleanup bool `json:"needs_cleanup"`
 }
 type MythicRPCArtifactCreateMessageResponse struct {
 	Success bool   `json:"success"`

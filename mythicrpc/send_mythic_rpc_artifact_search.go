@@ -32,6 +32,8 @@ type MythicRPCArtifactearchArtifactData struct {
 	// TaskID (Optional) - When searching, you can filter your artifacts to those created by a certain task.
 	// As a response, this will always be populated.
 	TaskID *int `json:"task_id"` //optional
+	// NeedsCleanup (Optional) - When searching, you can filter for artifacts that need cleaned up
+	NeedsCleanup *bool `json:"needs_cleanup"`
 }
 
 // SendMythicRPCArtifactSearch - Search for artifacts that are tracked by Mythic.

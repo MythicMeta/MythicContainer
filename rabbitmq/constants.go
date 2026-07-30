@@ -18,7 +18,7 @@ const (
 	TASK_STATUS_CONTAINER_DOWN             = "Error: Container Down"
 )
 
-const containerVersion = "v1.4.3"
+const containerVersion = "v1.5.0"
 
 var containerVersionMessage = fmt.Sprintf("This version needs Mythic 3.4.8+. This " +
 	"has MythicRPC breaking changes from v1.5.2 and below due to a change in some parameter name changes.")

@@ -289,6 +289,8 @@ type Command struct {
 	TaskFunctionParseArgDictionary PtTaskFunctionParseArgDictionary `json:"-"`
 	// TaskCompletionFunctions - If your TaskFunctionCreateTasking function or any of your subtasks have completion functions, define them here
 	TaskCompletionFunctions map[string]PTTaskCompletionFunction `json:"-"`
+	// AgentRPCFunction handles command asynchronous function requests initiated by an agent
+	AgentRPCFunction PTTaskAgentRPCFunction `json:"-"`
 }
 type CommandParameterType = string
 

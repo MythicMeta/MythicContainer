@@ -377,6 +377,27 @@ type PTTaskProcessResponseMessageResponse struct {
 	Error   string `json:"error"`
 }
 
+// PTTaskAgentRPCMessage is an asynchronous command-wide RPC request initiated
+// by an agent. The request is routed using TaskData.PayloadType.
+type PTTaskAgentRPCMessage struct {
+	TaskData  *PTTaskMessageAllData `json:"task"`
+	Name      string                `json:"name"`
+	Arguments any                   `json:"arguments"`
+}
+
+// PTTaskAgentRPCFunction handles a command-wide agent RPC request. Payload
+// authors choose Status and Output; the container runtime overwrites the
+// response correlation fields from the supplied task.
+type PTTaskAgentRPCFunction func(context.Context, *PTTaskMessageAllData, string, any) PTTaskAgentRPCMessageResponse
+
+// PTTaskAgentRPCMessageResponse is published asynchronously to Mythic.
+type PTTaskAgentRPCMessageResponse struct {
+	CallbackID  int    `json:"callback_id"`
+	AgentTaskID string `json:"agent_task_id"`
+	Status      string `json:"status"`
+	Output      any    `json:"output"`
+}
+
 // On New Callback Structs
 
 type PTOnNewCallbackAllData struct {

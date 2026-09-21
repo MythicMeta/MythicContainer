@@ -147,6 +147,9 @@ func resolveContainerListPath(basePath string, requestedPath string) (string, er
 	if relativePath == ".." || strings.HasPrefix(relativePath, fmt.Sprintf("..%c", os.PathSeparator)) {
 		return "", fmt.Errorf("requested path is outside of the container folder")
 	}
+	if !strings.HasPrefix(target, base) {
+		return "", fmt.Errorf("requested path is outside of the container folder")
+	}
 	return target, nil
 }
 
@@ -156,7 +159,7 @@ func listContainerFiles(basePath string, inputStruct sharedStructs.ContainerRPCL
 	}
 	path, err := resolveContainerListPath(basePath, inputStruct.Path)
 	if err != nil {
-		logging.LogError(err, "Failed to get c2 server folder path")
+		logging.LogError(err, "Failed to get folder path")
 		responseMsg.Error = err.Error()
 		return responseMsg
 	}

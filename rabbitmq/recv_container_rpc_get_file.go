@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	agentstructs "github.com/MythicMeta/MythicContainer/agent_structs"
 	"github.com/MythicMeta/MythicContainer/authstructs"
@@ -93,6 +94,10 @@ func ContainerRPCGetFile(inputStruct sharedStructs.ContainerRPCGetFileMessage) s
 				responseMsg.Error = fmt.Sprintf("Failed to locate file: %s\n", err.Error())
 				return responseMsg
 			}
+			if !strings.HasPrefix(filePath, c2structs.AllC2Data.Get(inputStruct.ContainerName).GetC2ServerFolderPath()) {
+				responseMsg.Error = fmt.Sprintf("File path %s is not within the container's C2 server folder path %s", filePath, c2structs.AllC2Data.Get(inputStruct.ContainerName).GetC2ServerFolderPath())
+				return responseMsg
+			}
 			file, err := os.Open(filePath)
 			if err != nil {
 				responseMsg.Error = fmt.Sprintf("Failed to open file: %s", err.Error())
@@ -100,9 +105,11 @@ func ContainerRPCGetFile(inputStruct sharedStructs.ContainerRPCGetFileMessage) s
 			}
 			contents, err := io.ReadAll(file)
 			if err != nil {
+				file.Close()
 				responseMsg.Error = fmt.Sprintf("Failed to read file: %s", err.Error())
 				return responseMsg
 			}
+			file.Close()
 			responseMsg.Success = true
 			responseMsg.Message = contents
 			return responseMsg
@@ -157,6 +164,10 @@ func genericContainerGetFile(inputStruct sharedStructs.ContainerRPCGetFileMessag
 		responseMsg.Error = fmt.Sprintf("Failed to locate file: %s\n", err.Error())
 		return responseMsg
 	}
+	if !strings.HasPrefix(filePath, helpers.GetCwdFromExe()) {
+		responseMsg.Error = fmt.Sprintf("File path %s is not within the container's path %s", filePath, helpers.GetCwdFromExe())
+		return responseMsg
+	}
 	file, err := os.Open(filePath)
 	if err != nil {
 		responseMsg.Error = fmt.Sprintf("Failed to open file: %s", err.Error())
@@ -164,9 +175,11 @@ func genericContainerGetFile(inputStruct sharedStructs.ContainerRPCGetFileMessag
 	}
 	contents, err := io.ReadAll(file)
 	if err != nil {
+		file.Close()
 		responseMsg.Error = fmt.Sprintf("Failed to read file: %s", err.Error())
 		return responseMsg
 	}
+	file.Close()
 	responseMsg.Success = true
 	responseMsg.Message = contents
 	return responseMsg

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	agentstructs "github.com/MythicMeta/MythicContainer/agent_structs"
 	"github.com/MythicMeta/MythicContainer/authstructs"
@@ -94,6 +95,12 @@ func ContainerRPCWriteFile(inputStruct sharedStructs.ContainerRPCWriteFileMessag
 				responseMsg.Error = fmt.Sprintf("Failed to locate file: %s\n", err.Error())
 				return responseMsg
 			}
+			if !strings.HasPrefix(filePath, c2structs.AllC2Data.Get(inputStruct.ContainerName).GetC2ServerFolderPath()) {
+				logging.LogError(err, "Requested path is outside of the container folder")
+				responseMsg.Error = fmt.Sprintf("Requested path is outside of the container folder: %s\n", filePath)
+				responseMsg.Success = false
+				return responseMsg
+			}
 			err = os.WriteFile(filePath, inputStruct.Contents, 0644)
 			if err != nil {
 				responseMsg.Error = fmt.Sprintf("Failed to open file: %s", err.Error())
@@ -150,6 +157,12 @@ func genericContainerWriteFile(inputStruct sharedStructs.ContainerRPCWriteFileMe
 	if err != nil {
 		logging.LogError(err, "Failed to get absolute filepath for file to get")
 		responseMsg.Error = fmt.Sprintf("Failed to locate file: %s\n", err.Error())
+		return responseMsg
+	}
+	if !strings.HasPrefix(filePath, helpers.GetCwdFromExe()) {
+		logging.LogError(err, "Requested path is outside of the container folder")
+		responseMsg.Error = fmt.Sprintf("Requested path is outside of the container folder: %s\n", filePath)
+		responseMsg.Success = false
 		return responseMsg
 	}
 	err = os.WriteFile(filePath, inputStruct.Contents, 0644)

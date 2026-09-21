@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	agentstructs "github.com/MythicMeta/MythicContainer/agent_structs"
 	"github.com/MythicMeta/MythicContainer/authstructs"
@@ -89,6 +90,14 @@ func ContainerRPCRemoveFile(inputStruct sharedStructs.ContainerRPCRemoveFileMess
 			if err != nil {
 				logging.LogError(err, "Failed to get absolute filepath for file to remove")
 				responseMsg.Error = fmt.Sprintf("Failed to locate file: %s\n", err.Error())
+				responseMsg.Success = false
+				return responseMsg
+			}
+			if !strings.HasPrefix(filePath, c2structs.AllC2Data.Get(inputStruct.ContainerName).GetC2ServerFolderPath()) {
+				logging.LogError(err, "Requested path is outside of the container folder")
+				responseMsg.Error = fmt.Sprintf("Requested path is outside of the container folder: %s\n", filePath)
+				responseMsg.Success = false
+				return responseMsg
 			}
 			err = os.Remove(filePath)
 			if err != nil {
@@ -144,6 +153,14 @@ func genericContainerRemoveFile(inputStruct sharedStructs.ContainerRPCRemoveFile
 	if err != nil {
 		logging.LogError(err, "Failed to get absolute filepath for file to remove")
 		responseMsg.Error = fmt.Sprintf("Failed to locate file: %s\n", err.Error())
+		responseMsg.Success = false
+		return responseMsg
+	}
+	if !strings.HasPrefix(filePath, helpers.GetCwdFromExe()) {
+		logging.LogError(err, "Requested path is outside of the container folder")
+		responseMsg.Error = fmt.Sprintf("Requested path is outside of the container folder: %s\n", filePath)
+		responseMsg.Success = false
+		return responseMsg
 	}
 	err = os.Remove(filePath)
 	if err != nil {
